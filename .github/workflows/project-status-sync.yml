@@ -1,0 +1,305 @@
+name: Sync Project Status from Issue Flow
+
+on:
+  issues:
+    types: [opened]
+  create:
+  push:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  sync-status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync issue status in project
+        uses: actions/github-script@v7
+        env:
+          PROJECT_OWNER: mastarTrack
+          PROJECT_NUMBER: "7"
+
+          STATUS_BACKLOG: Backlog
+          STATUS_READY: Ready
+          STATUS_IN_PROGRESS: In progress
+          STATUS_IN_REVIEW: In review
+        with:
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          script: |
+            const repoOwner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            const PROJECT_OWNER = process.env.PROJECT_OWNER;
+            const PROJECT_NUMBER = Number(process.env.PROJECT_NUMBER);
+
+            const STATUS = {
+              backlog: process.env.STATUS_BACKLOG || "Backlog",
+              ready: process.env.STATUS_READY || "Ready",
+              inProgress: process.env.STATUS_IN_PROGRESS || "In Progress",
+              inReview: process.env.STATUS_IN_REVIEW || "In Review",
+            };
+
+            let cachedProject = null;
+            let cachedStatusField = null;
+
+            function uniqueNumbers(values) {
+              return [...new Set(values.filter(Boolean).map(Number))];
+            }
+
+            function extractIssueNumbersFromBranch(branchName) {
+              if (!branchName) return [];
+              const matches = [...branchName.matchAll(/#(\d+)/g)];
+              return uniqueNumbers(matches.map(m => m[1]));
+            }
+
+            function extractIssueNumbersFromRefText(text) {
+              if (!text) return [];
+              const matches = [
+                ...text.matchAll(/(?:^|\s)refs?\s+#(\d+)\b/gi),
+                ...text.matchAll(/(?:^|\s)(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#(\d+)\b/gi),
+              ];
+              return uniqueNumbers(matches.map(m => m[1]));
+            }
+
+            function extractIssueNumbersFromPR(pr) {
+              const fromBranch = extractIssueNumbersFromBranch(pr?.head?.ref || "");
+              const fromText = extractIssueNumbersFromRefText(
+                `${pr?.title || ""}\n${pr?.body || ""}`
+              );
+              return uniqueNumbers([...fromBranch, ...fromText]);
+            }
+
+            async function getProject() {
+              if (cachedProject) return cachedProject;
+
+              const data = await github.graphql(
+                `
+                query($projectOwner: String!, $projectNumber: Int!) {
+                  organization(login: $projectOwner) {
+                    projectV2(number: $projectNumber) {
+                      id
+                      number
+                      fields(first: 100) {
+                        nodes {
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            options {
+                              id
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                  user(login: $projectOwner) {
+                    projectV2(number: $projectNumber) {
+                      id
+                      number
+                      fields(first: 100) {
+                        nodes {
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            options {
+                              id
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                `,
+                {
+                  projectOwner: PROJECT_OWNER,
+                  projectNumber: PROJECT_NUMBER,
+                }
+              );
+
+              cachedProject = data.organization?.projectV2 ?? data.user?.projectV2;
+
+              if (!cachedProject) {
+                throw new Error(`Project not found: ${PROJECT_OWNER} / #${PROJECT_NUMBER}`);
+              }
+
+              return cachedProject;
+            }
+
+            async function getStatusField() {
+              if (cachedStatusField) return cachedStatusField;
+
+              const project = await getProject();
+              const statusField = project.fields.nodes.find(
+                field => field && field.name === "Status"
+              );
+
+              if (!statusField) {
+                throw new Error('Status field not found in the project.');
+              }
+
+              cachedStatusField = statusField;
+              return cachedStatusField;
+            }
+
+            async function getIssueAndItem(issueNumber) {
+              const data = await github.graphql(
+                `
+                query($owner: String!, $repo: String!, $issueNumber: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $issueNumber) {
+                      id
+                      number
+                      projectItems(first: 100) {
+                        nodes {
+                          id
+                          project {
+                            ... on ProjectV2 {
+                              id
+                              number
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                `,
+                {
+                  owner: repoOwner,
+                  repo: repoName,
+                  issueNumber,
+                }
+              );
+
+              return data.repository?.issue ?? null;
+            }
+
+            async function ensureProjectItem(issueNumber) {
+              const project = await getProject();
+              const issue = await getIssueAndItem(issueNumber);
+
+              if (!issue) {
+                core.warning(`Issue #${issueNumber} not found in ${repoOwner}/${repoName}`);
+                return null;
+              }
+
+              let itemId = issue.projectItems.nodes.find(
+                node => node.project?.number === PROJECT_NUMBER
+              )?.id;
+
+              if (!itemId) {
+                const added = await github.graphql(
+                  `
+                  mutation($projectId: ID!, $contentId: ID!) {
+                    addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+                      item {
+                        id
+                      }
+                    }
+                  }
+                  `,
+                  {
+                    projectId: project.id,
+                    contentId: issue.id,
+                  }
+                );
+
+                itemId = added.addProjectV2ItemById.item.id;
+              }
+
+              return itemId;
+            }
+
+            async function moveIssueToStatus(issueNumber, statusName) {
+              const project = await getProject();
+              const statusField = await getStatusField();
+
+              const option = statusField.options.find(opt => opt.name === statusName);
+              if (!option) {
+                throw new Error(`Status option "${statusName}" not found.`);
+              }
+
+              const itemId = await ensureProjectItem(issueNumber);
+              if (!itemId) return;
+
+              await github.graphql(
+                `
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(
+                    input: {
+                      projectId: $projectId
+                      itemId: $itemId
+                      fieldId: $fieldId
+                      value: { singleSelectOptionId: $optionId }
+                    }
+                  ) {
+                    projectV2Item {
+                      id
+                    }
+                  }
+                }
+                `,
+                {
+                  projectId: project.id,
+                  itemId,
+                  fieldId: statusField.id,
+                  optionId: option.id,
+                }
+              );
+
+              core.info(`Moved issue #${issueNumber} -> ${statusName}`);
+            }
+
+            async function run() {
+              const eventName = context.eventName;
+              const action = context.payload.action;
+              let issueNumbers = [];
+              let targetStatus = null;
+
+              if (eventName === "issues" && action === "opened") {
+                issueNumbers = [context.payload.issue.number];
+                targetStatus = STATUS.backlog;
+              }
+
+              if (eventName === "create" && context.payload.ref_type === "branch") {
+                issueNumbers = extractIssueNumbersFromBranch(context.payload.ref || "");
+                targetStatus = STATUS.ready;
+              }
+
+              if (eventName === "push") {
+                const commits = context.payload.commits || [];
+                issueNumbers = uniqueNumbers(
+                  commits.flatMap(commit => extractIssueNumbersFromRefText(commit.message || ""))
+                );
+                targetStatus = STATUS.inProgress;
+              }
+
+              if (eventName === "pull_request") {
+                const pr = context.payload.pull_request;
+
+                if ((action === "opened" || action === "reopened") && pr.draft) {
+                  core.info("Draft PR detected. Waiting for ready_for_review.");
+                  return;
+                }
+
+                issueNumbers = extractIssueNumbersFromPR(pr);
+                targetStatus = STATUS.inReview;
+              }
+
+              if (!targetStatus || issueNumbers.length === 0) {
+                core.info("No matching issue numbers or target status.");
+                return;
+              }
+
+              for (const issueNumber of issueNumbers) {
+                await moveIssueToStatus(issueNumber, targetStatus);
+              }
+            }
+
+            await run();

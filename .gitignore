@@ -60,3 +60,19 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+.gitmessage.txt
+
+# Supabase
+supabase/.env
+supabase/functions/.env
+supabase/.env.local
+
+# macOS
+.DS_Store
+
+# Claude
+CLAUDE.md
+docs/
+.claude/
+.claudeignore
