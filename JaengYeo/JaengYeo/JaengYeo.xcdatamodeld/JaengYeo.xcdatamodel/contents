@@ -20,7 +20,7 @@
         <attribute name="isFavorite" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isLowStockNotificationEnabled" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="locationMemo" optional="YES" attributeType="String"/>
-        <attribute name="lowStockThreshold" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lowStockThreshold" attributeType="Integer 32" defaultValueString="1" usesScalarValueType="YES"/>
         <attribute name="mainCategory" attributeType="String"/>
         <attribute name="memo" optional="YES" attributeType="String"/>
         <attribute name="midCategoryId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
