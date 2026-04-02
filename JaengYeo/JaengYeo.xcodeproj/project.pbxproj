@@ -6,6 +6,21 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8AB4178E2F7E352E002B7DAB /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB4178D2F7E352E002B7DAB /* RxCocoa */; };
+		8AB417902F7E352E002B7DAB /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB4178F2F7E352E002B7DAB /* RxRelay */; };
+		8AB417922F7E352E002B7DAB /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417912F7E352E002B7DAB /* RxSwift */; };
+		8AB417952F7E3539002B7DAB /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417942F7E3539002B7DAB /* Then */; };
+		8AB417982F7E3548002B7DAB /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417972F7E3548002B7DAB /* SnapKit */; };
+		8AB4179B2F7E3553002B7DAB /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB4179A2F7E3553002B7DAB /* Alamofire */; };
+		8AB4179E2F7E358D002B7DAB /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB4179D2F7E358D002B7DAB /* Kingfisher */; };
+		8AB417A12F7E3613002B7DAB /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417A02F7E3613002B7DAB /* Auth */; };
+		8AB417A32F7E3613002B7DAB /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417A22F7E3613002B7DAB /* Functions */; };
+		8AB417A52F7E3613002B7DAB /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417A42F7E3613002B7DAB /* PostgREST */; };
+		8AB417A72F7E3613002B7DAB /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417A62F7E3613002B7DAB /* Supabase */; };
+		8AB417AA2F7E3637002B7DAB /* RxKeyboard in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417A92F7E3637002B7DAB /* RxKeyboard */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		8AB417712F7E321D002B7DAB /* JaengYeo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JaengYeo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +51,18 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8AB417A72F7E3613002B7DAB /* Supabase in Frameworks */,
+				8AB417AA2F7E3637002B7DAB /* RxKeyboard in Frameworks */,
+				8AB417922F7E352E002B7DAB /* RxSwift in Frameworks */,
+				8AB417902F7E352E002B7DAB /* RxRelay in Frameworks */,
+				8AB4179E2F7E358D002B7DAB /* Kingfisher in Frameworks */,
+				8AB417A32F7E3613002B7DAB /* Functions in Frameworks */,
+				8AB417A52F7E3613002B7DAB /* PostgREST in Frameworks */,
+				8AB4178E2F7E352E002B7DAB /* RxCocoa in Frameworks */,
+				8AB4179B2F7E3553002B7DAB /* Alamofire in Frameworks */,
+				8AB417952F7E3539002B7DAB /* Then in Frameworks */,
+				8AB417A12F7E3613002B7DAB /* Auth in Frameworks */,
+				8AB417982F7E3548002B7DAB /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +105,18 @@
 			);
 			name = JaengYeo;
 			packageProductDependencies = (
+				8AB4178D2F7E352E002B7DAB /* RxCocoa */,
+				8AB4178F2F7E352E002B7DAB /* RxRelay */,
+				8AB417912F7E352E002B7DAB /* RxSwift */,
+				8AB417942F7E3539002B7DAB /* Then */,
+				8AB417972F7E3548002B7DAB /* SnapKit */,
+				8AB4179A2F7E3553002B7DAB /* Alamofire */,
+				8AB4179D2F7E358D002B7DAB /* Kingfisher */,
+				8AB417A02F7E3613002B7DAB /* Auth */,
+				8AB417A22F7E3613002B7DAB /* Functions */,
+				8AB417A42F7E3613002B7DAB /* PostgREST */,
+				8AB417A62F7E3613002B7DAB /* Supabase */,
+				8AB417A92F7E3637002B7DAB /* RxKeyboard */,
 			);
 			productName = JaengYeo;
 			productReference = 8AB417712F7E321D002B7DAB /* JaengYeo.app */;
@@ -107,6 +146,15 @@
 			);
 			mainGroup = 8AB417682F7E321D002B7DAB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8AB4178C2F7E352E002B7DAB /* XCRemoteSwiftPackageReference "RxSwift" */,
+				8AB417932F7E3539002B7DAB /* XCRemoteSwiftPackageReference "Then" */,
+				8AB417962F7E3548002B7DAB /* XCRemoteSwiftPackageReference "SnapKit" */,
+				8AB417992F7E3553002B7DAB /* XCRemoteSwiftPackageReference "Alamofire" */,
+				8AB4179C2F7E358D002B7DAB /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				8AB4179F2F7E3613002B7DAB /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				8AB417A82F7E3637002B7DAB /* XCRemoteSwiftPackageReference "RxKeyboard" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8AB417722F7E321D002B7DAB /* Products */;
 			projectDirPath = "";
@@ -351,6 +399,128 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8AB4178C2F7E352E002B7DAB /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.10.2;
+			};
+		};
+		8AB417932F7E3539002B7DAB /* XCRemoteSwiftPackageReference "Then" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/devxoul/Then.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+		8AB417962F7E3548002B7DAB /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
+		8AB417992F7E3553002B7DAB /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.11.1;
+			};
+		};
+		8AB4179C2F7E358D002B7DAB /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.8.1;
+			};
+		};
+		8AB4179F2F7E3613002B7DAB /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase-community/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+		8AB417A82F7E3637002B7DAB /* XCRemoteSwiftPackageReference "RxKeyboard" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RxSwiftCommunity/RxKeyboard";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8AB4178D2F7E352E002B7DAB /* RxCocoa */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB4178C2F7E352E002B7DAB /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxCocoa;
+		};
+		8AB4178F2F7E352E002B7DAB /* RxRelay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB4178C2F7E352E002B7DAB /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxRelay;
+		};
+		8AB417912F7E352E002B7DAB /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB4178C2F7E352E002B7DAB /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
+		};
+		8AB417942F7E3539002B7DAB /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB417932F7E3539002B7DAB /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
+		8AB417972F7E3548002B7DAB /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB417962F7E3548002B7DAB /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		8AB4179A2F7E3553002B7DAB /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB417992F7E3553002B7DAB /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		8AB4179D2F7E358D002B7DAB /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB4179C2F7E358D002B7DAB /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		8AB417A02F7E3613002B7DAB /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB4179F2F7E3613002B7DAB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		8AB417A22F7E3613002B7DAB /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB4179F2F7E3613002B7DAB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		8AB417A42F7E3613002B7DAB /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB4179F2F7E3613002B7DAB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		8AB417A62F7E3613002B7DAB /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB4179F2F7E3613002B7DAB /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		8AB417A92F7E3637002B7DAB /* RxKeyboard */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8AB417A82F7E3637002B7DAB /* XCRemoteSwiftPackageReference "RxKeyboard" */;
+			productName = RxKeyboard;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8AB417692F7E321D002B7DAB /* Project object */;
 }
