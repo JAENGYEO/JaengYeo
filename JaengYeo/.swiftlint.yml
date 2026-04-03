@@ -1,9 +1,48 @@
 excluded:
   - JaengYeo.xcdatamodeld
+  - Pods
+  - .build
 
-indentation_width:
-  indentation_width: 4
+only_rules:
+  - fatal_error_message
+  - implicitly_unwrapped_optional
+  - legacy_cggeometry_functions
+  - legacy_constant
+  - legacy_constructor
+  - legacy_nsgeometry_functions
+  - unused_optional_binding
+  - unowned_variable_capture
+  - superfluous_disable_command
+  - invalid_swiftlint_command
+  - custom_rules
 
-line_length:
-  warning: 100
-  error: 130
+custom_rules:
+  no_objcMembers:
+    name: "No @objcMembers"
+    regex: "@objcMembers"
+    message: "Prefer using @objc on individual members. See https://github.com/airbnb/swift#objc-interop for more detail."
+    severity: error
+
+  no_direct_standard_out_logs:
+    name: "No Direct Standard Out Logs"
+    regex: "\\bprint\\(|\\bdebugPrint\\(|\\bdump\\(|Swift\\.print\\(|Swift\\.debugPrint\\(|Swift\\.dump\\("
+    message: "Don't commit print statements."
+    severity: error
+
+  no_file_literal:
+    name: "No #file"
+    regex: "\\b#file\\b"
+    message: "Use #fileID instead of #file."
+    severity: error
+
+  no_filepath_literal:
+    name: "No #filePath"
+    regex: "\\b#filePath\\b"
+    message: "Use #fileID instead of #filePath."
+    severity: error
+
+  no_unchecked_sendable:
+    name: "No @unchecked Sendable"
+    regex: "@unchecked Sendable"
+    message: "Prefer a safe Sendable conformance instead."
+    severity: error
