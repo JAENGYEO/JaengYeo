@@ -2,16 +2,31 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const FOOD_SAFETY_API_KEY = Deno.env.get("FOOD_SAFETY_API_KEY") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const CACHE_TTL_DAYS = 30;
 
+// DB 쓰기용 서비스 롤 클라이언트 — 핸들러 외부에서 초기화하여 요청간 재사용
+const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
 Deno.serve(async (req: Request) => {
   try {
-    // JWT 검증
+    // JWT 유효성 검증 — Authorization 헤더 존재 여부 + 실제 토큰 검증
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "missing_authorization" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
       });
@@ -30,7 +45,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = serviceClient;
 
     // 캐시 조회
     const cacheExpiry = new Date();
