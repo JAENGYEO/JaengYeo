@@ -74,11 +74,11 @@ Deno.serve(async (req: Request) => {
   const geminiData = await geminiRes.json();
   const text = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]";
 
-  // JSON 파싱
+  // JSON 파싱 — Gemini가 설명 텍스트를 섞어 응답할 경우를 대비해 [] 배열 부분만 추출
   let items: unknown[];
   try {
-    const cleaned = text.replace(/```json|```/g, "").trim();
-    items = JSON.parse(cleaned);
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    items = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
     if (!Array.isArray(items)) items = [];
   } catch {
     items = [];
