@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
@@ -65,7 +65,8 @@ Deno.serve(async (req: Request) => {
   });
 
   if (!geminiRes.ok) {
-    return new Response(JSON.stringify({ error: "gemini_api_error" }), {
+    const errBody = await geminiRes.json().catch(() => ({}));
+    return new Response(JSON.stringify({ error: "gemini_api_error", detail: errBody }), {
       status: 502,
       headers: { "Content-Type": "application/json" },
     });
