@@ -42,6 +42,10 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Model/Domain/.gitkeep,
+				Model/DTO/.gitkeep,
+				Repository/.gitkeep,
+				Utils/.gitkeep,
 			);
 			target = 8AB417702F7E321D002B7DAB /* JaengYeo */;
 		};
@@ -113,6 +117,7 @@
 				8AB4176D2F7E321D002B7DAB /* Sources */,
 				8AB4176E2F7E321D002B7DAB /* Frameworks */,
 				8AB4176F2F7E321D002B7DAB /* Resources */,
+				8A5A0E282F7FD99B0007B3F4 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -172,6 +177,7 @@
 				8AB4179C2F7E358D002B7DAB /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				8AB4179F2F7E3613002B7DAB /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				8AB417A82F7E3637002B7DAB /* XCRemoteSwiftPackageReference "RxKeyboard" */,
+				8A5A0E252F7FD8D00007B3F4 /* XCRemoteSwiftPackageReference "SwiftLint" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8AB417722F7E321D002B7DAB /* Products */;
@@ -192,6 +198,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		8A5A0E282F7FD99B0007B3F4 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = " SWIFTLINT=\"${BUILD_DIR%/Build/*}/SourcePackages/artifacts/swiftlint/SwiftLintBinary/SwiftLintBinary.artifactbundle/macos/swiftlint\"                                                                                                         \n                                                                                                                        \n  if [[ -f \"$SWIFTLINT\" ]]; then                                                                                        \n      \"$SWIFTLINT\" lint --config \"${SRCROOT}/.swiftlint.yml\" \"${SRCROOT}\"                                               \n  else                                                                                                                  \n      echo \"warning: swiftlint not found\"                                                                               \n  fi     \n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		8AB4176D2F7E321D002B7DAB /* Sources */ = {
@@ -217,6 +243,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JaengYeo/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -251,6 +278,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = JaengYeo/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -421,6 +449,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		8A5A0E252F7FD8D00007B3F4 /* XCRemoteSwiftPackageReference "SwiftLint" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/realm/SwiftLint";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.63.2;
+			};
+		};
 		8AB4178C2F7E352E002B7DAB /* XCRemoteSwiftPackageReference "RxSwift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
