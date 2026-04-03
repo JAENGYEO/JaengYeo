@@ -1,0 +1,9 @@
+excluded:
+  - JaengYeo.xcdatamodeld
+
+indentation_width:
+  indentation_width: 4
+
+line_length:
+  warning: 100
+  error: 130

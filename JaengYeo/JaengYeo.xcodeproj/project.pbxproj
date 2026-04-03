@@ -113,6 +113,7 @@
 				8AB4176D2F7E321D002B7DAB /* Sources */,
 				8AB4176E2F7E321D002B7DAB /* Frameworks */,
 				8AB4176F2F7E321D002B7DAB /* Resources */,
+				8A5A0E242F7FD5990007B3F4 /* SwiftLint (Airbnb) */,
 			);
 			buildRules = (
 			);
@@ -192,6 +193,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		8A5A0E242F7FD5990007B3F4 /* SwiftLint (Airbnb) */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "SwiftLint (Airbnb)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "TOOL=\"${BUILD_DIR%/Build/*}/SourcePackages/artifacts/swift/AirbnbSwiftFormatTool/AirbnbSwiftFormatTool.artifactbundle/AirbnbSwiftFormatTool-macosx/bin/AirbnbSwiftFormatTool\"                                                               \n                                                                                                                        \n  if [[ -f \"$TOOL\" ]]; then                                                                                             \n      \"$TOOL\" lint \"${SRCROOT}\"                                                                                         \n  else                                                                                                                  \n      echo \"warning: AirbnbSwiftFormatTool not found.\"                                                               \n  fi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		8AB4176D2F7E321D002B7DAB /* Sources */ = {
