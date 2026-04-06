@@ -6,8 +6,8 @@
 //
 //
 
-public import Foundation
-public import CoreData
+import Foundation
+import CoreData
 
 
 public typealias SubCategoryEntityCoreDataPropertiesSet = NSSet
@@ -28,7 +28,6 @@ extension SubCategoryEntity {
     @NSManaged public var createdAt: Date
     @NSManaged public var updatedAt: Date
     @NSManaged public var syncStatus: String
-
 }
 
 extension SubCategoryEntity : Identifiable {
