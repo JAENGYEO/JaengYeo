@@ -9,6 +9,15 @@
 import CoreData
 import Foundation
 
+/// DB 싱크 여부 타입
+enum SyncStatus: String {
+    case synced = "synced"
+    case pendingUpload = "pendingUpload"
+    case pendingDelete = "pendingDelete"
+}
+
+
+/// JAENGYEO CoreDataManger
 final class CoreDataManager {
     // MARK: CoreData 기본 설정
     private let persistentContainer: NSPersistentContainer
@@ -22,7 +31,7 @@ final class CoreDataManager {
         }
     }
 
-    func saveContext() {
+    private func saveContext() {
         let context = persistentContainer.viewContext
 
         if context.hasChanges {
@@ -52,12 +61,7 @@ final class CoreDataManager {
 extension CoreDataManager {
     // MARK: SubCategory Create
     func createSubCategory(_ payload: borrowing SubCategoryPayload) throws {
-        guard let entityDescription = NSEntityDescription.entity(
-            forEntityName: "SubCategoryEntity",
-            in: context
-        ) else {
-            throw CoreDataError.descriptionLoadFailed
-        }
+        let entityDescription = SubCategoryEntity.entity()
 
         let entity = SubCategoryEntity(entity: entityDescription, insertInto: context)
 
@@ -141,17 +145,6 @@ extension CoreDataManager {
         }
     }
 
-    // MARK: SubCategory Delete
-    func deleteSubCategory(of id: UUID) throws {
-        let entity = try fetchSubCategoryEntity(of: id)
-        context.delete(entity)
-
-        do {
-            try context.save()
-        } catch {
-            throw CoreDataError.saveFailed
-        }
-    }
 
     // MARK: SubCategory Private Fetch
     private func fetchSubCategoryEntity(of id: UUID) throws -> SubCategoryEntity {
@@ -176,12 +169,7 @@ extension CoreDataManager {
 extension CoreDataManager {
     // MARK: MidCategory Create
     func createMidCategory(_ payload: borrowing MidCategoryPayload) throws {
-        guard let entityDescription = NSEntityDescription.entity(
-            forEntityName: "MidCategoryEntity",
-            in: context
-        ) else {
-            throw CoreDataError.descriptionLoadFailed
-        }
+        let entityDescription = MidCategoryEntity.entity()
 
         let entity = MidCategoryEntity(entity: entityDescription, insertInto: context)
 
@@ -261,17 +249,6 @@ extension CoreDataManager {
         }
     }
 
-    // MARK: MidCategory Delete
-    func deleteMidCategory(of id: UUID) throws {
-        let entity = try fetchMidCategoryEntity(of: id)
-        context.delete(entity)
-
-        do {
-            try context.save()
-        } catch {
-            throw CoreDataError.saveFailed
-        }
-    }
 
     // MARK: MidCategory Private Fetch
     private func fetchMidCategoryEntity(of id: UUID) throws -> MidCategoryEntity {
@@ -298,12 +275,7 @@ extension CoreDataManager {
 extension CoreDataManager {
     // MARK: Product Create
     func createProduct(_ payload: borrowing ProductPayload) throws {
-        guard let entityDescription = NSEntityDescription.entity(
-            forEntityName: "ProductEntity",
-            in: context
-        ) else {
-            throw CoreDataError.descriptionLoadFailed
-        }
+        let entityDescription = ProductEntity.entity()
 
         let entity = ProductEntity(entity: entityDescription, insertInto: context)
 
@@ -431,17 +403,6 @@ extension CoreDataManager {
         }
     }
 
-    // MARK: Product Delete
-    func deleteProduct(of id: UUID) throws {
-        let entity = try fetchProductEntity(of: id)
-        context.delete(entity)
-
-        do {
-            try context.save()
-        } catch {
-            throw CoreDataError.saveFailed
-        }
-    }
 
     // MARK: Product Private Fetch
     private func fetchProductEntity(of id: UUID) throws -> ProductEntity {
