@@ -26,5 +26,5 @@ protocol ProductManagerProtocol {
     // 아이템 수정
     func update(dto: ProductDTO) async throws
     // 아이템 소프트 삭제
-    func softDelete(id: UUID) async throws
+    func softDeleteProduct(id: UUID) async throws
 }
