@@ -21,6 +21,7 @@ extension MainController {
         let homeVC = createNC(rootVC: ViewController(), title: "홈", image: "house")
         let registerVC = createNC(rootVC: ViewController(), title: "등록", image: "camera")
         let stockVC = createNC(rootVC: ViewController(), title: "재고", image: "bag")
+        //TODO: TabBar 색상 및 스타일 설정 필요
 //        tabBar.tintColor =
 //        tabBar.unselectedItemTintColor =
         viewControllers = [homeVC, registerVC, stockVC]
