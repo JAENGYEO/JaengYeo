@@ -19,37 +19,30 @@ enum SyncStatus: String {
 
 /// JAENGYEO CoreDataManger
 final class CoreDataManager {
+    
     // MARK: CoreData 기본 설정
     private let persistentContainer: NSPersistentContainer
+    private(set) var loadError: CoreDataError?
 
     init() {
         persistentContainer = NSPersistentContainer(name: "JaengYeo")
         persistentContainer.loadPersistentStores { _, error in
-            if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+            if let error {
+                self.loadError = .storeLoadFailed(error)
             }
         }
     }
 
-    private func saveContext() {
-        let context = persistentContainer.viewContext
-
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
-            }
-        }
-    }
-
+    
     // MARK: Custom 설정
     private var context: NSManagedObjectContext {
         persistentContainer.viewContext
     }
 
+
     enum CoreDataError: Error {
+        case storeLoadFailed(Error)
+        case contextSaveFailed(Error)
         case descriptionLoadFailed
         case saveFailed
         case loadFailed
@@ -61,6 +54,7 @@ final class CoreDataManager {
 extension CoreDataManager {
     // MARK: SubCategory Create
     func createSubCategory(_ payload: borrowing SubCategoryPayload) throws {
+
         let entityDescription = SubCategoryEntity.entity()
 
         let entity = SubCategoryEntity(entity: entityDescription, insertInto: context)
@@ -157,8 +151,6 @@ extension CoreDataManager {
                 throw CoreDataError.empty
             }
             return entity
-        } catch CoreDataError.empty {
-            throw CoreDataError.empty
         } catch {
             throw CoreDataError.loadFailed
         }
@@ -261,8 +253,6 @@ extension CoreDataManager {
                 throw CoreDataError.empty
             }
             return entity
-        } catch CoreDataError.empty {
-            throw CoreDataError.empty
         } catch {
             throw CoreDataError.loadFailed
         }
@@ -415,8 +405,6 @@ extension CoreDataManager {
                 throw CoreDataError.empty
             }
             return entity
-        } catch CoreDataError.empty {
-            throw CoreDataError.empty
         } catch {
             throw CoreDataError.loadFailed
         }

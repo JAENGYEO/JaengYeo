@@ -17,7 +17,7 @@ struct MidCategoryPayload {
     let sortOrder: Int32
     let createdAt: Date
     let updatedAt: Date
-    let syncStatus: Sync
+    let syncStatus: String
 }
 
 //MARK: - Method
