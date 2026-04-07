@@ -9,6 +9,8 @@ import UIKit
 
 final class AppCoordinator {
     private let window: UIWindow
+    private var syncManager: SyncManagerProtocol?
+    private var childCoordinators: [Any] = []
     
     init(window: UIWindow) {
         self.window = window
@@ -25,6 +27,7 @@ final class AppCoordinator {
             coreDataManager: coreDataManager
         )
         syncManager.networkCheck()
+        self.syncManager = syncManager
         
         let homeCoordinator = HomeCoordinator(
             productManager: productManager,
@@ -43,7 +46,7 @@ final class AppCoordinator {
             categoryManager: categoryManager,
             coreDataManager: coreDataManager
         )
-        
+        childCoordinators = [homeCoordinator, registerCoordinator, stockCoordinator]
         let mainController = MainController(
             homeNavigationController: homeCoordinator.navigationController,
             registerNavigationController: registerCoordinator.navigationController,
