@@ -9,6 +9,23 @@ import UIKit
 
 class MainController: UITabBarController {
     
+    init(
+        homeNavigationController: UINavigationController,
+        registerNavigationController: UINavigationController,
+        stockNavigationController: UINavigationController
+    ) {
+        super.init(nibName: nil, bundle: nil)
+        viewControllers = [
+            homeNavigationController,
+            registerNavigationController,
+            stockNavigationController
+        ]
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -18,19 +35,8 @@ class MainController: UITabBarController {
 
 extension MainController {
     private func setupTabBar() {
-        let homeVC = createNC(rootVC: ViewController(), title: "홈", image: "house")
-        let registerVC = createNC(rootVC: ViewController(), title: "등록", image: "camera")
-        let stockVC = createNC(rootVC: ViewController(), title: "재고", image: "bag")
         //TODO: TabBar 색상 및 스타일 설정 필요
 //        tabBar.tintColor =
 //        tabBar.unselectedItemTintColor =
-        viewControllers = [homeVC, registerVC, stockVC]
-    }
-    
-    private func createNC(rootVC: UIViewController, title: String, image: String) -> UINavigationController {
-        let nc = UINavigationController(rootViewController: rootVC)
-        nc.tabBarItem.title = title
-        nc.tabBarItem.image = UIImage(systemName: image)
-        return nc
     }
 }
