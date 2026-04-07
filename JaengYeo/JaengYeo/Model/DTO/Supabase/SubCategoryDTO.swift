@@ -7,7 +7,6 @@
 
 import Foundation
 
-//TODO: 받아온 데이터 모델로 변환하는 메서드 생성 필요, CoreData 브랜치 병합 후 진행할 예정
 struct SubCategoryDTO: Codable {
     let id: UUID
     let userId: String?
@@ -28,5 +27,38 @@ struct SubCategoryDTO: Codable {
         case sortOrder = "sort_order"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+    }
+}
+
+// Supabase -> Domain
+extension SubCategoryDTO {
+    func toDomain() -> SubCategory {
+        SubCategory(
+            id: id,
+            userId: userId,
+            mainCategory: mainCategory,
+            name: name,
+            iconName: iconName,
+            thumbnailKey: thumbnailKey,
+            sortOrder: sortOrder,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            syncStatus: SyncStatus.synced.rawValue
+        )
+    }
+}
+
+// Domain -> Supabase
+extension SubCategoryDTO {
+    init(from subCategory: SubCategory) {
+        self.id = subCategory.id
+        self.userId = subCategory.userId
+        self.mainCategory = subCategory.mainCategory
+        self.name = subCategory.name
+        self.iconName = subCategory.iconName
+        self.thumbnailKey = subCategory.thumbnailKey
+        self.sortOrder = subCategory.sortOrder
+        self.createdAt = subCategory.createdAt
+        self.updatedAt = subCategory.updatedAt
     }
 }
