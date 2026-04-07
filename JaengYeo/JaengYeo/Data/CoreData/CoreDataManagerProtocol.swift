@@ -16,6 +16,7 @@ protocol CoreDataManagerProtocol {
     func updateProduct(_ payload: ProductPayload) throws
     func fetchPendingUploadProducts() throws -> [ProductPayload]
     func fetchPendingDeleteProducts() throws -> [ProductPayload]
+    func updateProductSyncStatus(id: UUID) throws
     
     //MARK: - SubCategory
     func createSubCategory(_ payload: SubCategoryPayload) throws
@@ -24,6 +25,7 @@ protocol CoreDataManagerProtocol {
     func updateSubCategory(_ payload: SubCategoryPayload) throws
     func fetchPendingUploadSubCategories() throws -> [SubCategoryPayload]
     func fetchPendingDeleteSubCategories() throws -> [SubCategoryPayload]
+    func updateSubCategorySyncStatus(id: UUID) throws
     
     //MARK: - MidCategory
     func createMidCategory(_ payload: MidCategoryPayload) throws
@@ -32,5 +34,6 @@ protocol CoreDataManagerProtocol {
     func updateMidCategory(_ payload: MidCategoryPayload) throws
     func fetchPendingUploadMidCategories() throws -> [MidCategoryPayload]
     func fetchPendingDeleteMidCategories() throws -> [MidCategoryPayload]
+    func updateMidCategorySyncStatus(id: UUID) throws
     
 }

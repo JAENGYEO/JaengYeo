@@ -23,7 +23,7 @@ final class CoreDataManager: CoreDataManagerProtocol {
     // MARK: CoreData 기본 설정
     private let persistentContainer: NSPersistentContainer
     private(set) var loadError: CoreDataError?
-
+    
     init() {
         persistentContainer = NSPersistentContainer(name: "JaengYeo")
         persistentContainer.loadPersistentStores { _, error in
@@ -32,14 +32,14 @@ final class CoreDataManager: CoreDataManagerProtocol {
             }
         }
     }
-
+    
     
     // MARK: Custom 설정
     private var context: NSManagedObjectContext {
         persistentContainer.viewContext
     }
-
-
+    
+    
     enum CoreDataError: Error {
         case storeLoadFailed(Error)
         case contextSaveFailed(Error)
@@ -54,11 +54,11 @@ final class CoreDataManager: CoreDataManagerProtocol {
 extension CoreDataManager {
     // MARK: SubCategory Create
     func createSubCategory(_ payload: borrowing SubCategoryPayload) throws {
-
+        
         let entityDescription = SubCategoryEntity.entity()
-
+        
         let entity = SubCategoryEntity(entity: entityDescription, insertInto: context)
-
+        
         entity.id = payload.id
         entity.userId = payload.userId
         entity.mainCategory = payload.mainCategory
@@ -69,18 +69,18 @@ extension CoreDataManager {
         entity.createdAt = payload.createdAt
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
-
+        
         do {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
         }
     }
-
+    
     // MARK: SubCategory Read
     func fetchSubCategory(of id: UUID) throws -> SubCategoryPayload {
         let entity = try fetchSubCategoryEntity(of: id)
-
+        
         return SubCategoryPayload(
             id: entity.id,
             userId: entity.userId,
@@ -94,11 +94,11 @@ extension CoreDataManager {
             syncStatus: entity.syncStatus
         )
     }
-
+    
     func fetchAllSubCategories() throws -> [SubCategoryPayload] {
         let request: NSFetchRequest<SubCategoryEntity> = SubCategoryEntity.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "sortOrder", ascending: true)]
-
+        
         do {
             return try context.fetch(request).map {
                 SubCategoryPayload(
@@ -118,11 +118,11 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-
+    
     // MARK: SubCategory Update
     func updateSubCategory(_ payload: borrowing SubCategoryPayload) throws {
         let entity = try fetchSubCategoryEntity(of: payload.id)
-
+        
         entity.userId = payload.userId
         entity.mainCategory = payload.mainCategory
         entity.name = payload.name
@@ -131,21 +131,21 @@ extension CoreDataManager {
         entity.sortOrder = payload.sortOrder
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
-
+        
         do {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
         }
     }
-
-
+    
+    
     // MARK: SubCategory Private Fetch
     private func fetchSubCategoryEntity(of id: UUID) throws -> SubCategoryEntity {
         let request: NSFetchRequest<SubCategoryEntity> = SubCategoryEntity.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         request.fetchLimit = 1
-
+        
         do {
             guard let entity = try context.fetch(request).first else {
                 throw CoreDataError.empty
@@ -162,9 +162,9 @@ extension CoreDataManager {
     // MARK: MidCategory Create
     func createMidCategory(_ payload: borrowing MidCategoryPayload) throws {
         let entityDescription = MidCategoryEntity.entity()
-
+        
         let entity = MidCategoryEntity(entity: entityDescription, insertInto: context)
-
+        
         entity.id = payload.id
         entity.userId = payload.userId
         entity.mainCategory = payload.mainCategory
@@ -174,18 +174,18 @@ extension CoreDataManager {
         entity.createdAt = payload.createdAt
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
-
+        
         do {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
         }
     }
-
+    
     // MARK: MidCategory Read
     func fetchMidCategory(of id: UUID) throws -> MidCategoryPayload {
         let entity = try fetchMidCategoryEntity(of: id)
-
+        
         return MidCategoryPayload(
             id: entity.id,
             userId: entity.userId,
@@ -198,11 +198,11 @@ extension CoreDataManager {
             syncStatus: entity.syncStatus
         )
     }
-
+    
     func fetchAllMidCategories() throws -> [MidCategoryPayload] {
         let request: NSFetchRequest<MidCategoryEntity> = MidCategoryEntity.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "sortOrder", ascending: true)]
-
+        
         do {
             return try context.fetch(request).map {
                 MidCategoryPayload(
@@ -221,11 +221,11 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-
+    
     // MARK: MidCategory Update
     func updateMidCategory(_ payload: borrowing MidCategoryPayload) throws {
         let entity = try fetchMidCategoryEntity(of: payload.id)
-
+        
         entity.userId = payload.userId
         entity.mainCategory = payload.mainCategory
         entity.name = payload.name
@@ -233,21 +233,21 @@ extension CoreDataManager {
         entity.sortOrder = payload.sortOrder
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
-
+        
         do {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
         }
     }
-
-
+    
+    
     // MARK: MidCategory Private Fetch
     private func fetchMidCategoryEntity(of id: UUID) throws -> MidCategoryEntity {
         let request: NSFetchRequest<MidCategoryEntity> = MidCategoryEntity.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         request.fetchLimit = 1
-
+        
         do {
             guard let entity = try context.fetch(request).first else {
                 throw CoreDataError.empty
@@ -266,9 +266,9 @@ extension CoreDataManager {
     // MARK: Product Create
     func createProduct(_ payload: borrowing ProductPayload) throws {
         let entityDescription = ProductEntity.entity()
-
+        
         let entity = ProductEntity(entity: entityDescription, insertInto: context)
-
+        
         entity.id = payload.id
         entity.userId = payload.userId
         entity.name = payload.name
@@ -290,18 +290,18 @@ extension CoreDataManager {
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
         entity.isLowStockNotificationEnabled = payload.isLowStockNotificationEnabled
-
+        
         do {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
         }
     }
-
+    
     // MARK: Product Read
     func fetchProduct(of id: UUID) throws -> ProductPayload {
         let entity = try fetchProductEntity(of: id)
-
+        
         return ProductPayload(
             id: entity.id,
             userId: entity.userId,
@@ -326,11 +326,11 @@ extension CoreDataManager {
             isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled
         )
     }
-
+    
     func fetchAllProducts() throws -> [ProductPayload] {
         let request: NSFetchRequest<ProductEntity> = ProductEntity.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(key: "updatedAt", ascending: false)]
-
+        
         do {
             return try context.fetch(request).map {
                 ProductPayload(
@@ -361,11 +361,11 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-
+    
     // MARK: Product Update
     func updateProduct(_ payload: borrowing ProductPayload) throws {
         let entity = try fetchProductEntity(of: payload.id)
-
+        
         entity.userId = payload.userId
         entity.name = payload.name
         entity.quantity = payload.quantity
@@ -385,21 +385,21 @@ extension CoreDataManager {
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
         entity.isLowStockNotificationEnabled = payload.isLowStockNotificationEnabled
-
+        
         do {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
         }
     }
-
-
+    
+    
     // MARK: Product Private Fetch
     private func fetchProductEntity(of id: UUID) throws -> ProductEntity {
         let request: NSFetchRequest<ProductEntity> = ProductEntity.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         request.fetchLimit = 1
-
+        
         do {
             guard let entity = try context.fetch(request).first else {
                 throw CoreDataError.empty
@@ -413,13 +413,16 @@ extension CoreDataManager {
 
 
 //TODO: 공통 로직이 많은데 Generic으로 합쳐보기
+//MARK: - Product 동기화 관련
 extension CoreDataManager {
     func fetchPendingUploadProducts() throws -> [ProductPayload] {
         try fetchProductsBySyncStatus(syncStatus: .pendingUpload)
     }
+    
     func fetchPendingDeleteProducts() throws -> [ProductPayload] {
         try fetchProductsBySyncStatus(syncStatus: .pendingDelete)
     }
+    
     private func fetchProductsBySyncStatus(syncStatus: SyncStatus) throws -> [ProductPayload] {
         let request: NSFetchRequest<ProductEntity> = ProductEntity.fetchRequest()
         request.predicate = NSPredicate(format: "syncStatus == %@", syncStatus.rawValue)
@@ -454,6 +457,19 @@ extension CoreDataManager {
         }
     }
     
+    func updateProductSyncStatus(id: UUID) throws {
+        let entity = fetchProductEntity(of: id)
+        entity.syncStatus = SyncStatus.synced.rawValue
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+}
+
+//MARK: - SubCategory 동기화 관련
+extension CoreDataManager {
     func fetchPendingUploadSubCategories() throws -> [SubCategoryPayload] {
         try fetchSubCategoriesBySyncStatus(syncStatus: .pendingUpload)
     }
@@ -485,6 +501,19 @@ extension CoreDataManager {
         }
     }
     
+    func updateSubCategorySyncStatus(id: UUID) throws {
+        let entity = try fetchMidCategoryEntity(of: id)
+        entity.syncStatus = SyncStatus.synced.rawValue
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+}
+
+//MARK: - MidCategory 동기화 관련
+extension CoreDataManager {
     func fetchPendingUploadMidCategories() throws -> [MidCategoryPayload] {
         try fetchMidCategoriesBySyncStatus(syncStatus: .pendingUpload)
     }
@@ -512,6 +541,16 @@ extension CoreDataManager {
             }
         } catch {
             throw CoreDataError.loadFailed
+        }
+    }
+    
+    func updateMidCategorySyncStatus(id: UUID) throws {
+        let entity = try fetchMidCategoryEntity(of: id)
+        entity.syncStatus = SyncStatus.synced.rawValue
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
         }
     }
 }
