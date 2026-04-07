@@ -277,7 +277,7 @@ extension CoreDataManager {
     
     // MARK: MidCategory Soft Delete
     func deleteMidCategory(id: UUID) throws {
-        let entity = try fetchProductEntity(of: id)
+        let entity = try fetchMidCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
         do {
