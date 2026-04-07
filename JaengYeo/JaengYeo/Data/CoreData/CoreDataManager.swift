@@ -458,7 +458,7 @@ extension CoreDataManager {
     }
     
     func updateProductSyncStatus(id: UUID) throws {
-        let entity = fetchProductEntity(of: id)
+        let entity = try fetchProductEntity(of: id)
         entity.syncStatus = SyncStatus.synced.rawValue
         do {
             try context.save()
@@ -502,7 +502,7 @@ extension CoreDataManager {
     }
     
     func updateSubCategorySyncStatus(id: UUID) throws {
-        let entity = try fetchMidCategoryEntity(of: id)
+        let entity = try fetchSubCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.synced.rawValue
         do {
             try context.save()
