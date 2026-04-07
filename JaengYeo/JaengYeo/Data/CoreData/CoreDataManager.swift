@@ -18,7 +18,7 @@ enum SyncStatus: String {
 
 
 /// JAENGYEO CoreDataManger
-final class CoreDataManager {
+final class CoreDataManager: CoreDataManagerProtocol {
     
     // MARK: CoreData 기본 설정
     private let persistentContainer: NSPersistentContainer
