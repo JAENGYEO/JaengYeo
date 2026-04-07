@@ -7,7 +7,6 @@
 
 import Foundation
 
-//TODO: 받아온 데이터 모델로 변환하는 메서드 생성 필요, CoreData 브랜치 병합 후 진행할 예정
 struct MidCategoryDTO: Codable {
     let id: UUID
     let userId: String?
@@ -26,5 +25,36 @@ struct MidCategoryDTO: Codable {
         case sortOrder = "sort_order"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+    }
+}
+
+// Supabase -> MidCategory 변경
+extension MidCategoryDTO {
+    func toDomain() -> MidCategory {
+        MidCategory(
+            id: id,
+            userId: userId,
+            mainCategory: mainCategory,
+            name: name,
+            iconName: iconName,
+            sortOrder: sortOrder,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            syncStatus: SyncStatus.synced.rawValue
+        )
+    }
+}
+
+// 도메인 -> Supabase
+extension MidCategoryDTO {
+    init(from midCategory: MidCategory) {
+        self.id = midCategory.id
+        self.userId = midCategory.userId
+        self.mainCategory = midCategory.mainCategory
+        self.name = midCategory.name
+        self.iconName = midCategory.iconName
+        self.sortOrder = midCategory.sortOrder
+        self.createdAt = midCategory.createdAt
+        self.updatedAt = midCategory.updatedAt
     }
 }
