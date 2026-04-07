@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8A73A1D82F83C312007C2A21 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 8A73A1D72F83C312007C2A21 /* Config.xcconfig */; };
 		8AB4178E2F7E352E002B7DAB /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB4178D2F7E352E002B7DAB /* RxCocoa */; };
 		8AB417902F7E352E002B7DAB /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB4178F2F7E352E002B7DAB /* RxRelay */; };
 		8AB417922F7E352E002B7DAB /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417912F7E352E002B7DAB /* RxSwift */; };
@@ -22,6 +23,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8A73A1D72F83C312007C2A21 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		8AB417712F7E321D002B7DAB /* JaengYeo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JaengYeo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -76,6 +78,7 @@
 		8AB417682F7E321D002B7DAB = {
 			isa = PBXGroup;
 			children = (
+				8A73A1D72F83C312007C2A21 /* Config.xcconfig */,
 				8AB417732F7E321D002B7DAB /* JaengYeo */,
 				8AB417722F7E321D002B7DAB /* Products */,
 			);
@@ -176,6 +179,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A73A1D82F83C312007C2A21 /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,6 +288,7 @@
 		};
 		8AB4178A2F7E321E002B7DAB /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8A73A1D72F83C312007C2A21 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -347,6 +352,7 @@
 		};
 		8AB4178B2F7E321E002B7DAB /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8A73A1D72F83C312007C2A21 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;

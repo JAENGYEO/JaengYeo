@@ -68,6 +68,9 @@ supabase/.env
 supabase/functions/.env
 supabase/.env.local
 
+# Config
+JaengYeo/Config.xcconfig
+
 # macOS
 .DS_Store
 
