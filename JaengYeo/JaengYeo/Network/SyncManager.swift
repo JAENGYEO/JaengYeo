@@ -16,7 +16,8 @@ final class SyncManager: SyncManagerProtocol {
     private let monitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "com.jaengyeo.networkMonitor")
     
-    private var isMonitoring = false // 중복호출 방지용
+    private var isMonitoring = false // 네트워크 중복 호출 방지용
+    private var isSyncing = false // 동기화 중복 실행 방지용
     
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol) {
         self.productManager = productManager
@@ -40,6 +41,9 @@ final class SyncManager: SyncManagerProtocol {
     
     // MARK: - pending 항목 전체 동기화
     func synchronize() async {
+        guard !isSyncing else { return }
+        isSyncing = true
+        defer { isSyncing = false } // 동기화 완료 시 false 복원
         await syncPendingUploadProducts()
         await syncPendingDeleteProducts()
         await syncPendingUploadSubCategories()
