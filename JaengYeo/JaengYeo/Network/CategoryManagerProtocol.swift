@@ -21,4 +21,8 @@ protocol CategoryManagerProtocol {
     func softDeleteMidCategory(id: UUID) async throws
     // 소분류 소프트 삭제
     func softDeleteSubCategory(id: UUID) async throws
+    // 중분류 upsert
+    func upsertMidCategory(dto: MidCategoryDTO) async throws
+    // 소분류 upsert
+    func upsertSubCategory(dto: SubCategoryDTO) async throws
 }

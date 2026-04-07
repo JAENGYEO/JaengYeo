@@ -117,5 +117,10 @@ final class ProductManager: ProductManagerProtocol {
             .execute()
     }
     
-    
+    func upsert(dto: ProductDTO) async throws {
+        try await client
+            .from(Table.items.rawValue)
+            .upsert(dto)
+            .execute()
+    }
 }

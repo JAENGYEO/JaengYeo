@@ -52,14 +52,22 @@ extension SyncManager {
         for payload in payloads {
             let product = payload.toDomain()
             let dto = ProductDTO(from: product)
-            try? await productManager.update(dto: dto)
+            do {
+                try await productManager.upsert(dto: dto)
+                try coreDataManager.updateProductSyncStatus(id: payload.id)
+            } catch { //TODO: 에러 처리 필요
+            }
         }
     }
     
     private func syncPendingDeleteProducts() async {
         guard let payloads = try? coreDataManager.fetchPendingDeleteProducts() else { return }
         for payload in payloads {
-            try? await productManager.softDeleteProduct(id: payload.id)
+            do {
+                try await productManager.softDeleteProduct(id: payload.id)
+                try coreDataManager.updateProductSyncStatus(id: payload.id)
+            } catch {  //TODO: 에러 처리 필요
+            }
         }
     }
 }
@@ -71,14 +79,22 @@ extension SyncManager {
         for payload in payloads {
             let subCategory = payload.toDomain()
             let dto = SubCategoryDTO(from: subCategory)
-            try? await categoryManager.createSubCategory(dto: dto)
+            do {
+                try await categoryManager.upsertSubCategory(dto: dto)
+                try coreDataManager.updateSubCategorySyncStatus(id: payload.id)
+            } catch { //TODO: 에러 처리 필요
+            }
         }
     }
     
     private func syncPendingDeleteSubCategories() async {
         guard let payloads = try? coreDataManager.fetchPendingDeleteSubCategories() else { return }
         for payload in payloads {
-            try? await categoryManager.softDeleteSubCategory(id: payload.id)
+            do {
+                try await categoryManager.softDeleteSubCategory(id: payload.id)
+                try coreDataManager.updateSubCategorySyncStatus(id: payload.id)
+            } catch { //TODO: 에러 처리 필요
+            }
         }
     }
 }
@@ -90,14 +106,22 @@ extension SyncManager {
         for payload in payloads {
             let midCategory = payload.toDomain()
             let dto = MidCategoryDTO(from: midCategory)
-            try? await categoryManager.createMidCategory(dto: dto)
+            do {
+                try await categoryManager.upsertMidCategory(dto: dto)
+                try coreDataManager.updateMidCategorySyncStatus(id: payload.id)
+            } catch {//TODO: 에러 처리 필요
+            }
         }
     }
     
     private func syncPendingDeleteMidCategories() async {
         guard let payloads = try? coreDataManager.fetchPendingDeleteMidCategories() else { return }
         for payload in payloads {
-            try? await categoryManager.softDeleteMidCategory(id: payload.id)
+            do {
+                try await categoryManager.softDeleteMidCategory(id: payload.id)
+                try coreDataManager.updateMidCategorySyncStatus(id: payload.id)
+            } catch { //TODO: 에러 처리 필요
+            }
         }
     }
 }

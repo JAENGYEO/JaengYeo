@@ -27,4 +27,6 @@ protocol ProductManagerProtocol {
     func update(dto: ProductDTO) async throws
     // 아이템 소프트 삭제
     func softDeleteProduct(id: UUID) async throws
+    // upsert 기능: 새로 만든 데이터 동기화 시 사용
+    func upsert(dto: ProductDTO) async throws
 }

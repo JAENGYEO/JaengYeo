@@ -81,4 +81,18 @@ final class CategoryManager: CategoryManagerProtocol {
             .eq(Column.id.rawValue, value: id)
             .execute()
     }
+    
+    func upsertMidCategory(dto: MidCategoryDTO) async throws {
+        try await client
+            .from(Table.midCategory.rawValue)
+            .upsert(dto)
+            .execute()
+    }
+    
+    func upsertSubCategory(dto: SubCategoryDTO) async throws {
+        try await client
+            .from(Table.subCategory.rawValue)
+            .upsert(dto)
+            .execute()
+    }
 }
