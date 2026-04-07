@@ -55,9 +55,7 @@ extension CoreDataManager {
     // MARK: SubCategory Create
     func createSubCategory(_ payload: borrowing SubCategoryPayload) throws {
         
-        let entityDescription = SubCategoryEntity.entity()
-        
-        let entity = SubCategoryEntity(entity: entityDescription, insertInto: context)
+        let entity = SubCategoryEntity(context: context)
         
         entity.id = payload.id
         entity.userId = payload.userId
@@ -161,9 +159,8 @@ extension CoreDataManager {
 extension CoreDataManager {
     // MARK: MidCategory Create
     func createMidCategory(_ payload: borrowing MidCategoryPayload) throws {
-        let entityDescription = MidCategoryEntity.entity()
         
-        let entity = MidCategoryEntity(entity: entityDescription, insertInto: context)
+        let entity = MidCategoryEntity(context: context)
         
         entity.id = payload.id
         entity.userId = payload.userId
@@ -265,9 +262,8 @@ extension CoreDataManager {
 extension CoreDataManager {
     // MARK: Product Create
     func createProduct(_ payload: borrowing ProductPayload) throws {
-        let entityDescription = ProductEntity.entity()
         
-        let entity = ProductEntity(entity: entityDescription, insertInto: context)
+        let entity = ProductEntity(context: context)
         
         entity.id = payload.id
         entity.userId = payload.userId
