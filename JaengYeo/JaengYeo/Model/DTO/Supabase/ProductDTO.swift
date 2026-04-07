@@ -7,7 +7,6 @@
 
 import Foundation
 
-//TODO: 받아온 데이터 모델로 변환하는 메서드 생성 필요, CoreData 브랜치 병합 후 진행할 예정
 struct ProductDTO: Codable {
     let id: UUID
     let userId: String
@@ -47,5 +46,34 @@ struct ProductDTO: Codable {
         case isFavorite = "is_favorite"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+    }
+}
+
+// Supabase 응답 -> Product 도메인 변경
+extension ProductDTO {
+    func toDomain() -> Product {
+        Product(
+            id: id,
+            userId: userId,
+            name: name,
+            quantity: quantity,
+            quantityUnit: quantityUnit,
+            mainCategory: mainCategory,
+            midCategoryId: midCategoryId,
+            subCategoryId: subCategoryId,
+            purchaseDate: purchaseDate,
+            expiryDate: expiryDate,
+            price: price,
+            locationMemo: locationMemo,
+            memo: memo,
+            imageUrl: imageUrl,
+            isClassified: isClassified,
+            lowStockThreshold: lowStockThreshold,
+            isFavorite: isFavorite,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            syncStatus: SyncStatus.synced.rawValue, // 서버에서 받아온 데이터는 synced 상태
+            isLowStockNotificationEnabled: isLowStockNotificationEnabled
+        )
     }
 }
