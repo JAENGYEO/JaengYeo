@@ -16,6 +16,8 @@ final class SyncManager: SyncManagerProtocol {
     private let monitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "com.jaengyeo.networkMonitor")
     
+    private var isMonitoring = false // 중복호출 방지용
+    
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol) {
         self.productManager = productManager
         self.categoryManager = categoryManager
@@ -24,6 +26,8 @@ final class SyncManager: SyncManagerProtocol {
     
     // MARK: - 네트워크 상태 감지 및 온라인 복귀 시 동기화
     func networkCheck() {
+        guard !isMonitoring else { return }
+        isMonitoring = true
         monitor.pathUpdateHandler = { [weak self] path in // 네트워크 상태 변경 시 호출
             if path.status == .satisfied { // 인터넷 연결됨 -> 동기화 진행
                 Task {
