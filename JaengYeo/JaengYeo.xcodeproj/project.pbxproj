@@ -20,23 +20,11 @@
 		8AB417A52F7E3613002B7DAB /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417A42F7E3613002B7DAB /* PostgREST */; };
 		8AB417A72F7E3613002B7DAB /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417A62F7E3613002B7DAB /* Supabase */; };
 		8AB417AA2F7E3637002B7DAB /* RxKeyboard in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417A92F7E3637002B7DAB /* RxKeyboard */; };
-		8AB417AD2F7E4E9E002B7DAB /* MidCategoryEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB417AB2F7E4E9E002B7DAB /* MidCategoryEntity+CoreDataClass.swift */; };
-		8AB417AE2F7E4E9E002B7DAB /* MidCategoryEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB417AC2F7E4E9E002B7DAB /* MidCategoryEntity+CoreDataProperties.swift */; };
-		8AB417B12F7E5167002B7DAB /* SubCategoryEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB417AF2F7E5167002B7DAB /* SubCategoryEntity+CoreDataClass.swift */; };
-		8AB417B22F7E5167002B7DAB /* SubCategoryEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB417B02F7E5167002B7DAB /* SubCategoryEntity+CoreDataProperties.swift */; };
-		8AB417BD2F7E5999002B7DAB /* ProductEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB417BB2F7E5999002B7DAB /* ProductEntity+CoreDataClass.swift */; };
-		8AB417BE2F7E5999002B7DAB /* ProductEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB417BC2F7E5999002B7DAB /* ProductEntity+CoreDataProperties.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		8A73A1D72F83C312007C2A21 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		8AB417712F7E321D002B7DAB /* JaengYeo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JaengYeo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8AB417AB2F7E4E9E002B7DAB /* MidCategoryEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "MidCategoryEntity+CoreDataClass.swift"; path = "CoreData/MidCategoryEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
-		8AB417AC2F7E4E9E002B7DAB /* MidCategoryEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "MidCategoryEntity+CoreDataProperties.swift"; path = "CoreData/MidCategoryEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		8AB417AF2F7E5167002B7DAB /* SubCategoryEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SubCategoryEntity+CoreDataClass.swift"; path = "CoreData/SubCategoryEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
-		8AB417B02F7E5167002B7DAB /* SubCategoryEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SubCategoryEntity+CoreDataProperties.swift"; path = "CoreData/SubCategoryEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		8AB417BB2F7E5999002B7DAB /* ProductEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ProductEntity+CoreDataClass.swift"; path = "CoreData/ProductEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
-		8AB417BC2F7E5999002B7DAB /* ProductEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ProductEntity+CoreDataProperties.swift"; path = "CoreData/ProductEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -91,12 +79,6 @@
 			isa = PBXGroup;
 			children = (
 				8A73A1D72F83C312007C2A21 /* Config.xcconfig */,
-				8AB417BB2F7E5999002B7DAB /* ProductEntity+CoreDataClass.swift */,
-				8AB417BC2F7E5999002B7DAB /* ProductEntity+CoreDataProperties.swift */,
-				8AB417AF2F7E5167002B7DAB /* SubCategoryEntity+CoreDataClass.swift */,
-				8AB417B02F7E5167002B7DAB /* SubCategoryEntity+CoreDataProperties.swift */,
-				8AB417AB2F7E4E9E002B7DAB /* MidCategoryEntity+CoreDataClass.swift */,
-				8AB417AC2F7E4E9E002B7DAB /* MidCategoryEntity+CoreDataProperties.swift */,
 				8AB417732F7E321D002B7DAB /* JaengYeo */,
 				8AB417722F7E321D002B7DAB /* Products */,
 			);
@@ -228,12 +210,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8AB417B12F7E5167002B7DAB /* SubCategoryEntity+CoreDataClass.swift in Sources */,
-				8AB417B22F7E5167002B7DAB /* SubCategoryEntity+CoreDataProperties.swift in Sources */,
-				8AB417BD2F7E5999002B7DAB /* ProductEntity+CoreDataClass.swift in Sources */,
-				8AB417BE2F7E5999002B7DAB /* ProductEntity+CoreDataProperties.swift in Sources */,
-				8AB417AD2F7E4E9E002B7DAB /* MidCategoryEntity+CoreDataClass.swift in Sources */,
-				8AB417AE2F7E4E9E002B7DAB /* MidCategoryEntity+CoreDataProperties.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
