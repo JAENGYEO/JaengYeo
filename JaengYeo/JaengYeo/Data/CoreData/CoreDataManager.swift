@@ -595,3 +595,102 @@ extension CoreDataManager {
         }
     }
 }
+
+//MARK: 메인화면용 로직
+extension CoreDataManager {
+    
+    // 미분류 상품 fetch
+    func fetchUnclassified() throws -> [ProductPayload] {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "isClassified == false AND syncStatus != %@", SyncStatus.pendingDelete.rawValue)
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    // 유통기한 임박 상품 fetch
+    func fetchExpiryImminent(day: Int) throws -> [ProductPayload] {
+        let deadLine = Calendar.current.date(byAdding: .day, value: day, to: Date()) ?? Date()
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "expiryDate <= %@ AND expiryDate > %@ AND syncStatus != %@",
+            deadLine as NSDate, Date() as NSDate, SyncStatus.pendingDelete.rawValue
+        )
+        request.sortDescriptors = [NSSortDescriptor(key: "expiryDate", ascending: true)]
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    // 재고 부족 상품 fetch
+    func fetchLowStock() throws -> [ProductPayload] {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "isLowStockNotificationEnabled == true AND quantity <= lowStockThreshold AND syncStatus != %@",
+            SyncStatus.pendingDelete.rawValue
+        )
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    
+    // 최근 등록 상품 fetch
+    func fetchRecent(limit: Int) throws -> [ProductPayload] {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "syncStatus != %@", SyncStatus.pendingDelete.rawValue)
+        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+        request.fetchLimit = limit
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    // MainCategory 기준 fetch
+    func fetchByMainCategory(mainCategory: String) throws -> [ProductPayload] {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "mainCategory == %@ AND syncStatus != %@",
+            mainCategory, SyncStatus.pendingDelete.rawValue
+        )
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    private func toDomainProduct(_ entity: ProductEntity) -> ProductPayload {
+        ProductPayload(
+            id: entity.id,
+            userId: entity.userId,
+            name: entity.name,
+            quantity: entity.quantity,
+            quantityUnit: entity.quantityUnit,
+            mainCategory: entity.mainCategory,
+            midCategoryId: entity.midCategoryId,
+            subCategoryId: entity.subCategoryId,
+            purchaseDate: entity.purchaseDate,
+            expiryDate: entity.expiryDate,
+            price: entity.price,
+            locationMemo: entity.locationMemo,
+            memo: entity.memo,
+            imageUrl: entity.imageUrl,
+            isClassified: entity.isClassified,
+            lowStockThreshold: entity.lowStockThreshold,
+            isFavorite: entity.isFavorite,
+            createdAt: entity.createdAt,
+            updatedAt: entity.updatedAt,
+            syncStatus: entity.syncStatus,
+            isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled
+        )
+    }
+}

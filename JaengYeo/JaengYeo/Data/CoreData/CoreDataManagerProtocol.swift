@@ -39,4 +39,11 @@ protocol CoreDataManagerProtocol {
     func updateMidCategorySyncStatus(id: UUID) throws
     func deleteMidCategory(id: UUID) throws
     
+    
+    //MARK: - 메인화면 조회용
+    func fetchUnclassified() throws -> [ProductPayload]
+    func fetchExpiryImminent(day: Int) throws -> [ProductPayload]
+    func fetchLowStock() throws -> [ProductPayload]
+    func fetchRecent(limit: Int) throws -> [ProductPayload]
+    func fetchByMainCategory(mainCategory: String) throws -> [ProductPayload]
 }
