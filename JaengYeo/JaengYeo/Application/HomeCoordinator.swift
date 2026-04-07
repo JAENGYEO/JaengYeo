@@ -19,7 +19,7 @@ final class HomeCoordinator {
         self.categoryManager = categoryManager
         self.coreDataManager = coreDataManager
         
-        let viewController = ViewController()
+        let viewController = HomeViewController()
         navigationController = UINavigationController(rootViewController: viewController)
         navigationController.tabBarItem = UITabBarItem(
             title: "홈",
