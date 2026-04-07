@@ -410,3 +410,108 @@ extension CoreDataManager {
         }
     }
 }
+
+
+//TODO: 공통 로직이 많은데 Generic으로 합쳐보기
+extension CoreDataManager {
+    func fetchPendingUploadProducts() throws -> [ProductPayload] {
+        try fetchProductsBySyncStatus(syncStatus: .pendingUpload)
+    }
+    func fetchPendingDeleteProducts() throws -> [ProductPayload] {
+        try fetchProductsBySyncStatus(syncStatus: .pendingDelete)
+    }
+    private func fetchProductsBySyncStatus(syncStatus: SyncStatus) throws -> [ProductPayload] {
+        let request: NSFetchRequest<ProductEntity> = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "syncStatus == %@", syncStatus.rawValue)
+        do {
+            return try context.fetch(request).map {
+                ProductPayload(
+                    id: $0.id,
+                    userId: $0.userId,
+                    name: $0.name,
+                    quantity: $0.quantity,
+                    quantityUnit: $0.quantityUnit,
+                    mainCategory: $0.mainCategory,
+                    midCategoryId: $0.midCategoryId,
+                    subCategoryId: $0.subCategoryId,
+                    purchaseDate: $0.purchaseDate,
+                    expiryDate: $0.expiryDate,
+                    price: $0.price,
+                    locationMemo: $0.locationMemo,
+                    memo: $0.memo,
+                    imageUrl: $0.imageUrl,
+                    isClassified: $0.isClassified,
+                    lowStockThreshold: $0.lowStockThreshold,
+                    isFavorite: $0.isFavorite,
+                    createdAt: $0.createdAt,
+                    updatedAt: $0.updatedAt,
+                    syncStatus: $0.syncStatus,
+                    isLowStockNotificationEnabled: $0.isLowStockNotificationEnabled
+                )
+            }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    func fetchPendingUploadSubCategories() throws -> [SubCategoryPayload] {
+        try fetchSubCategoriesBySyncStatus(syncStatus: .pendingUpload)
+    }
+    
+    func fetchPendingDeleteSubCategories() throws -> [SubCategoryPayload] {
+        try fetchSubCategoriesBySyncStatus(syncStatus: .pendingDelete)
+    }
+    
+    private func fetchSubCategoriesBySyncStatus(syncStatus: SyncStatus) throws -> [SubCategoryPayload] {
+        let request: NSFetchRequest<SubCategoryEntity> = SubCategoryEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "syncStatus == %@", syncStatus.rawValue)
+        do {
+            return try context.fetch(request).map {
+                SubCategoryPayload(
+                    id: $0.id,
+                    userId: $0.userId,
+                    mainCategory: $0.mainCategory,
+                    name: $0.name,
+                    iconName: $0.iconName,
+                    thumbnailKey: $0.thumbnailKey,
+                    sortOrder: $0.sortOrder,
+                    createdAt: $0.createdAt,
+                    updatedAt: $0.updatedAt,
+                    syncStatus: $0.syncStatus
+                )
+            }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    func fetchPendingUploadMidCategories() throws -> [MidCategoryPayload] {
+        try fetchMidCategoriesBySyncStatus(syncStatus: .pendingUpload)
+    }
+    
+    func fetchPendingDeleteMidCategories() throws -> [MidCategoryPayload] {
+        try fetchMidCategoriesBySyncStatus(syncStatus: .pendingDelete)
+    }
+    
+    private func fetchMidCategoriesBySyncStatus(syncStatus: SyncStatus) throws -> [MidCategoryPayload] {
+        let request: NSFetchRequest<MidCategoryEntity> = MidCategoryEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "syncStatus == %@", syncStatus.rawValue)
+        do {
+            return try context.fetch(request).map {
+                MidCategoryPayload(
+                    id: $0.id,
+                    userId: $0.userId,
+                    mainCategory: $0.mainCategory,
+                    name: $0.name,
+                    iconName: $0.iconName,
+                    sortOrder: $0.sortOrder,
+                    createdAt: $0.createdAt,
+                    updatedAt: $0.updatedAt,
+                    syncStatus: $0.syncStatus
+                )
+            }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+}
