@@ -17,6 +17,11 @@ func makeSupabaseClient() -> SupabaseClient {
     
     return SupabaseClient(
         supabaseURL: url,
-        supabaseKey: key
+        supabaseKey: key,
+        options: SupabaseClientOptions(
+            auth: SupabaseClientOptions.AuthOptions(
+                emitLocalSessionAsInitialSession: true 
+            )
+        )
     )
 }
