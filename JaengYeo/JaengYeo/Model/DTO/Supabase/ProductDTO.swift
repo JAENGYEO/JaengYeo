@@ -77,3 +77,29 @@ extension ProductDTO {
         )
     }
 }
+
+// 도메인 -> Supabase 업로드
+extension ProductDTO {
+    init(from product: Product) {
+        self.id = product.id
+        self.userId = product.userId
+        self.name = product.name
+        self.quantity = product.quantity
+        self.quantityUnit = product.quantityUnit
+        self.mainCategory = product.mainCategory
+        self.midCategoryId = product.midCategoryId
+        self.subCategoryId = product.subCategoryId
+        self.purchaseDate = product.purchaseDate
+        self.expiryDate = product.expiryDate
+        self.price = product.price
+        self.locationMemo = product.locationMemo
+        self.memo = product.memo
+        self.imageUrl = product.imageUrl
+        self.isClassified = product.isClassified
+        self.lowStockThreshold = product.lowStockThreshold
+        self.isFavorite = product.isFavorite
+        self.createdAt = product.createdAt
+        self.updatedAt = product.updatedAt
+        self.isLowStockNotificationEnabled = product.isLowStockNotificationEnabled
+    }
+}
