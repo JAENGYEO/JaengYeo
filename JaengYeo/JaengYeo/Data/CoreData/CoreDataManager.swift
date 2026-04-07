@@ -93,9 +93,12 @@ extension CoreDataManager {
         )
     }
     
-    func fetchAllSubCategories() throws -> [SubCategoryPayload] {
+    func fetchAllSubCategories(mainCategory: String) throws -> [SubCategoryPayload] {
         let request: NSFetchRequest<SubCategoryEntity> = SubCategoryEntity.fetchRequest()
-        request.predicate = NSPredicate(format: "syncStatus != %@", SyncStatus.pendingDelete.rawValue)
+        request.predicate = NSPredicate(
+            format: "mainCategory == %@ AND syncStatus != %@",
+            mainCategory, SyncStatus.pendingDelete.rawValue
+        )
         request.sortDescriptors = [NSSortDescriptor(key: "sortOrder", ascending: true)]
         
         do {
@@ -209,9 +212,12 @@ extension CoreDataManager {
         )
     }
     
-    func fetchAllMidCategories() throws -> [MidCategoryPayload] {
+    func fetchAllMidCategories(mainCategory: String) throws -> [MidCategoryPayload] {
         let request: NSFetchRequest<MidCategoryEntity> = MidCategoryEntity.fetchRequest()
-        request.predicate = NSPredicate(format: "syncStatus != %@", SyncStatus.pendingDelete.rawValue)
+        request.predicate = NSPredicate(
+            format: "mainCategory == %@ AND syncStatus != %@",
+            mainCategory, SyncStatus.pendingDelete.rawValue
+        )
         request.sortDescriptors = [NSSortDescriptor(key: "sortOrder", ascending: true)]
         
         do {

@@ -22,7 +22,7 @@ protocol CoreDataManagerProtocol {
     //MARK: - SubCategory
     func createSubCategory(_ payload: SubCategoryPayload) throws
     func fetchSubCategory(of id: UUID) throws -> SubCategoryPayload
-    func fetchAllSubCategories() throws -> [SubCategoryPayload]
+    func fetchAllSubCategories(mainCategory: String) throws -> [SubCategoryPayload]
     func updateSubCategory(_ payload: SubCategoryPayload) throws
     func fetchPendingUploadSubCategories() throws -> [SubCategoryPayload]
     func fetchPendingDeleteSubCategories() throws -> [SubCategoryPayload]
@@ -32,7 +32,7 @@ protocol CoreDataManagerProtocol {
     //MARK: - MidCategory
     func createMidCategory(_ payload: MidCategoryPayload) throws
     func fetchMidCategory(of id: UUID) throws -> MidCategoryPayload
-    func fetchAllMidCategories() throws -> [MidCategoryPayload]
+    func fetchAllMidCategories(mainCategory: String) throws -> [MidCategoryPayload]
     func updateMidCategory(_ payload: MidCategoryPayload) throws
     func fetchPendingUploadMidCategories() throws -> [MidCategoryPayload]
     func fetchPendingDeleteMidCategories() throws -> [MidCategoryPayload]
