@@ -25,6 +25,10 @@ final class SyncManager: SyncManagerProtocol {
         self.coreDataManager = coreDataManager
     }
     
+    deinit {
+        monitor.cancel()
+    }
+    
     // MARK: - 네트워크 상태 감지 및 온라인 복귀 시 동기화
     func networkCheck() {
         guard !isMonitoring else { return }
