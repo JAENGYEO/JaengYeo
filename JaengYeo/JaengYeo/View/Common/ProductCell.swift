@@ -119,8 +119,8 @@ extension ProductCell {
             texts: descriptions,
         )
         
-        if cellType != .registType, let count = count {
-            productCountLabel.text = "\(count)"
+        if cellType != .registType {
+            productCountLabel.text = count.map { String($0) } ?? "0"
         }
         
         if cellType == .detailType {
