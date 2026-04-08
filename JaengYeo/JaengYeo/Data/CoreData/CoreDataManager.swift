@@ -159,7 +159,7 @@ extension CoreDataManager {
     }
     
     // MARK: SubCategory Soft Delete
-    func deleteSubCategory(id: UUID) throws {
+    func softDeleteSubCategory(id: UUID) throws {
         let entity = try fetchSubCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
@@ -167,6 +167,17 @@ extension CoreDataManager {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
+        }
+    }
+    
+    //MARK: SubCategory Hard Delete
+    func hardDeleteSubCategory(id: UUID) throws {
+        let entity = try fetchSubCategoryEntity(of: id)
+        context.delete(entity)
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.contextSaveFailed(error)
         }
     }
 }
@@ -276,7 +287,7 @@ extension CoreDataManager {
     }
     
     // MARK: MidCategory Soft Delete
-    func deleteMidCategory(id: UUID) throws {
+    func softDeleteMidCategory(id: UUID) throws {
         let entity = try fetchMidCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
@@ -284,6 +295,17 @@ extension CoreDataManager {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
+        }
+    }
+    
+    // MARK: MidCategory Hard Delete
+    func hardDeleteMidCategory(id: UUID) throws {
+        let entity = try fetchMidCategoryEntity(of: id)
+        context.delete(entity)
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.contextSaveFailed(error)
         }
     }
 }
@@ -440,7 +462,7 @@ extension CoreDataManager {
     }
     
     // MARK: Product Soft Delete
-    func deleteProduct(id: UUID) throws {
+    func softDeleteProduct(id: UUID) throws {
         let entity = try fetchProductEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
@@ -448,6 +470,17 @@ extension CoreDataManager {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
+        }
+    }
+    
+    //MARK: Product Hard Delete
+    func hardDeleteProduct(id: UUID) throws {
+        let entity = try fetchProductEntity(of: id)
+        context.delete(entity)
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.contextSaveFailed(error)
         }
     }
 }

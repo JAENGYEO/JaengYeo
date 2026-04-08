@@ -77,7 +77,7 @@ extension SyncManager {
         for payload in payloads {
             do {
                 try await productManager.softDeleteProduct(id: payload.id)
-                try coreDataManager.updateProductSyncStatus(id: payload.id)
+                try coreDataManager.hardDeleteProduct(id: payload.id)
             } catch {  //TODO: 에러 처리 필요
             }
         }
@@ -104,7 +104,7 @@ extension SyncManager {
         for payload in payloads {
             do {
                 try await categoryManager.softDeleteSubCategory(id: payload.id)
-                try coreDataManager.updateSubCategorySyncStatus(id: payload.id)
+                try coreDataManager.hardDeleteSubCategory(id: payload.id)
             } catch { //TODO: 에러 처리 필요
             }
         }
@@ -131,7 +131,7 @@ extension SyncManager {
         for payload in payloads {
             do {
                 try await categoryManager.softDeleteMidCategory(id: payload.id)
-                try coreDataManager.updateMidCategorySyncStatus(id: payload.id)
+                try coreDataManager.hardDeleteMidCategory(id: payload.id)
             } catch { //TODO: 에러 처리 필요
             }
         }
