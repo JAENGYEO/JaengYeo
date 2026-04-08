@@ -12,9 +12,13 @@ final class StyledButton: UIButton, ConfigurableButton {
     
     // MARK: - Properites
     /// 타이틀 스타일
-    var titleConfiguration: ButtonTitleConfiguration?
+    var titleConfiguration: ButtonTitleConfiguration? {
+        didSet { applyConfiguration() }
+    }
     ///  외형 스타일
-    var appearanceConfiguration: ButtonAppearanceConfiguration?
+    var appearanceConfiguration: ButtonAppearanceConfiguration? {
+        didSet { applyConfiguration() }
+    }
     
     override var isHighlighted: Bool {
         didSet {

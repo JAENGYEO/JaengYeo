@@ -47,14 +47,14 @@ extension LabelConfiguration {
     )
     
     static let titleBold24 = LabelConfiguration(
-        font: .systemFont(ofSize: 28, weight: .bold),
+        font: .systemFont(ofSize: 24, weight: .bold),
         color: .gray800,
         lines: 0,
         kern: -0.15
     )
  
     static let titleBold20 = LabelConfiguration(
-        font: .systemFont(ofSize: 28, weight: .bold),
+        font: .systemFont(ofSize: 20, weight: .bold),
         color: .gray800,
         lines: 0,
         kern: -0.15

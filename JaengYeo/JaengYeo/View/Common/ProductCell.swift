@@ -77,14 +77,16 @@ extension ProductCell {
         productInfoStack.addArrangedSubview(productTitleLabel)
         productInfoStack.addArrangedSubview(productDesciptStack)
         productMainStack.addArrangedSubview(productImageView)
-        productInfoStack.addArrangedSubview(productInfoStack)
+        productMainStack.addArrangedSubview(productInfoStack)
         
         contentView.addSubview(productInfoStack)
         contentView.addSubview(productCountStack)
         
         
         productMainStack.snp.makeConstraints{
-            $0.top.equalToSuperview().
+            $0.top.equalToSuperview().offset(12)
+            $0.bottom.equalToSuperview().inset(12)
+            $0.leading.equalToSuperview().offset(16)
         }
     }
 }
