@@ -55,9 +55,7 @@ extension CoreDataManager {
     // MARK: SubCategory Create
     func createSubCategory(_ payload: borrowing SubCategoryPayload) throws {
         
-        let entityDescription = SubCategoryEntity.entity()
-        
-        let entity = SubCategoryEntity(entity: entityDescription, insertInto: context)
+        let entity = SubCategoryEntity(context: context)
         
         entity.id = payload.id
         entity.userId = payload.userId
@@ -95,8 +93,12 @@ extension CoreDataManager {
         )
     }
     
-    func fetchAllSubCategories() throws -> [SubCategoryPayload] {
+    func fetchAllSubCategories(mainCategory: String) throws -> [SubCategoryPayload] {
         let request: NSFetchRequest<SubCategoryEntity> = SubCategoryEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "mainCategory == %@ AND syncStatus != %@",
+            mainCategory, SyncStatus.pendingDelete.rawValue
+        )
         request.sortDescriptors = [NSSortDescriptor(key: "sortOrder", ascending: true)]
         
         do {
@@ -155,15 +157,26 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
+    
+    // MARK: SubCategory Soft Delete
+    func deleteSubCategory(id: UUID) throws {
+        let entity = try fetchSubCategoryEntity(of: id)
+        entity.syncStatus = SyncStatus.pendingDelete.rawValue
+        entity.updatedAt = Date()
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
 }
 
 //MARK: - MidCategory CRUD
 extension CoreDataManager {
     // MARK: MidCategory Create
     func createMidCategory(_ payload: borrowing MidCategoryPayload) throws {
-        let entityDescription = MidCategoryEntity.entity()
         
-        let entity = MidCategoryEntity(entity: entityDescription, insertInto: context)
+        let entity = MidCategoryEntity(context: context)
         
         entity.id = payload.id
         entity.userId = payload.userId
@@ -199,8 +212,12 @@ extension CoreDataManager {
         )
     }
     
-    func fetchAllMidCategories() throws -> [MidCategoryPayload] {
+    func fetchAllMidCategories(mainCategory: String) throws -> [MidCategoryPayload] {
         let request: NSFetchRequest<MidCategoryEntity> = MidCategoryEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "mainCategory == %@ AND syncStatus != %@",
+            mainCategory, SyncStatus.pendingDelete.rawValue
+        )
         request.sortDescriptors = [NSSortDescriptor(key: "sortOrder", ascending: true)]
         
         do {
@@ -257,6 +274,18 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
+    
+    // MARK: MidCategory Soft Delete
+    func deleteMidCategory(id: UUID) throws {
+        let entity = try fetchMidCategoryEntity(of: id)
+        entity.syncStatus = SyncStatus.pendingDelete.rawValue
+        entity.updatedAt = Date()
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
 }
 
 
@@ -265,9 +294,8 @@ extension CoreDataManager {
 extension CoreDataManager {
     // MARK: Product Create
     func createProduct(_ payload: borrowing ProductPayload) throws {
-        let entityDescription = ProductEntity.entity()
         
-        let entity = ProductEntity(entity: entityDescription, insertInto: context)
+        let entity = ProductEntity(context: context)
         
         entity.id = payload.id
         entity.userId = payload.userId
@@ -329,6 +357,7 @@ extension CoreDataManager {
     
     func fetchAllProducts() throws -> [ProductPayload] {
         let request: NSFetchRequest<ProductEntity> = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "syncStatus != %@", SyncStatus.pendingDelete.rawValue)
         request.sortDescriptors = [NSSortDescriptor(key: "updatedAt", ascending: false)]
         
         do {
@@ -407,6 +436,18 @@ extension CoreDataManager {
             return entity
         } catch {
             throw CoreDataError.loadFailed
+        }
+    }
+    
+    // MARK: Product Soft Delete
+    func deleteProduct(id: UUID) throws {
+        let entity = try fetchProductEntity(of: id)
+        entity.syncStatus = SyncStatus.pendingDelete.rawValue
+        entity.updatedAt = Date()
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
         }
     }
 }
@@ -552,5 +593,104 @@ extension CoreDataManager {
         } catch {
             throw CoreDataError.saveFailed
         }
+    }
+}
+
+//MARK: 메인화면용 로직
+extension CoreDataManager {
+    
+    // 미분류 상품 fetch
+    func fetchUnclassified() throws -> [ProductPayload] {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "isClassified == false AND syncStatus != %@", SyncStatus.pendingDelete.rawValue)
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    // 유통기한 임박 상품 fetch
+    func fetchExpiryImminent(day: Int) throws -> [ProductPayload] {
+        let deadLine = Calendar.current.date(byAdding: .day, value: day, to: Date()) ?? Date()
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "expiryDate <= %@ AND expiryDate > %@ AND syncStatus != %@",
+            deadLine as NSDate, Date() as NSDate, SyncStatus.pendingDelete.rawValue
+        )
+        request.sortDescriptors = [NSSortDescriptor(key: "expiryDate", ascending: true)]
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    // 재고 부족 상품 fetch
+    func fetchLowStock() throws -> [ProductPayload] {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "isLowStockNotificationEnabled == true AND quantity <= lowStockThreshold AND syncStatus != %@",
+            SyncStatus.pendingDelete.rawValue
+        )
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    
+    // 최근 등록 상품 fetch
+    func fetchRecent(limit: Int) throws -> [ProductPayload] {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "syncStatus != %@", SyncStatus.pendingDelete.rawValue)
+        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+        request.fetchLimit = limit
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    // MainCategory 기준 fetch
+    func fetchByMainCategory(mainCategory: String) throws -> [ProductPayload] {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "mainCategory == %@ AND syncStatus != %@",
+            mainCategory, SyncStatus.pendingDelete.rawValue
+        )
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    private func toDomainProduct(_ entity: ProductEntity) -> ProductPayload {
+        ProductPayload(
+            id: entity.id,
+            userId: entity.userId,
+            name: entity.name,
+            quantity: entity.quantity,
+            quantityUnit: entity.quantityUnit,
+            mainCategory: entity.mainCategory,
+            midCategoryId: entity.midCategoryId,
+            subCategoryId: entity.subCategoryId,
+            purchaseDate: entity.purchaseDate,
+            expiryDate: entity.expiryDate,
+            price: entity.price,
+            locationMemo: entity.locationMemo,
+            memo: entity.memo,
+            imageUrl: entity.imageUrl,
+            isClassified: entity.isClassified,
+            lowStockThreshold: entity.lowStockThreshold,
+            isFavorite: entity.isFavorite,
+            createdAt: entity.createdAt,
+            updatedAt: entity.updatedAt,
+            syncStatus: entity.syncStatus,
+            isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled
+        )
     }
 }
