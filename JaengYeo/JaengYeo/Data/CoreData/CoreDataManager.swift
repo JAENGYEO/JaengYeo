@@ -177,7 +177,7 @@ extension CoreDataManager {
         do {
             try context.save()
         } catch {
-            throw CoreDataError.saveFailed
+            throw CoreDataError.contextSaveFailed(error)
         }
     }
 }
@@ -305,7 +305,7 @@ extension CoreDataManager {
         do {
             try context.save()
         } catch {
-            throw CoreDataError.saveFailed
+            throw CoreDataError.contextSaveFailed(error)
         }
     }
 }
@@ -480,7 +480,7 @@ extension CoreDataManager {
         do {
             try context.save()
         } catch {
-            throw CoreDataError.saveFailed
+            throw CoreDataError.contextSaveFailed(error)
         }
     }
 }
