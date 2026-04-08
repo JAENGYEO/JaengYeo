@@ -169,6 +169,17 @@ extension CoreDataManager {
             throw CoreDataError.saveFailed
         }
     }
+    
+    //MARK: SubCategory Hard Delete
+    func hardDeleteSubCategory(id: UUID) throws {
+        let entity = try fetchSubCategoryEntity(of: id)
+        context.delete(entity)
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
 }
 
 //MARK: - MidCategory CRUD
@@ -280,6 +291,17 @@ extension CoreDataManager {
         let entity = try fetchMidCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+    
+    // MARK: MidCategory Hard Delete
+    func hardDeleteMidCategory(id: UUID) throws {
+        let entity = try fetchMidCategoryEntity(of: id)
+        context.delete(entity)
         do {
             try context.save()
         } catch {
@@ -444,6 +466,17 @@ extension CoreDataManager {
         let entity = try fetchProductEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+    
+    //MARK: Product Hard Delete
+    func hardDeleteProduct(id: UUID) throws {
+        let entity = try fetchProductEntity(of: id)
+        context.delete(entity)
         do {
             try context.save()
         } catch {
