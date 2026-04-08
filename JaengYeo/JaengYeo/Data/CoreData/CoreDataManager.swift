@@ -159,7 +159,7 @@ extension CoreDataManager {
     }
     
     // MARK: SubCategory Soft Delete
-    func deleteSubCategory(id: UUID) throws {
+    func softDeleteSubCategory(id: UUID) throws {
         let entity = try fetchSubCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
@@ -276,7 +276,7 @@ extension CoreDataManager {
     }
     
     // MARK: MidCategory Soft Delete
-    func deleteMidCategory(id: UUID) throws {
+    func softDeleteMidCategory(id: UUID) throws {
         let entity = try fetchMidCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
@@ -440,7 +440,7 @@ extension CoreDataManager {
     }
     
     // MARK: Product Soft Delete
-    func deleteProduct(id: UUID) throws {
+    func softDeleteProduct(id: UUID) throws {
         let entity = try fetchProductEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
