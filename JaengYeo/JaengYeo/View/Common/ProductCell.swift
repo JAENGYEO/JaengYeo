@@ -141,8 +141,9 @@ private extension ProductCell {
     private func updateDescriptionStack(
         stackView: UIStackView,
         freshness: Int?,
-        texts: [String]?,
+        texts: [String]?
     ) {
+        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         var labels: [UILabel] = []
         
         /// 유통기한 텍스트 생성
