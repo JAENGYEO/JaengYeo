@@ -160,6 +160,7 @@ extension RegisterView {
     // Ring 그라데이션 적용
     private func setGradientRing(view: UIView) {
         guard gradientRingLayer == nil else { return }
+        guard view.bounds != .zero else { return }
         let primary100 = UIColor(named: "Primary100") ?? .systemBlue
         let primary600 = UIColor(named: "Primary600") ?? .systemBlue
         
