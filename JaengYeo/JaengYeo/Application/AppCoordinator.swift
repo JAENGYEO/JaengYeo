@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Supabase
 
 final class AppCoordinator {
     private let window: UIWindow
@@ -18,6 +19,14 @@ final class AppCoordinator {
     
     func start() {
         let client = makeSupabaseClient()
+        
+        Task {
+            try? await client.auth.signIn(
+                email: "test@test.com",
+                password: "test1234"
+            )
+        }
+        
         let productManager = ProductManager(client: client)
         let categoryManager = CategoryManager(client: client)
         let coreDataManager = CoreDataManager()
@@ -38,7 +47,8 @@ final class AppCoordinator {
         let registerCoordinator = RegisterCoordinator(
             productManager: productManager,
             categoryManager: categoryManager,
-            coreDataManager: coreDataManager
+            coreDataManager: coreDataManager,
+            client: client
         )
         
         let stockCoordinator = StockCoordinator(

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Supabase
 
 final class RegisterCoordinator {
     let navigationController: UINavigationController
@@ -13,13 +14,16 @@ final class RegisterCoordinator {
     private let productManager: ProductManagerProtocol
     private let categoryManager: CategoryManagerProtocol
     private let coreDataManager: CoreDataManagerProtocol
+    private let client: SupabaseClient
     
-    init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol) {
+    init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, client: SupabaseClient) {
         self.productManager = productManager
         self.categoryManager = categoryManager
         self.coreDataManager = coreDataManager
+        self.client = client
         
-        let viewController = RegisterViewController()
+        let viewModel = RegisterViewModel(client: client)
+        let viewController = RegisterViewController(viewModel: viewModel)
         navigationController = UINavigationController(rootViewController: viewController)
         navigationController.tabBarItem = UITabBarItem(
             title: "등록",
