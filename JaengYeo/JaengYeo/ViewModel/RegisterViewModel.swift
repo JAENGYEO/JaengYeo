@@ -70,7 +70,7 @@ extension RegisterViewModel {
             "mimeType": AnyJSON(stringLiteral: "image/jpeg")
         ]
         return try await client.functions
-            .invoke("gemini-vision", options: FunctionInvokeOptions(body: body))
+            .invoke("gpt-vision", options: FunctionInvokeOptions(body: body))
     }
     
     // analyzeByAi로 받아온 데이터 FormData화
