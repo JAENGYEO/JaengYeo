@@ -108,7 +108,7 @@ extension RegisterView {
             $0.bottom.equalToSuperview()
         }
         captureRingView.snp.makeConstraints {
-            $0.size.equalTo(72)
+            $0.size.equalTo(76)
             $0.centerX.equalToSuperview()
             $0.bottom.equalTo(safeAreaLayoutGuide).offset(-24)
         }
@@ -157,12 +157,12 @@ extension RegisterView {
     // Ring 그라데이션 적용
     private func setGradientRing(view: UIView) {
         view.layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
-        let primary50 = UIColor(named: "primary50") ?? .systemBlue //MARK: primay50은 소문자로 되어있어서 변경 필요
+        let primary100 = UIColor(named: "Primary100") ?? .systemBlue
         let primary600 = UIColor(named: "Primary600") ?? .systemBlue
         
         let gradient = CAGradientLayer()
         gradient.frame = view.bounds
-        gradient.colors = [primary50.cgColor, primary600.cgColor]
+        gradient.colors = [primary100.cgColor, primary600.cgColor]
         gradient.startPoint = CGPoint(x: 0, y: 0)
         gradient.endPoint = CGPoint(x: 1, y: 1)
         
