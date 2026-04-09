@@ -38,6 +38,9 @@ final class RegisterView: UIView {
     let bottomControlView = UIView().then {
         $0.backgroundColor = .black
     }
+    
+    private var gradientRingLayer: CAGradientLayer?
+    
     // 촬영버튼 View -> Ring용
     let captureRingView = UIView().then {
         $0.backgroundColor = .clear
@@ -156,7 +159,7 @@ extension RegisterView {
     
     // Ring 그라데이션 적용
     private func setGradientRing(view: UIView) {
-        view.layer.sublayers?.filter { $0 is CAGradientLayer }.forEach { $0.removeFromSuperlayer() }
+        guard gradientRingLayer == nil else { return }
         let primary100 = UIColor(named: "Primary100") ?? .systemBlue
         let primary600 = UIColor(named: "Primary600") ?? .systemBlue
         
@@ -174,6 +177,7 @@ extension RegisterView {
         gradient.mask = shape
         
         view.layer.addSublayer(gradient)
+        gradientRingLayer = gradient
     }
 }
 
