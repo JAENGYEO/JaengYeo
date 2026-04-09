@@ -14,6 +14,9 @@ final class RegisterViewController: UIViewController {
     
     private let disposeBag = DisposeBag()
     
+    private let viewModel: RegisterViewModel
+    private let aiCapturedSubject = PublishSubject<Data>()
+    
     private let mainView = RegisterView()
     
     private let captureSession = AVCaptureSession() // 카메라 입출력 연결
@@ -23,7 +26,14 @@ final class RegisterViewController: UIViewController {
     
     private var currentMode: CameraMode = .barcode
     
-    private let sessionQueue = DispatchQueue(label: "com.jaengyeo.camera.session")
+    init(viewModel: RegisterViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func loadView() {
         self.view = mainView
@@ -90,10 +100,37 @@ extension RegisterViewController {
             })
             .disposed(by: disposeBag)
         
-        //        registerView.captureButton.rx.tap
-        //            .bind(onNext: { [weak self] in
-        //            })
-        //            .disposed(by: disposeBag)
+        mainView.captureButton.rx.tap
+            .bind(onNext: { [weak self] in
+                self?.handleCaptureButtonTapped()
+            })
+            .disposed(by: disposeBag)
+        
+        //TODO: AI Response 로직 구현 필요 -> RegisterFormView 생성 이후 작업
+        let input = RegisterViewModel.Input(aiCaptured: aiCapturedSubject)
+        let output = viewModel.transform(input)
+        
+        output.aiResponseData
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { _ in
+                
+            })
+            .disposed(by: disposeBag)
+        
+        output.isLoading
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { _ in
+                
+            })
+            .disposed(by: disposeBag)
+        
+        output.error
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { _ in
+                
+            })
+            .disposed(by: disposeBag)
+        
     }
     
     private func switchMode(mode: CameraMode) {
@@ -191,5 +228,23 @@ extension RegisterViewController {
             captureSession.addInput(input)
             captureSession.commitConfiguration()
         }
+    }
+}
+
+extension RegisterViewController {
+    private func handleCaptureButtonTapped() {
+        guard currentMode == .aiVision else { return }
+        let settings = AVCapturePhotoSettings()
+        photoOutput.capturePhoto(with: settings, delegate: self)
+    }
+}
+
+extension RegisterViewController: AVCapturePhotoCaptureDelegate {
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: (any Error)?) {
+        guard error == nil,
+              let data = photo.fileDataRepresentation(),
+              let image = UIImage(data: data),
+              let compressedData = image.jpegData(compressionQuality: 0.3) else { return }
+        aiCapturedSubject.onNext(compressedData)
     }
 }
