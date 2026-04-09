@@ -10,20 +10,20 @@ import UIKit
 struct ButtonTitleConfiguration {
     let font: UIFont
     let normalColor: UIColor
-    let highlightedColor: UIColor
+    let selectedColor: UIColor
     let disabledColor: UIColor
     let kern: CGFloat
     
     /// 색상 변환 메소드
     func updatingColor(
            normalColor: UIColor? = nil,
-           highlightedColor: UIColor? = nil,
+           selectedColor: UIColor? = nil,
            disabledColor: UIColor? = nil
        ) -> ButtonTitleConfiguration {
            .init(
                font: font,
                normalColor: normalColor ?? self.normalColor,
-               highlightedColor: highlightedColor ?? self.highlightedColor,
+               selectedColor: selectedColor ?? self.selectedColor,
                disabledColor: disabledColor ?? self.disabledColor,
                kern: kern
            )
@@ -33,6 +33,7 @@ struct ButtonTitleConfiguration {
 /// Button Appearance Configuration 구조체
 struct ButtonAppearanceConfiguration {
     let backgroundColor: UIColor
+    let selectedBackgroundColor: UIColor
     let highlightedBackgroundColor: UIColor
     let disabledBackgroundColor: UIColor
     let cornerRadius: CGFloat
@@ -42,10 +43,12 @@ struct ButtonAppearanceConfiguration {
     /// 색상 변환 메소드
     func updatingColor(
         backgroundColor: UIColor? = nil,
+        selectedBackgroundColor: UIColor? = nil,
         highlightedBackgroundColor: UIColor? = nil,
-        disabledBackgroundColor: UIColor? = nil
+        disabledBackgroundColor: UIColor? = nil,
     ) -> ButtonAppearanceConfiguration {
         .init(backgroundColor: backgroundColor ?? self.backgroundColor,
+              selectedBackgroundColor: selectedBackgroundColor ?? self.selectedBackgroundColor,
               highlightedBackgroundColor: highlightedBackgroundColor ?? self.highlightedBackgroundColor,
               disabledBackgroundColor: disabledBackgroundColor ?? self.disabledBackgroundColor,
               cornerRadius: cornerRadius,
@@ -63,11 +66,61 @@ protocol ConfigurableButton {
 // MARK: - Setting ButtonTitleConfiguration
 extension ButtonTitleConfiguration {
     /// 메인 컬러 텍스트 설정
-    static let textPrimary = ButtonTitleConfiguration(
+    static let textTitle = ButtonTitleConfiguration (
         font: .systemFont(ofSize: 14, weight: .bold),
         normalColor: .accent,
-        highlightedColor: .white,
+        selectedColor: .white,
         disabledColor: .gray500,
+        kern: -0.15
+    )
+    
+    static let textTitle12 = ButtonTitleConfiguration (
+        font: .systemFont(ofSize: 12, weight: .regular),
+        normalColor: .accent,
+        selectedColor: .white,
+        disabledColor: .gray500,
+        kern: -0.15
+    )
+    
+    static let textGrayTitle12 = ButtonTitleConfiguration (
+        font: .systemFont(ofSize: 12, weight: .regular),
+        normalColor: .gray800,
+        selectedColor: .white,
+        disabledColor: .gray800,
+        kern: -0.15
+
+    )
+    
+    static let defaultTitle = ButtonTitleConfiguration (
+        font: .systemFont(ofSize: 14, weight: .medium),
+        normalColor: .white,
+        selectedColor: .white,
+        disabledColor: .gray500,
+        kern: -0.15
+    )
+    
+    /// 메인 컬러 텍스트 설정
+    static let textEdgeTitle = ButtonTitleConfiguration (
+        font: .systemFont(ofSize: 14, weight: .bold),
+        normalColor: .gray500,
+        selectedColor: .accent,
+        disabledColor: .white,
+        kern: -0.15
+    )
+    
+    static let redTitle = ButtonTitleConfiguration (
+        font: .systemFont(ofSize: 14, weight: .medium),
+        normalColor: .primaryRed,
+        selectedColor: .white,
+        disabledColor: .gray500,
+        kern: -0.15
+    )
+    
+    static let categoryTitle = ButtonTitleConfiguration (
+        font: .systemFont(ofSize: 12, weight: .regular),
+        normalColor: .gray800,
+        selectedColor: .white,
+        disabledColor: .white,
         kern: -0.15
     )
 }
@@ -76,12 +129,54 @@ extension ButtonTitleConfiguration {
 //MARK: - Setting ButtonAppearanceConfiguration
 extension ButtonAppearanceConfiguration {
     /// 타이틀만 표출되는 디자인
-    static let textOnly = ButtonAppearanceConfiguration(
+    static let textAppearance = ButtonAppearanceConfiguration(
         backgroundColor: UIColor.clear,
+        selectedBackgroundColor: UIColor.clear,
         highlightedBackgroundColor: UIColor.clear,
         disabledBackgroundColor: UIColor.clear,
         cornerRadius: 0,
         borderWidth: 0,
-        borderColor: .clear
+        borderColor: UIColor.clear
+    )
+    
+    static let defaultAppearance = ButtonAppearanceConfiguration(
+        backgroundColor: .accent,
+        selectedBackgroundColor: .accent,
+        highlightedBackgroundColor: .primary700,
+        disabledBackgroundColor: UIColor.clear,
+        cornerRadius: 12,
+        borderWidth: 0,
+        borderColor: UIColor.clear
+
+    )
+    
+    static let textEdgeAppearance = ButtonAppearanceConfiguration(
+        backgroundColor: .white,
+        selectedBackgroundColor: .white,
+        highlightedBackgroundColor: .accent,
+        disabledBackgroundColor: UIColor.clear,
+        cornerRadius: 12,
+        borderWidth: 2,
+        borderColor: .gray300
+    )
+    
+    static let redAppearance = ButtonAppearanceConfiguration(
+        backgroundColor: .primaryLightRed,
+        selectedBackgroundColor: .primary700,
+        highlightedBackgroundColor: UIColor.clear,
+        disabledBackgroundColor: UIColor.clear,
+        cornerRadius: 12,
+        borderWidth: 0,
+        borderColor: UIColor.clear
+    )
+    
+    static let categoryAppearance = ButtonAppearanceConfiguration(
+        backgroundColor: .white,
+        selectedBackgroundColor: .accent,
+        highlightedBackgroundColor: .primary300,
+        disabledBackgroundColor: .primary300,
+        cornerRadius: 15,
+        borderWidth: 1,
+        borderColor: .gray100
     )
 }
