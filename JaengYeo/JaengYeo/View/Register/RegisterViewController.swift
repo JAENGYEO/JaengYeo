@@ -23,6 +23,8 @@ final class RegisterViewController: UIViewController {
     
     private var currentMode: CameraMode = .barcode
     
+    private let sessionQueue = DispatchQueue(label: "com.jaengyeo.camera.session")
+    
     override func loadView() {
         self.view = mainView
     }
@@ -161,7 +163,7 @@ extension RegisterViewController {
             
             // 카메라 피드를 화면에 그림: layer에 추가
             DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
+                guard let self, self.previewLayer == nil else { return }
                 let layer = AVCaptureVideoPreviewLayer(session: self.captureSession)
                 layer.frame = self.mainView.previewView.bounds
                 layer.videoGravity = .resizeAspectFill
