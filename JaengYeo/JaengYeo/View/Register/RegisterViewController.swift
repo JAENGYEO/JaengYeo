@@ -234,8 +234,10 @@ extension RegisterViewController {
 extension RegisterViewController {
     private func handleCaptureButtonTapped() {
         guard currentMode == .aiVision else { return }
-        let settings = AVCapturePhotoSettings()
-        photoOutput.capturePhoto(with: settings, delegate: self)
+//        let settings = AVCapturePhotoSettings()
+//        photoOutput.capturePhoto(with: settings, delegate: self)
+        let vc = RegisterItemListViewController(items: [], pageTitle: "AI 인식 결과")
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
 

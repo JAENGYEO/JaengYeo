@@ -11,15 +11,18 @@ import Then
 
 final class RegisterItemListView: UIView {
     
+    let infoView = UIView().then {
+        $0.backgroundColor = .gray50
+    }
     let infoLabel = UILabel().then {
         $0.font = LabelConfiguration.body12.font
-        $0.textColor = .secondaryLabel
+        $0.text = "AI가 부정확할 수 있으니 다시 한 번 확인해주세요"
+        $0.textColor = .gray300
+        $0.backgroundColor = .clear
         $0.textAlignment = .center
     }
     
-    lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout()).then {
-        $0.backgroundColor = .systemGroupedBackground
-    }
+    lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
     
     let saveButton = UIButton().then {
         $0.setTitle("저장", for: .normal)
@@ -40,9 +43,14 @@ final class RegisterItemListView: UIView {
 
 extension RegisterItemListView {
     private func configCollectionViewLayout() {
-        var config = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
-        config.showsSeparators = true
-        let layout = UICollectionViewCompositionalLayout.list(using: config)
+        let layout = UICollectionViewCompositionalLayout { sectionIndex, environment in
+            var config = UICollectionLayoutListConfiguration(appearance: .plain)
+            config.showsSeparators = false
+            config.backgroundColor = .clear
+            let section = NSCollectionLayoutSection.list(using: config, layoutEnvironment: environment )
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16)
+            return section
+        }
         collectionView.setCollectionViewLayout(layout, animated: false)
     }
 }
@@ -50,17 +58,24 @@ extension RegisterItemListView {
 extension RegisterItemListView {
     private func setLayout() {
         backgroundColor = .white
-        [infoLabel, collectionView, saveButton].forEach { addSubview($0) }
+        collectionView.backgroundColor = .gray50
+        infoView.addSubview(infoLabel)
+        [infoView, collectionView, saveButton].forEach { addSubview($0) }
+        
+        infoView.snp.makeConstraints {
+            $0.top.equalTo(safeAreaLayoutGuide)
+            $0.leading.trailing.equalToSuperview()
+        }
         
         infoLabel.snp.makeConstraints {
-            $0.top.equalTo(safeAreaLayoutGuide).offset(12)
-            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.leading.trailing.equalToSuperview()
+            $0.top.bottom.equalToSuperview().inset(12)
         }
         
         collectionView.snp.makeConstraints {
-            $0.top.equalTo(infoLabel.snp.bottom).offset(12)
-            $0.leading.trailing.equalToSuperview().inset(16)
-            $0.bottom.equalToSuperview()
+            $0.top.equalTo(infoView.snp.bottom)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(saveButton.snp.top).offset(-8)
         }
         
         saveButton.snp.makeConstraints {
