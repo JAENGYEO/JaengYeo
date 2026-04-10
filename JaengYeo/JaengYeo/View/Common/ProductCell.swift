@@ -9,22 +9,40 @@ import UIKit
 import SnapKit
 import Then
 
+//MARK: - Enum
+/// 상품 셀 디자인 타입
+enum ProductCellType {
+    /// 기본 디자인
+    case defaultType
+    /// 상품 추가 정보 표기 디자인
+    case detailType
+    /// 등록 디자인
+    case registType
+}
+
 /// 공용 상품 셀
 final class ProductCell: UICollectionViewListCell{
     
-    //MARK: - Enum
-    /// 상품 셀 디자인 타입
-    enum ProductCellType {
-        /// 기본 디자인
-        case defaultType
-        /// 상품 추가 정보 표기 디자인
-        case detailType
-        /// 등록 디자인
-        case registType
-    }
+    static let productCellID = "productCellID"
     
     // MARK: - Properties
-    private var cellType: ProductCellType
+    private var cellType: ProductCellType = .defaultType {
+        didSet {
+            switch cellType {
+            case .defaultType:
+                productSubDescriptionStack.isHidden = true
+                productCountView.isHidden = false
+                
+            case .detailType:
+                productSubDescriptionStack.isHidden = false
+                productCountView.isHidden = false
+                
+            case .registType:
+                productSubDescriptionStack.isHidden = true
+                productCountView.isHidden = true
+            }
+        }
+    }
     
     // MARK: - Components
     /// 아이템 이미지 뷰
@@ -86,8 +104,7 @@ final class ProductCell: UICollectionViewListCell{
     private let productCountView = UIView()
     
     // MARK: - Init
-    init(frame: CGRect = .zero, type: ProductCellType) {
-        self.cellType = type
+    override init(frame: CGRect = .zero) {
         super.init(frame: frame)
         configureUI()
     }
@@ -96,21 +113,21 @@ final class ProductCell: UICollectionViewListCell{
         fatalError("init(coder:) has not been implemented")
     }
 
-    convenience init(type: ProductCellType) {
-        self.init(frame: .zero, type: type)
-    }
+
 }
 
 // MARK: - Public
 extension ProductCell {
     /// Update UI 메소드
     func updateUI(
+        type: ProductCellType,
         title: String,
         freshness: Int?,
         descriptions: [String]?,
         subdescriptions: [String]?,
         count: Int?
     ) {
+        cellType = type
         productTitleLabel.text = title
         
         updateDescriptionStack(
@@ -137,6 +154,7 @@ extension ProductCell {
 
 // MARK: - Update
 private extension ProductCell {
+    
     /// 설명 스택에 삽입될 텍스트 라벨 제작 메소드
     private func updateDescriptionStack(
         stackView: UIStackView,
@@ -226,33 +244,5 @@ private extension ProductCell {
             $0.trailing.equalToSuperview()
             $0.centerY.equalToSuperview()
         }
-        
-        switch cellType {
-        case .defaultType:
-            productSubDescriptionStack.isHidden = true
-            productCountView.isHidden = false
-            
-        case .detailType:
-            productSubDescriptionStack.isHidden = false
-            productCountView.isHidden = false
-            
-        case .registType:
-            productSubDescriptionStack.isHidden = true
-            productCountView.isHidden = true
-        }
     }
-}
-
-
-
-#Preview {
-    let cell = ProductCell(type: .detailType)
-    cell.updateUI(
-        title: "바나나",
-        freshness: -1,
-        descriptions: ["실온", "과일"],
-        subdescriptions: ["추가 정보", "라벨4"],
-        count: 6
-    )
-    return cell
 }
