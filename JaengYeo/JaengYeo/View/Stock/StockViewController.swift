@@ -14,14 +14,14 @@ import UIKit
 final class StockViewController: UIViewController {
 
     //MARK: - ViewModel
-    var viewModel: StockViewModel
+    private let viewModel: StockViewModel
 
     //MARK: - Properties
-    var disposeBag = DisposeBag()
+    private let disposeBag = DisposeBag()
     
 
     //MARK: - Components
-    let mainCategorySegment = UISegmentedControl().then {
+    private let mainCategorySegment = UISegmentedControl().then {
         let attributes: [NSAttributedString.Key: Any] = [
             .font: LabelConfiguration.bodyMedium14.font,
             .foregroundColor: UIColor.black
@@ -37,9 +37,9 @@ final class StockViewController: UIViewController {
         $0.selectedSegmentTintColor = .accent
     }
 
-    let categotyFilterView = CategoryFilterView()
+    private let categotyFilterView = CategoryFilterView()
     
-    let productCollectionView = ProductCollectionView()
+    private let productCollectionView = ProductCollectionView()
     
 
     init(viewModel: StockViewModel) {
@@ -54,14 +54,14 @@ final class StockViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationBarConfigure()
-        Bind()
+        bind()
         configureUI()
     }
 }
 
 //MARK: - Binding
 extension StockViewController {
-    func Bind() {
+    private func bind() {
         viewModel.mainCategory
             .subscribe(onNext: {
                 [weak self] items in
@@ -124,15 +124,3 @@ extension StockViewController {
     }
 }
 
-#Preview {
-    let nav = UINavigationController(rootViewController: StockViewController(viewModel: StockViewModel()))
-    
-    let selectAttributes:
-    [NSAttributedString.Key: Any] = [
-       .font: LabelConfiguration.titleSemi18.font,
-       .foregroundColor: LabelConfiguration.titleSemi18.color
-   ]
-    
-    nav.navigationBar.titleTextAttributes = selectAttributes
-    return nav
-}

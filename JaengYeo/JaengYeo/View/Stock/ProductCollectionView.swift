@@ -48,7 +48,7 @@ final class ProductCollectionView: UIView {
         $0.contentInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
     }
 
-    //MARK: - Co
+    //MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         configureUI()
@@ -59,8 +59,8 @@ final class ProductCollectionView: UIView {
     }
 }
 
+//MARK: - Configure CollectionView
 extension ProductCollectionView {
-
     func applySnapshot(with productDatas: [Product]) {
         totalCountLabel.text = "총 \(productDatas.count)개"
         var snapshot = NSDiffableDataSourceSnapshot<ProductCellType, Product>()
@@ -109,8 +109,8 @@ extension ProductCollectionView {
     }
 }
 
+// MARK: - Configure UI
 extension ProductCollectionView {
-
     func configureUI() {
         backgroundColor = .gray50
 
@@ -151,6 +151,3 @@ extension ProductCollectionView {
     }
 }
 
-#Preview {
-    ProductCollectionView()
-}
