@@ -121,11 +121,6 @@ extension ProductCollectionView {
         infoView.addSubview(totalCountLabel)
         infoView.addSubview(sortedButton)
 
-        collectionView.register(
-            ProductCell.self,
-            forCellWithReuseIdentifier: "ProductCell"
-        )
-
         addSubview(infoView)
         addSubview(collectionView)
 
