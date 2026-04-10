@@ -30,7 +30,8 @@ final class RegisterItemListView: UIView {
     
     let saveButton = UIButton().then {
         $0.setTitle("저장", for: .normal)
-        $0.backgroundColor = .systemBlue
+        $0.titleLabel?.font = LabelConfiguration.bodyMedium14.font
+        $0.backgroundColor = .accent
         $0.layer.cornerRadius = 12
     }
     
