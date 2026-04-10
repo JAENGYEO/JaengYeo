@@ -45,7 +45,6 @@ final class ProductCollectionView: UIView {
         collectionViewLayout: createLayout()
     ).then {
         $0.backgroundColor = .gray50
-        $0.contentInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
     }
 
     //MARK: - Init
@@ -69,19 +68,22 @@ extension ProductCollectionView {
         dataSource.apply(snapshot, animatingDifferences: true)
     }
 
-    func configureDataSource() -> UICollectionViewDiffableDataSource<
-        ProductCellType, Product
-    > {
-        let cellRegistration = UICollectionView.CellRegistration<
-            ProductCell, Product
-        > { cell, indexPath, item in
+    func configureDataSource() -> UICollectionViewDiffableDataSource<ProductCellType, Product> {
+        let cellRegistration = UICollectionView.CellRegistration<ProductCell, Product> {
+            cell, indexPath, item in
+            
+            var freshness: Int? = nil
+            if let expiryDate = item.expiryDate {
+                freshness = Calendar.current.dateComponents([.day], from: Date(), to: expiryDate).day
+            }
+            
             cell.updateUI(
                 type: .defaultType,
                 title: item.name,
-                freshness: nil,
-                descriptions: [],
+                freshness: freshness,
+                descriptions: [item.mainCategory],
                 subdescriptions: nil,
-                count: Int(item.quantity)
+                count: item.quantity
             )
         }
 

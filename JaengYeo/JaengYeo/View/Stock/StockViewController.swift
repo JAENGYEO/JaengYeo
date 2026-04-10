@@ -54,28 +54,45 @@ final class StockViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationBarConfigure()
-        bind()
         configureUI()
+        bind()
     }
 }
 
 //MARK: - Binding
 extension StockViewController {
     private func bind() {
-        viewModel.mainCategory
-            .subscribe(onNext: {
-                [weak self] items in
+        let Input = StockViewModel.Input(
+            viewDidLoad: Observable.just(()),
+            mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
+                .asObservable()
+                .filter { $0 >= 0 }
+        )
+        
+        let output = viewModel.transform(Input)
+        
+        output.mainCategories
+            .bind(onNext: { [weak self] categories in
                 guard let self else { return }
-                self.mainCategorySegment.removeAllSegments()
-                items.enumerated().forEach { index, title in
+                
+                categories.enumerated().forEach { index, title in
                     self.mainCategorySegment.insertSegment(
                         withTitle: title,
                         at: index,
                         animated: false
                     )
                 }
+                mainCategorySegment.selectedSegmentIndex = 0
             })
             .disposed(by: disposeBag)
+        
+        output.products
+            .bind(onNext: { [weak self] products in
+                guard let self else { return }
+                self.productCollectionView.applySnapshot(with: products)
+            })
+            .disposed(by: disposeBag)
+        
     }
 }
 
@@ -101,7 +118,6 @@ extension StockViewController {
         view.addSubview(mainCategorySegment)
         view.addSubview(categotyFilterView)
         view.addSubview(productCollectionView)
-        mainCategorySegment.selectedSegmentIndex = 0
 
         mainCategorySegment.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(8)
@@ -121,6 +137,7 @@ extension StockViewController {
             $0.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
         }
+        
     }
 }
 
