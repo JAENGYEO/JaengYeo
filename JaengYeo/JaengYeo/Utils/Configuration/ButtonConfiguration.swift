@@ -66,7 +66,7 @@ protocol ConfigurableButton {
 // MARK: - Setting ButtonTitleConfiguration
 extension ButtonTitleConfiguration {
     /// 메인 컬러 텍스트 설정
-    static let textTitle = ButtonTitleConfiguration (
+    static let textTitle = ButtonTitleConfiguration(
         font: .systemFont(ofSize: 14, weight: .bold),
         normalColor: .accent,
         selectedColor: .white,
