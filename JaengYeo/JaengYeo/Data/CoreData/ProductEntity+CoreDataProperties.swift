@@ -42,6 +42,33 @@ extension ProductEntity {
 
 }
 
-extension ProductEntity : Identifiable {
+extension ProductEntity : Identifiable { }
 
+extension ProductEntity {
+    var toDomain: Product {
+        Product(
+            id: id,
+            userId: userId,
+            name: name,
+            quantity: Int(quantity),
+            quantityUnit: quantityUnit,
+            mainCategory: mainCategory,
+            midCategoryId: midCategoryId,
+            subCategoryId: subCategoryId,
+            purchaseDate: purchaseDate,
+            expiryDate: expiryDate,
+            price: Int(price),
+            locationMemo: locationMemo,
+            memo: memo,
+            imageUrl: imageUrl,
+            isClassified: isClassified,
+            lowStockThreshold: Int(lowStockThreshold),
+            isFavorite: isFavorite,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            syncStatus: syncStatus,
+            isLowStockNotificationEnabled: isLowStockNotificationEnabled
+        )
+    }
 }
+
