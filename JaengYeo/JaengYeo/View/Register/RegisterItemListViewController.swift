@@ -23,6 +23,7 @@ final class RegisterItemListViewController: UIViewController {
         self.items = items
         self.pageTitle = pageTitle
         super.init(nibName: nil, bundle: nil)
+        hidesBottomBarWhenPushed = true
     }
     
     required init?(coder: NSCoder) {
@@ -40,10 +41,7 @@ final class RegisterItemListViewController: UIViewController {
                 subdescriptions: nil,
                 count: itemIdentifier.quantity
             )
-            var background = UIBackgroundConfiguration.clear()
-            background.cornerRadius = 8
-            background.backgroundColor = .white
-            cell.backgroundConfiguration = background
+            cell.accessories = [.disclosureIndicator(options: .init(tintColor: .gray300))]
             return cell
         }
     }()

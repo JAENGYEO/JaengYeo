@@ -24,6 +24,10 @@ final class RegisterItemListView: UIView {
     
     lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout())
     
+    private let bottomView = UIView().then {
+        $0.backgroundColor = .gray50
+    }
+    
     let saveButton = UIButton().then {
         $0.setTitle("저장", for: .normal)
         $0.backgroundColor = .systemBlue
@@ -60,7 +64,7 @@ extension RegisterItemListView {
         backgroundColor = .white
         collectionView.backgroundColor = .gray50
         infoView.addSubview(infoLabel)
-        [infoView, collectionView, saveButton].forEach { addSubview($0) }
+        [infoView, collectionView, bottomView, saveButton].forEach { addSubview($0) }
         
         infoView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
@@ -75,12 +79,17 @@ extension RegisterItemListView {
         collectionView.snp.makeConstraints {
             $0.top.equalTo(infoView.snp.bottom)
             $0.leading.trailing.equalToSuperview()
-            $0.bottom.equalTo(saveButton.snp.top).offset(-8)
+            $0.bottom.equalTo(bottomView.snp.top)
+        }
+        
+        bottomView.snp.makeConstraints {
+            $0.leading.trailing.bottom.equalToSuperview()
+            $0.top.equalTo(saveButton.snp.top).offset(-8)
         }
         
         saveButton.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(16)
-            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-16)
+            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-8)
             $0.height.equalTo(48)
         }
     }

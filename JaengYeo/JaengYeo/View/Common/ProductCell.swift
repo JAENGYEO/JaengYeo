@@ -205,6 +205,11 @@ private extension ProductCell {
 private extension ProductCell {
     
     func configureUI() {
+        var background = UIBackgroundConfiguration.clear()
+        background.backgroundColor = .white
+        background.cornerRadius = 8
+        backgroundConfiguration = background
+        
         contentView.addSubview(productMainStack)
         contentView.addSubview(productCountView)
         
