@@ -128,5 +128,9 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
 
         productsRelay.accept(products)
     }
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        updateProducts()
+    }
 }
 
