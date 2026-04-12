@@ -30,5 +30,15 @@ final class RegisterCoordinator {
             image: UIImage(systemName: "camera"),
             selectedImage: UIImage(systemName: "camera.fill")
         )
+        viewController.delegate = self
     }
+}
+
+extension RegisterCoordinator: RegisterViewControllerDelegate {
+    func pushItemListView(items: [RegisterFormData]) {
+        let viewController = RegisterItemListViewController(items: items, pageTitle: "AI 인식 결과")
+        navigationController.pushViewController(viewController, animated: true)
+    }
+    
+    
 }

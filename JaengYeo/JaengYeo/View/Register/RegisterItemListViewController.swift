@@ -54,22 +54,6 @@ final class RegisterItemListViewController: UIViewController {
         super.viewDidLoad()
         mainView.collectionView.register(ProductCell.self, forCellWithReuseIdentifier: ProductCell.productCellID)
         configNavigationBar()
-        loadMockData()
-    }
-}
-
-extension RegisterItemListViewController {
-    private func loadMockData() {
-        items = [
-            RegisterFormData(name: "김밥", mainCategory: "김밥", quantity: 10),
-            RegisterFormData(name: "라면", mainCategory: "라면", quantity: 5),
-            RegisterFormData(name: "초밥", mainCategory: "초밥", quantity: 3),
-            RegisterFormData(name: "짬뽕", mainCategory: "짬뽕", quantity: 8),
-            RegisterFormData(name: "파스타", mainCategory: "파스타", quantity: 4),
-            RegisterFormData(name: "삼겹살", mainCategory: "삼겹살", quantity: 6),
-            RegisterFormData(name: "피자", mainCategory: "피자", quantity: 2),
-            RegisterFormData(name: "치킨", mainCategory: "치킨", quantity: 9)
-        ]
         setSnapshot()
     }
 }

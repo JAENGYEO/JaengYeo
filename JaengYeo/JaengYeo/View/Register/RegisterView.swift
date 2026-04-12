@@ -34,6 +34,10 @@ final class RegisterView: UIView {
         $0.clipsToBounds = true
     }
     
+    let scanLineView = UIView().then {
+        $0.isHidden = true
+    }
+    
     // 하단 Container
     let bottomControlView = UIView().then {
         $0.backgroundColor = .black
@@ -84,6 +88,7 @@ extension RegisterView {
         
         [modeContainerView, previewView, bottomControlView].forEach { addSubview($0) }
         modeContainerView.addSubview(modeStackView)
+        previewView.addSubview(scanLineView)
         [barcodeButton, receiptButton, aiVisionButton, manualButton].forEach { modeStackView.addArrangedSubview($0) }
         [captureRingView, flipButton].forEach { bottomControlView.addSubview($0) }
         captureRingView.addSubview(captureButton)
@@ -103,6 +108,12 @@ extension RegisterView {
             $0.top.equalTo(modeContainerView.snp.bottom).offset(24)
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(bottomControlView.snp.top)
+        }
+        
+        scanLineView.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview()
+            $0.top.equalToSuperview()
+            $0.height.equalTo(2)
         }
         
         bottomControlView.snp.makeConstraints {
@@ -195,5 +206,41 @@ extension RegisterView {
         allButtons.forEach { button, mode in
             button.isSelected = (mode == cameraMode)
         }
+    }
+}
+
+//TODO: 영수증, AI인식 시 사용할 애니메이션 (몇회 반복, 속도 정해지지 않음. 그라데이션 적용 안됨)
+extension RegisterView {
+    func startScanAnimation() {
+        scanLineView.isHidden = false
+        previewView.bringSubviewToFront(scanLineView)
+        
+        let gradient = CAGradientLayer()
+        gradient.frame = CGRect(x: 0, y:0, width: UIScreen.main.bounds.width, height: 2)
+        gradient.colors = [
+            UIColor.clear.cgColor,
+            UIColor(named: "Primary300")?.cgColor ?? UIColor.systemBlue.cgColor,
+            UIColor.clear.cgColor
+        ]
+        gradient.startPoint = CGPoint(x: 0, y: 0.5)
+        gradient.endPoint = CGPoint(x: 1, y: 0.5)
+        scanLineView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        scanLineView.layer.addSublayer(gradient)
+        
+        UIView.animate(
+            withDuration: 1.8, delay: 0,
+            options: [.repeat, .autoreverse, .curveEaseInOut],
+            animations: {
+                self.scanLineView.transform = CGAffineTransform(
+                    translationX: 0, y: self.previewView.bounds.height
+                )
+            }
+        )
+    }
+    
+    func stopScanAnimation() {
+        scanLineView.isHidden = true
+        scanLineView.layer.removeAllAnimations()
+        scanLineView.transform = .identity
     }
 }

@@ -10,9 +10,15 @@ import AVFoundation
 import RxSwift
 import RxCocoa
 
+protocol RegisterViewControllerDelegate: AnyObject {
+    func pushItemListView(items: [RegisterFormData])
+}
+
 final class RegisterViewController: UIViewController {
     
     private let disposeBag = DisposeBag()
+    
+    weak var delegate: RegisterViewControllerDelegate?
     
     private let viewModel: RegisterViewModel
     private let aiCapturedSubject = PublishSubject<Data>()
@@ -112,22 +118,30 @@ extension RegisterViewController {
         
         output.aiResponseData
             .observe(on: MainScheduler.instance)
-            .bind(onNext: { _ in
-                
+            .bind(onNext: { [weak self] items in
+                guard let self else { return }
+                switch items.count {
+                case 0:
+                    self.showErrorAlert(title: "인식 실패", message: "인식된 항목이 없습니다.")
+                case 1:
+                    break
+                default:
+                    self.delegate?.pushItemListView(items: items)
+                }
             })
             .disposed(by: disposeBag)
         
         output.isLoading
             .observe(on: MainScheduler.instance)
-            .bind(onNext: { _ in
-                
+            .bind(onNext: { [weak self] isLoading in
+                isLoading ? self?.mainView.startScanAnimation() : self?.mainView.stopScanAnimation()
             })
             .disposed(by: disposeBag)
         
         output.error
             .observe(on: MainScheduler.instance)
-            .bind(onNext: { _ in
-                
+            .bind(onNext: { [weak self] error in
+                self?.showErrorAlert(title: "오류", message: error)
             })
             .disposed(by: disposeBag)
         
@@ -234,10 +248,8 @@ extension RegisterViewController {
 extension RegisterViewController {
     private func handleCaptureButtonTapped() {
         guard currentMode == .aiVision else { return }
-//        let settings = AVCapturePhotoSettings()
-//        photoOutput.capturePhoto(with: settings, delegate: self)
-        let vc = RegisterItemListViewController(items: [], pageTitle: "AI 인식 결과")
-        navigationController?.pushViewController(vc, animated: true)
+        let settings = AVCapturePhotoSettings()
+        photoOutput.capturePhoto(with: settings, delegate: self)
     }
 }
 
@@ -248,5 +260,13 @@ extension RegisterViewController: AVCapturePhotoCaptureDelegate {
               let image = UIImage(data: data),
               let compressedData = image.jpegData(compressionQuality: 0.3) else { return }
         aiCapturedSubject.onNext(compressedData)
+    }
+}
+
+extension RegisterViewController {
+    private func showErrorAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 }
