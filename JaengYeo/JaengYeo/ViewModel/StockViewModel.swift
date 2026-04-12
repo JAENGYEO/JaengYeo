@@ -83,7 +83,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
         request.sortDescriptors = [
             NSSortDescriptor(key: ProductEntity.Keys.createdAt, ascending: false)
         ]
-        request.predicate = NSPredicate(format: "mainCategory == %@", "식재료")
+        request.predicate = NSPredicate(format: "mainCategory == %@", MainCategory.foodstuff.rawValue)
 
         let controller = NSFetchedResultsController(
             fetchRequest: request,
