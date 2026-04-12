@@ -75,6 +75,7 @@ extension StockViewController {
             .bind(onNext: { [weak self] categories in
                 guard let self else { return }
                 
+                self.mainCategorySegment.removeAllSegments()
                 categories.enumerated().forEach { index, title in
                     self.mainCategorySegment.insertSegment(
                         withTitle: title,
