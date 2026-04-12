@@ -112,8 +112,28 @@ final class ProductCell: UICollectionViewListCell{
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        cellType = .defaultType
+        productTitleLabel.text = nil
+        productCountLabel.text = "0"
+        productImageView.image = nil
+        productImageView.backgroundColor = .accent
+        
+        updateDescriptionStack(
+            stackView: productDescriptionStack,
+            freshness: nil,
+            texts: nil
+        )
+        
+        updateDescriptionStack(
+            stackView: productSubDescriptionStack,
+            freshness: nil,
+            texts: nil
+        )
+    }
 }
 
 // MARK: - Public
