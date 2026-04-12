@@ -9,9 +9,15 @@ import UIKit
 import RxSwift
 import RxCocoa
 
+protocol RegisterItemListViewControllerDelegate: AnyObject {
+    func pushRegisterDetailView(item: RegisterFormData)
+}
+
 final class RegisterItemListViewController: UIViewController {
     
     typealias SectionID = UUID
+    
+    weak var delegate: RegisterItemListViewControllerDelegate?
     
     private let disposeBag = DisposeBag()
     private let mainView = RegisterItemListView()
