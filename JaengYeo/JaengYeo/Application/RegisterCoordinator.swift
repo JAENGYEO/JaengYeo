@@ -37,8 +37,14 @@ final class RegisterCoordinator {
 extension RegisterCoordinator: RegisterViewControllerDelegate {
     func pushItemListView(items: [RegisterFormData]) {
         let viewController = RegisterItemListViewController(items: items, pageTitle: "AI 인식 결과")
+        viewController.delegate = self
         navigationController.pushViewController(viewController, animated: true)
     }
-    
-    
+}
+
+extension RegisterCoordinator: RegisterItemListViewControllerDelegate {
+    func pushRegisterDetailView(item: RegisterFormData) {
+        let viewController = RegisterDetailViewController(item: item)
+        navigationController.pushViewController(viewController, animated: true)
+    }
 }
