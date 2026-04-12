@@ -216,10 +216,6 @@ private extension ProductCell {
         productCountView.addSubview(productCountLabel)
         productCountView.addSubview(countUnitLabel)
         
-        contentView.snp.makeConstraints {
-            $0.height.equalTo(88)
-        }
-        
         productMainStack.snp.makeConstraints {
             $0.top.equalToSuperview().offset(12)
             $0.bottom.equalToSuperview().inset(12)
