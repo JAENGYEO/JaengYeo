@@ -111,9 +111,9 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
 
         switch selectedIndex {
         case 0:
-            request.predicate = NSPredicate(format: "mainCategory == %@", "식재료")
+            request.predicate = NSPredicate(format: "mainCategory == %@", MainCategory.foodstuff.rawValue)
         case 1:
-            request.predicate = NSPredicate(format: "mainCategory == %@", "생활용품")
+            request.predicate = NSPredicate(format: "mainCategory == %@", MainCategory.household.rawValue)
         default:
             request.predicate = nil
         }
