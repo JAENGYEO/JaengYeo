@@ -27,26 +27,44 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     private var midCategoryFetchResultContoller: NSFetchedResultsController<MidCategoryEntity>?
     private var subCategoryFetchResultContoller: NSFetchedResultsController<SubCategoryEntity>?
     
+    /// 메인 카테고리 목록
     var mainCategory = BehaviorRelay<[String]>(value:
                                                 [MainCategory.foodstuff.rawValue, MainCategory.household.rawValue])
+    /// 상품 목록
     private let productsRelay = BehaviorRelay<[Product]>(value: [])
+    /// 중분류 목록
     private let midCategoriesRelay = BehaviorRelay<[CategorySelectionItem]>(value: [])
+    /// 소분류 목록
     private let subCategoriesRelay = BehaviorRelay<[CategorySelectionItem]>(value: [])
+    /// 선택된 중분류 ID
+    private let selectedMidCategoryIDsRelay = BehaviorRelay<Set<String>>(value: [])
+    /// 선택된 소분류 ID
+    private let selectedSubCategoryIDsRelay = BehaviorRelay<Set<String>>(value: [])
 
     struct Input {
         let viewDidLoad: Observable<Void>
         let mainCategorySelected: Observable<Int>
+        let midCategoryTapped: Observable<Void>
+        let subCategoryTapped: Observable<Void>
+        let midCategoryApplied: Observable<[String]>
+        let subCategoryApplied: Observable<[String]>
     }
     
     struct Output {
         let mainCategories: Observable<[String]>
         let products: Observable<[Product]>
-        let midCategories: Observable<[CategorySelectionItem]>
-        let subCategories: Observable<[CategorySelectionItem]>
+        let presentMidCategoryItems: Observable<[CategorySelectionItem]>
+        let presentSubCategoryItems: Observable<[CategorySelectionItem]>
         let totalCountText: Observable<Int>
     }
     
     func transform(_ input: Input) -> Output {
+        /// 중분류 선택 모달 표시
+        let presentMidCategoryItemsRelay = PublishRelay<[CategorySelectionItem]>()
+        /// 소분류 선택 모달 표시
+        let presentSubCategoryItemsRelay = PublishRelay<[CategorySelectionItem]>()
+        
+        /// 초기 데이터 조회
         input.viewDidLoad
             .subscribe(onNext: { [weak self] in
                 guard let self else { return }
@@ -57,13 +75,50 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
             })
             .disposed(by: disposeBag)
         
+        /// 메인 카테고리 선택
         input.mainCategorySelected
             .subscribe(onNext: { [weak self] page in
                 guard let self else { return }
+                self.resetCategoryFilters()
                 self.updatePredicate(for: page)
             })
             .disposed(by: disposeBag)
         
+        /// 중분류 버튼 선택
+        input.midCategoryTapped
+            .subscribe(onNext: { [weak self] in
+                guard let self else { return }
+                presentMidCategoryItemsRelay.accept(self.midCategoriesRelay.value)
+            })
+            .disposed(by: disposeBag)
+        
+        /// 소분류 버튼 선택
+        input.subCategoryTapped
+            .subscribe(onNext: { [weak self] in
+                guard let self else { return }
+                presentSubCategoryItemsRelay.accept(self.subCategoriesRelay.value)
+            })
+            .disposed(by: disposeBag)
+        
+        /// 중분류 필터 적용
+        input.midCategoryApplied
+            .subscribe(onNext: { [weak self] ids in
+                guard let self else { return }
+                self.selectedMidCategoryIDsRelay.accept(Set(ids))
+                self.updatePredicate()
+            })
+            .disposed(by: disposeBag)
+        
+        /// 소분류 필터 적용
+        input.subCategoryApplied
+            .subscribe(onNext: { [weak self] ids in
+                guard let self else { return }
+                self.selectedSubCategoryIDsRelay.accept(Set(ids))
+                self.updatePredicate()
+            })
+            .disposed(by: disposeBag)
+        
+        /// 상품 개수
         let totalCountText = productsRelay
             .map { $0.count }
             .asObservable()
@@ -71,8 +126,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         return Output(
             mainCategories: mainCategory.asObservable(),
             products: productsRelay.asObservable(),
-            midCategories: midCategoriesRelay.asObservable(),
-            subCategories: subCategoriesRelay.asObservable(),
+            presentMidCategoryItems: presentMidCategoryItemsRelay.asObservable(),
+            presentSubCategoryItems: presentSubCategoryItemsRelay.asObservable(),
             totalCountText: totalCountText
         )
     }
@@ -153,22 +208,65 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     
     /// 메인 카테고리 필터 적용
     private func updatePredicate(for selectedIndex: Int) {
-        let predicate: NSPredicate?
+        let mainCategoryPredicate: NSPredicate?
         
         switch selectedIndex {
         case 0:
-            predicate = NSPredicate(format: "mainCategory == %@", MainCategory.foodstuff.rawValue)
+            mainCategoryPredicate = NSPredicate(format: "mainCategory == %@", MainCategory.foodstuff.rawValue)
         case 1:
-            predicate = NSPredicate(format: "mainCategory == %@", MainCategory.household.rawValue)
+            mainCategoryPredicate = NSPredicate(format: "mainCategory == %@", MainCategory.household.rawValue)
         default:
-            predicate = nil
+            mainCategoryPredicate = nil
         }
         
-        productFetchResultController?.fetchRequest.predicate = predicate
-        midCategoryFetchResultContoller?.fetchRequest.predicate = predicate
-        subCategoryFetchResultContoller?.fetchRequest.predicate = predicate
+        productFetchResultController?.fetchRequest.predicate = makeProductPredicate(
+            mainCategoryPredicate: mainCategoryPredicate
+        )
+        midCategoryFetchResultContoller?.fetchRequest.predicate = mainCategoryPredicate
+        subCategoryFetchResultContoller?.fetchRequest.predicate = mainCategoryPredicate
 
         performFetch()
+    }
+    
+    /// 선택 필터 적용
+    private func updatePredicate() {
+        guard let mainCategoryPredicate = midCategoryFetchResultContoller?.fetchRequest.predicate else { return }
+
+        productFetchResultController?.fetchRequest.predicate = makeProductPredicate(
+            mainCategoryPredicate: mainCategoryPredicate
+        )
+
+        performFetch()
+    }
+    
+    /// 상품 필터 조건 생성
+    private func makeProductPredicate(
+        mainCategoryPredicate: NSPredicate?
+    ) -> NSPredicate? {
+        var predicates = [NSPredicate]()
+        
+        if let mainCategoryPredicate {
+            predicates.append(mainCategoryPredicate)
+        }
+        
+        let midCategoryIDs = selectedMidCategoryIDsRelay.value.compactMap { UUID(uuidString: $0) }
+        if !midCategoryIDs.isEmpty {
+            predicates.append(NSPredicate(format: "midCategoryId IN %@", midCategoryIDs))
+        }
+        
+        let subCategoryIDs = selectedSubCategoryIDsRelay.value.compactMap { UUID(uuidString: $0) }
+        if !subCategoryIDs.isEmpty {
+            predicates.append(NSPredicate(format: "subCategoryId IN %@", subCategoryIDs))
+        }
+        
+        guard !predicates.isEmpty else { return nil }
+        return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+    }
+    
+    /// 선택 필터 초기화
+    private func resetCategoryFilters() {
+        selectedMidCategoryIDsRelay.accept([])
+        selectedSubCategoryIDsRelay.accept([])
     }
     
     /// 상품 도메인 변환 및 반영
@@ -187,7 +285,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
                     id: $0.id.uuidString,
                     title: $0.name,
                     image: UIImage(named: $0.iconName ?? "Category"),
-                    isSelect: false
+                    isSelect: selectedMidCategoryIDsRelay.value.contains($0.id.uuidString)
                 )
             } ?? []
 
@@ -202,7 +300,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
                     id: $0.id.uuidString,
                     title: $0.name,
                     image: UIImage(named: $0.iconName ?? "Category"),
-                    isSelect: false
+                    isSelect: selectedSubCategoryIDsRelay.value.contains($0.id.uuidString)
                 )
             } ?? []
 
