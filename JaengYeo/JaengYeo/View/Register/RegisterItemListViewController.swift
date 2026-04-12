@@ -61,6 +61,7 @@ final class RegisterItemListViewController: UIViewController {
         mainView.collectionView.register(ProductCell.self, forCellWithReuseIdentifier: ProductCell.productCellID)
         configNavigationBar()
         setSnapshot()
+        mainView.collectionView.delegate = self
     }
 }
 
@@ -85,5 +86,13 @@ extension RegisterItemListViewController {
             
         }
         dataSource.apply(snapshot, animatingDifferences: true)
+    }
+}
+
+extension RegisterItemListViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
+        delegate?.pushRegisterDetailView(item: item)
     }
 }
