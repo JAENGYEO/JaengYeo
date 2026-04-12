@@ -30,6 +30,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     var mainCategory = BehaviorRelay<[String]>(value:
                                                 [MainCategory.foodstuff.rawValue, MainCategory.household.rawValue])
     private let productsRelay = BehaviorRelay<[Product]>(value: [])
+    private let midCategoriesRelay = BehaviorRelay<[CategorySelectionItem]>(value: [])
+    private let subCategoriesRelay = BehaviorRelay<[CategorySelectionItem]>(value: [])
 
     struct Input {
         let viewDidLoad: Observable<Void>
@@ -39,6 +41,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     struct Output {
         let mainCategories: Observable<[String]>
         let products: Observable<[Product]>
+        let midCategories: Observable<[CategorySelectionItem]>
+        let subCategories: Observable<[CategorySelectionItem]>
         let totalCountText: Observable<Int>
     }
     
@@ -47,7 +51,9 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
             .subscribe(onNext: { [weak self] in
                 guard let self else { return }
                 self.configureProductResultController()
-                self.performFetch()
+                self.configureMidCategoryResultController()
+                self.configureSubCategoryResultController()
+                self.updatePredicate(for: 0)
             })
             .disposed(by: disposeBag)
         
@@ -65,6 +71,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         return Output(
             mainCategories: mainCategory.asObservable(),
             products: productsRelay.asObservable(),
+            midCategories: midCategoriesRelay.asObservable(),
+            subCategories: subCategoriesRelay.asObservable(),
             totalCountText: totalCountText
         )
     }
@@ -95,11 +103,49 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
         productFetchResultController = controller
     }
     
-    /// 상품 데이터 조회
+    /// 중분류 조회 컨트롤러 구성
+    private func configureMidCategoryResultController() {
+        let request = MidCategoryEntity.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(key: MidCategoryEntity.Keys.sortOrder, ascending: true)
+        ]
+
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: coreDataManager.context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = self
+        midCategoryFetchResultContoller = controller
+    }
+    
+    /// 소분류 조회 컨트롤러 구성
+    private func configureSubCategoryResultController() {
+        let request = SubCategoryEntity.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(key: SubCategoryEntity.Keys.sortOrder, ascending: true)
+        ]
+
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: coreDataManager.context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = self
+        subCategoryFetchResultContoller = controller
+    }
+    
+    /// 데이터 조회
     private func performFetch() {
         do {
             try productFetchResultController?.performFetch()
+            try midCategoryFetchResultContoller?.performFetch()
+            try subCategoryFetchResultContoller?.performFetch()
             updateProducts()
+            updateMidCategories()
+            updateSubCategories()
         } catch {
             
         }
@@ -107,16 +153,20 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     
     /// 메인 카테고리 필터 적용
     private func updatePredicate(for selectedIndex: Int) {
-        guard let request = productFetchResultController?.fetchRequest else { return }
-
+        let predicate: NSPredicate?
+        
         switch selectedIndex {
         case 0:
-            request.predicate = NSPredicate(format: "mainCategory == %@", MainCategory.foodstuff.rawValue)
+            predicate = NSPredicate(format: "mainCategory == %@", MainCategory.foodstuff.rawValue)
         case 1:
-            request.predicate = NSPredicate(format: "mainCategory == %@", MainCategory.household.rawValue)
+            predicate = NSPredicate(format: "mainCategory == %@", MainCategory.household.rawValue)
         default:
-            request.predicate = nil
+            predicate = nil
         }
+        
+        productFetchResultController?.fetchRequest.predicate = predicate
+        midCategoryFetchResultContoller?.fetchRequest.predicate = predicate
+        subCategoryFetchResultContoller?.fetchRequest.predicate = predicate
 
         performFetch()
     }
@@ -129,8 +179,47 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
         productsRelay.accept(products)
     }
     
+    /// 중분류 아이템 변환 및 반영
+    private func updateMidCategories() {
+        let categories = midCategoryFetchResultContoller?.fetchedObjects?
+            .map {
+                CategorySelectionItem(
+                    id: $0.id.uuidString,
+                    title: $0.name,
+                    image: UIImage(named: $0.iconName ?? "Category"),
+                    isSelect: false
+                )
+            } ?? []
+
+        midCategoriesRelay.accept(categories)
+    }
+    
+    /// 소분류 아이템 변환 및 반영
+    private func updateSubCategories() {
+        let categories = subCategoryFetchResultContoller?.fetchedObjects?
+            .map {
+                CategorySelectionItem(
+                    id: $0.id.uuidString,
+                    title: $0.name,
+                    image: UIImage(named: $0.iconName ?? "Category"),
+                    isSelect: false
+                )
+            } ?? []
+
+        subCategoriesRelay.accept(categories)
+    }
+    
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        updateProducts()
+        if controller == productFetchResultController {
+            updateProducts()
+        }
+        
+        if controller == midCategoryFetchResultContoller {
+            updateMidCategories()
+        }
+        
+        if controller == subCategoryFetchResultContoller {
+            updateSubCategories()
+        }
     }
 }
-
