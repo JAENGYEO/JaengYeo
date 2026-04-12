@@ -28,20 +28,20 @@ final class StockViewController: UIViewController {
         ]
         let selectAttributes:
         [NSAttributedString.Key: Any] = [
-           .font: LabelConfiguration.bodyMedium14.font,
-           .foregroundColor: UIColor.white
-       ]
+            .font: LabelConfiguration.bodyMedium14.font,
+            .foregroundColor: UIColor.white
+        ]
         $0.setTitleTextAttributes(attributes, for: .normal)
         $0.setTitleTextAttributes(selectAttributes, for: .selected)
 
         $0.selectedSegmentTintColor = .accent
     }
 
-    private let categotyFilterView = CategoryFilterView()
+    private let categoryFilterView = CategoryFilterView()
     
     private let productCollectionView = ProductCollectionView()
-    
 
+    //MARK: - Init
     init(viewModel: StockViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -53,23 +53,23 @@ final class StockViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationBarConfigure()
+        configureNavigationBar()
         configureUI()
         bind()
     }
 }
 
 //MARK: - Binding
-extension StockViewController {
-    private func bind() {
-        let Input = StockViewModel.Input(
+private extension StockViewController {
+    func bind() {
+        let input = StockViewModel.Input(
             viewDidLoad: Observable.just(()),
             mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
                 .asObservable()
                 .filter { $0 >= 0 }
         )
         
-        let output = viewModel.transform(Input)
+        let output = viewModel.transform(input)
         
         output.mainCategories
             .bind(onNext: { [weak self] categories in
@@ -93,19 +93,19 @@ extension StockViewController {
                 self.productCollectionView.applySnapshot(with: products)
             })
             .disposed(by: disposeBag)
-        
     }
 }
 
-extension StockViewController {
+//MARK: - Action
+private extension StockViewController {
     @objc
     private func didTapSearchButton() {
     }
 }
 
 //MARK: - Configure UI
-extension StockViewController {
-    private func navigationBarConfigure() {
+private extension StockViewController {
+    func configureNavigationBar() {
         title = "재고현황"
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "magnifyingglass"),
@@ -117,7 +117,7 @@ extension StockViewController {
     
     private func configureUI() {
         view.addSubview(mainCategorySegment)
-        view.addSubview(categotyFilterView)
+        view.addSubview(categoryFilterView)
         view.addSubview(productCollectionView)
 
         mainCategorySegment.snp.makeConstraints {
@@ -126,14 +126,14 @@ extension StockViewController {
             $0.trailing.equalToSuperview().inset(16)
             $0.height.equalTo(40)
         }
-        categotyFilterView.snp.makeConstraints {
+        categoryFilterView.snp.makeConstraints {
             $0.top.equalTo(mainCategorySegment.snp.bottom)
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalToSuperview().inset(16)
             $0.height.equalTo(46)
         }
         productCollectionView.snp.makeConstraints {
-            $0.top.equalTo(categotyFilterView.snp.bottom)
+            $0.top.equalTo(categoryFilterView.snp.bottom)
             $0.leading.equalToSuperview()
             $0.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
