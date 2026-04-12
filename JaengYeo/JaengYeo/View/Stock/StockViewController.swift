@@ -6,6 +6,7 @@
 //
 
 import RxCocoa
+import RxRelay
 import RxSwift
 import SnapKit
 import Then
@@ -18,7 +19,6 @@ final class StockViewController: UIViewController {
 
     //MARK: - Properties
     private let disposeBag = DisposeBag()
-    
 
     //MARK: - Components
     private let mainCategorySegment = UISegmentedControl().then {
@@ -62,15 +62,26 @@ final class StockViewController: UIViewController {
 //MARK: - Binding
 private extension StockViewController {
     func bind() {
+        /// 중분류 적용 결과
+        let midCategoryAppliedRelay = PublishRelay<[String]>()
+        /// 소분류 적용 결과
+        let subCategoryAppliedRelay = PublishRelay<[String]>()
+        
+        /// ViewModel 입력값
         let input = StockViewModel.Input(
             viewDidLoad: Observable.just(()),
             mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
                 .asObservable()
-                .filter { $0 >= 0 }
+                .filter { $0 >= 0 },
+            midCategoryTapped: categoryFilterView.midCategoryButton.rx.tap.asObservable(),
+            subCategoryTapped: categoryFilterView.subCategoryButton.rx.tap.asObservable(),
+            midCategoryApplied: midCategoryAppliedRelay.asObservable(),
+            subCategoryApplied: subCategoryAppliedRelay.asObservable()
         )
         
         let output = viewModel.transform(input)
         
+        /// 메인 카테고리 바인딩
         output.mainCategories
             .bind(onNext: { [weak self] categories in
                 guard let self else { return }
@@ -87,10 +98,31 @@ private extension StockViewController {
             })
             .disposed(by: disposeBag)
         
+        /// 상품 목록 바인딩
         output.products
             .bind(onNext: { [weak self] products in
                 guard let self else { return }
                 self.productCollectionView.applySnapshot(with: products)
+            })
+            .disposed(by: disposeBag)
+        
+        /// 중분류 선택 모달 표시
+        output.presentMidCategoryItems
+            .bind(onNext: { [weak self] items in
+                guard let self else { return }
+                self.presentCategorySelection(items: items) { selectedIDs in
+                    midCategoryAppliedRelay.accept(selectedIDs)
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        /// 소분류 선택 모달 표시
+        output.presentSubCategoryItems
+            .bind(onNext: { [weak self] items in
+                guard let self else { return }
+                self.presentCategorySelection(items: items) { selectedIDs in
+                    subCategoryAppliedRelay.accept(selectedIDs)
+                }
             })
             .disposed(by: disposeBag)
     }
@@ -100,6 +132,16 @@ private extension StockViewController {
 private extension StockViewController {
     @objc
     private func didTapSearchButton() {
+    }
+    
+    /// 카테고리 선택 모달 표시
+    func presentCategorySelection(
+        items: [CategorySelectionItem],
+        onApply: @escaping ([String]) -> Void
+    ) {
+        let viewController = CategorySelectionViewController(items: items)
+        viewController.onApply = onApply
+        present(viewController, animated: true)
     }
 }
 
@@ -138,7 +180,5 @@ private extension StockViewController {
             $0.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
         }
-        
     }
 }
-
