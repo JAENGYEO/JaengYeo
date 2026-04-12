@@ -90,6 +90,14 @@ extension ButtonTitleConfiguration {
         kern: -0.15
 
     )
+
+    static let resetTitle = ButtonTitleConfiguration(
+        font: .systemFont(ofSize: 14, weight: .medium),
+        normalColor: .gray300,
+        selectedColor: .gray300,
+        disabledColor: .gray300,
+        kern: -0.15
+    )
     
     static let defaultTitle = ButtonTitleConfiguration (
         font: .systemFont(ofSize: 14, weight: .medium),
