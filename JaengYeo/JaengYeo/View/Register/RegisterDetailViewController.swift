@@ -23,6 +23,11 @@ final class RegisterDetailViewController: UIViewController {
     
     private let viewModel: RegisterDetailViewModel
     private let fieldsSelectedRelay = PublishRelay<Set<RegisterOptionField>>()
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
     
     init(viewModel: RegisterDetailViewModel) {
         self.viewModel = viewModel
@@ -64,13 +69,11 @@ extension RegisterDetailViewController {
     
     private func restoreFields() {
         let item = viewModel.item
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
         mainView.nameField.text = item.name
         mainView.quantityField.text = item.quantity.map { String($0) }
-        mainView.purchaseDateField.text = formatter.string(from: item.purchaseDate ?? Date())
+        mainView.purchaseDateField.text = dateFormatter.string(from: item.purchaseDate ?? Date())
         mainView.locationField.text = item.locationMemo
-        mainView.expiryDateField.text = item.expiryDate.map { formatter.string(from: $0) }
+        mainView.expiryDateField.text = item.expiryDate.map { dateFormatter.string(from: $0) }
         mainView.memoField.text = item.memo
         mainView.cautionField.text = item.caution
         mainView.brandField.text = item.brand
@@ -82,9 +85,6 @@ extension RegisterDetailViewController {
 extension RegisterDetailViewController {
     private func bind() {
         
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        
         let confirmTapped = mainView.confirmButton.rx.tap
             .map { [weak self] _ -> RegisterFormData in
                 guard let self else { return RegisterFormData() }
@@ -92,8 +92,8 @@ extension RegisterDetailViewController {
                 item.name = mainView.nameField.text.flatMap { $0.isEmpty ? nil : $0 }
                 item.quantity = mainView.quantityField.text.flatMap { Int($0) }
                 item.locationMemo = mainView.locationField.text.flatMap { $0.isEmpty ? nil : $0 }
-                item.purchaseDate = formatter.date(from: mainView.purchaseDateField.text ?? "")
-                item.expiryDate = formatter.date(from: mainView.expiryDateField.text ?? "")
+                item.purchaseDate = dateFormatter.date(from: mainView.purchaseDateField.text ?? "")
+                item.expiryDate = dateFormatter.date(from: mainView.expiryDateField.text ?? "")
                 item.memo = mainView.memoField.text.flatMap { $0.isEmpty ? nil : $0 }
                 item.caution = mainView.cautionField.text.flatMap { $0.isEmpty ? nil : $0 }
                 item.brand = mainView.brandField.text.flatMap { $0.isEmpty ? nil : $0 }
@@ -182,21 +182,17 @@ extension RegisterDetailViewController {
         present(sheet, animated: false)
     }
 
-    private enum DatePickerType { case purchaseDate, expiryDate }
-
-    private func presentDatePicker(type: DatePickerType) {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
+    private func presentDatePicker(type: DatePickerBottomSheetViewController.DatePickerType) {
         let (title, text): (String, String?) = {
             switch type {
             case .purchaseDate: return ("구매 날짜", mainView.purchaseDateField.text)
             case .expiryDate:   return ("유통기한", mainView.expiryDateField.text)
             }
         }()
-        let initialDate = text.flatMap { formatter.date(from: $0) }
+        let initialDate = text.flatMap { dateFormatter.date(from: $0) }
         let sheet = DatePickerBottomSheetViewController(sheetTitle: title, initialDate: initialDate)
         sheet.delegate = self
-        sheet.view.tag = type == .purchaseDate ? 0 : 1
+        sheet.datePickerType = type
         present(sheet, animated: false)
     }
 }
@@ -209,13 +205,11 @@ extension RegisterDetailViewController: RegisterFieldSelectViewControllerDelegat
 
 extension RegisterDetailViewController: DatePickerBottomSheetViewControllerDelegate {
     func datePickerBottomSheet(_ vc: DatePickerBottomSheetViewController, didSelect date: Date) {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let formatted = formatter.string(from: date)
-        if vc.view.tag == 0 {
-            mainView.purchaseDateField.text = formatted
-        } else {
-            mainView.expiryDateField.text = formatted
+        let formatted = dateFormatter.string(from: date)
+        switch vc.datePickerType {
+        case .purchaseDate: mainView.purchaseDateField.text = formatted
+        case .expiryDate: mainView.expiryDateField.text = formatted
+        case nil: break
         }
     }
 }

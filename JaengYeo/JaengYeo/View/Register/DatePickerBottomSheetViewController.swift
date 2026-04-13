@@ -16,8 +16,11 @@ protocol DatePickerBottomSheetViewControllerDelegate: AnyObject {
 
 final class DatePickerBottomSheetViewController: UIViewController {
 
+    enum DatePickerType { case purchaseDate, expiryDate }
+    
     weak var delegate: DatePickerBottomSheetViewControllerDelegate?
-
+    var datePickerType: DatePickerType?
+    
     private let mainView = DatePickerBottomSheetView()
     private let disposeBag = DisposeBag()
 
