@@ -82,7 +82,7 @@ extension RegisterDetailViewController {
                 }
                 mainView.updateCategoryButtons(selected: selectedCategory)
                 mainView.locationField.text = item.locationMemo
-                mainView.subCategoryField.text = item.subCategory
+                //TODO: subCategory 데이터 복원 UI 구현 후 처리
                 mainView.expiryDateField.text = item.expiryDate.map { formatter.string(from: $0) }
                 mainView.memoField.text = item.memo
                 mainView.cautionField.text = item.caution
@@ -161,6 +161,7 @@ extension RegisterDetailViewController {
                 if selectedFields.contains(.brand) {
                     item.brand = mainView.brandField.text.flatMap { $0.isEmpty ? nil : $0 }
                 }
+                //TODO: subCategory UUID 변환 필요, 카테고리 선택 UI 구현 후. ㅓ리
                 
                 // name, mainCategory: nil일 경우 저장 x
                 guard item.name != nil, item.mainCategory != nil else {

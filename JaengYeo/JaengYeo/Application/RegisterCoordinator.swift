@@ -7,6 +7,8 @@
 
 import UIKit
 import Supabase
+import RxSwift
+import RxCocoa
 
 final class RegisterCoordinator {
     let navigationController: UINavigationController
@@ -15,6 +17,8 @@ final class RegisterCoordinator {
     private let categoryManager: CategoryManagerProtocol
     private let coreDataManager: CoreDataManagerProtocol
     private let client: SupabaseClient
+    
+    private let disposeBag = DisposeBag()
     
     private weak var listViewController: RegisterItemListViewController?
     
@@ -41,6 +45,11 @@ extension RegisterCoordinator: RegisterViewControllerDelegate {
         let viewController = RegisterItemListViewController(items: items, pageTitle: "AI 인식 결과")
         viewController.delegate = self
         listViewController = viewController
+        viewController.addButtonTapped
+            .bind(onNext: { [weak self] in
+                self?.pushRegisterDetailView(item: RegisterFormData())
+            })
+            .disposed(by: disposeBag)
         navigationController.pushViewController(viewController, animated: true)
     }
 }
@@ -88,6 +97,10 @@ extension RegisterCoordinator: RegisterItemListViewControllerDelegate {
 
 extension RegisterCoordinator: RegisterDetailViewControllerDelegate {
     func didTapConfirmButton(item: RegisterFormData) {
-        listViewController?.updateItem(item: item)
+        if listViewController?.hasItem(id: item.id) == true {
+            listViewController?.updateItem(item: item)
+        } else {
+            listViewController?.appendItem(item: item)
+        }
     }
 }

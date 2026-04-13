@@ -26,6 +26,9 @@ final class RegisterItemListViewController: UIViewController {
     private var items: [RegisterFormData]
     private let pageTitle: String
     
+    private let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil)
+    let addButtonTapped = PublishRelay<Void>()
+    
     init(items: [RegisterFormData], pageTitle: String) {
         self.items = items
         self.pageTitle = pageTitle
@@ -75,13 +78,17 @@ extension RegisterItemListViewController {
                 delegate?.saveItems(items: self.items)
             })
             .disposed(by: disposeBag)
+        
+        addButton.rx.tap
+            .bind(to: addButtonTapped)
+            .disposed(by: disposeBag)
     }
 }
 
 extension RegisterItemListViewController {
     private func configNavigationBar() {
         navigationItem.title = pageTitle
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil)
+        navigationItem.rightBarButtonItem = addButton
         let appearance = UINavigationBarAppearance()
         appearance.titleTextAttributes = [.foregroundColor: UIColor.gray800, .font: LabelConfiguration.titleSemi18.font]
         navigationController?.navigationBar.standardAppearance = appearance
@@ -105,6 +112,15 @@ extension RegisterItemListViewController {
         guard let index = items.firstIndex (where: { $0.id == item.id }) else { return }
         items[index] = item
         setSnapshot()
+    }
+    
+    func appendItem(item: RegisterFormData) {
+        items.append(item)
+        setSnapshot()
+    }
+    
+    func hasItem(id: UUID) -> Bool {
+        items.contains(where: { $0.id == id })
     }
 }
 
