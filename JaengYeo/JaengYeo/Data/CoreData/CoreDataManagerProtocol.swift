@@ -5,9 +5,12 @@
 //  Created by 손영빈 on 4/7/26.
 //
 
+import CoreData
 import Foundation
 
 protocol CoreDataManagerProtocol {
+    
+    var context: NSManagedObjectContext { get }
     
     //MARK: - Product
     func createProduct(_ payload: ProductPayload) throws

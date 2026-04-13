@@ -23,7 +23,7 @@ enum ProductCellType {
 /// 공용 상품 셀
 final class ProductCell: UICollectionViewListCell{
     
-    static let productCellID = "productCellID"
+    static let id = "ProductCell"
     
     // MARK: - Properties
     private var cellType: ProductCellType = .defaultType {
@@ -112,8 +112,28 @@ final class ProductCell: UICollectionViewListCell{
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        cellType = .defaultType
+        productTitleLabel.text = nil
+        productCountLabel.text = "0"
+        productImageView.image = nil
+        productImageView.backgroundColor = .accent
+        
+        updateDescriptionStack(
+            stackView: productDescriptionStack,
+            freshness: nil,
+            texts: nil
+        )
+        
+        updateDescriptionStack(
+            stackView: productSubDescriptionStack,
+            freshness: nil,
+            texts: nil
+        )
+    }
 }
 
 // MARK: - Public
@@ -125,10 +145,13 @@ extension ProductCell {
         freshness: Int?,
         descriptions: [String]?,
         subdescriptions: [String]?,
-        count: Int?
+        count: Int?,
+        image: UIImage?,
     ) {
         cellType = type
         productTitleLabel.text = title
+        productImageView.image = image
+        productImageView.backgroundColor = image == nil ? .accent : .clear
         
         updateDescriptionStack(
             stackView: productDescriptionStack,
@@ -147,8 +170,6 @@ extension ProductCell {
                 texts: subdescriptions,
             )
         }
-        
-        
     }
 }
 
@@ -205,11 +226,20 @@ private extension ProductCell {
 private extension ProductCell {
     
     func configureUI() {
-        var background = UIBackgroundConfiguration.clear()
-        background.backgroundColor = .white
-        background.cornerRadius = 8
-        backgroundConfiguration = background
-        
+        backgroundColor = .clear
+
+        var backgroundConfig = UIBackgroundConfiguration.clear()
+        backgroundConfig.backgroundColor = .white
+        backgroundConfig.cornerRadius = 8
+        self.backgroundConfiguration = backgroundConfig
+
+        directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: 8,
+            leading: 16,
+            bottom: 8,
+            trailing: 16
+        )
+
         contentView.addSubview(productMainStack)
         contentView.addSubview(productCountView)
         
@@ -224,15 +254,20 @@ private extension ProductCell {
         productCountView.addSubview(countUnitLabel)
         
         productMainStack.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(12)
-            $0.bottom.equalToSuperview().inset(12)
-            $0.leading.equalToSuperview().offset(16)
+            $0.top.equalTo(contentView).offset(12)
+            $0.bottom.equalTo(contentView).inset(12)
+            $0.leading.equalTo(contentView).offset(16)
             $0.trailing.lessThanOrEqualTo(productCountView.snp.leading).offset(-12)
+            $0.height.equalTo(64)
         }
         
         productCountView.snp.makeConstraints {
-            $0.centerY.equalToSuperview()
-            $0.trailing.equalToSuperview().inset(16)
+            $0.centerY.equalTo(contentView)
+            $0.trailing.equalTo(contentView).inset(16)
+        }
+        
+        productInfoStack.snp.makeConstraints {
+            $0.width.greaterThanOrEqualTo(80)
         }
         
         productImageView.snp.makeConstraints {
@@ -240,7 +275,6 @@ private extension ProductCell {
         }
         
         productCountLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview()
             $0.trailing.equalTo(countUnitLabel.snp.leading).offset(-2)
             $0.lastBaseline.equalTo(countUnitLabel.snp.lastBaseline)
         }

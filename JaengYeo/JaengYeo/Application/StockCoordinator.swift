@@ -19,7 +19,7 @@ final class StockCoordinator {
         self.categoryManager = categoryManager
         self.coreDataManager = coreDataManager
         
-        let viewController = StockViewController()
+        let viewController = StockViewController(viewModel: StockViewModel(coreDataManager: coreDataManager))
         navigationController = UINavigationController(rootViewController: viewController)
         navigationController.tabBarItem = UITabBarItem(
             title: "재고",

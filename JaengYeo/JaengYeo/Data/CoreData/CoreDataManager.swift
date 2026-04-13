@@ -35,7 +35,7 @@ final class CoreDataManager: CoreDataManagerProtocol {
     
     
     // MARK: Custom 설정
-    private var context: NSManagedObjectContext {
+    var context: NSManagedObjectContext {
         persistentContainer.viewContext
     }
     

@@ -30,6 +30,9 @@ final class AppCoordinator {
         let productManager = ProductManager(client: client)
         let categoryManager = CategoryManager(client: client)
         let coreDataManager = CoreDataManager()
+        
+        try? coreDataManager.seedMockProductsIfNeeded()
+        
         let syncManager = SyncManager(
             productManager: productManager,
             categoryManager: categoryManager,

@@ -20,6 +20,12 @@ final class StyledButton: UIButton, ConfigurableButton {
         didSet { applyConfiguration() }
     }
     
+    override var isSelected: Bool {
+        didSet {
+            applyBackgroundColor()
+        }
+    }
+    
     override var isHighlighted: Bool {
         didSet {
             applyBackgroundColor()
@@ -82,11 +88,11 @@ extension StyledButton {
             ]
         )
         
-        let highlightedAttributedTitle = NSAttributedString(
+        let selectedAttributedTitle = NSAttributedString(
             string: title,
             attributes: [
                 .font: config.font,
-                .foregroundColor: config.highlightedColor,
+                .foregroundColor: config.selectedColor,
                 .kern: config.kern
             ]
         )
@@ -101,7 +107,7 @@ extension StyledButton {
         )
         
         setAttributedTitle(normalAttributedTitle, for: .normal)
-        setAttributedTitle(highlightedAttributedTitle, for: .highlighted)
+        setAttributedTitle(selectedAttributedTitle, for: .selected)
         setAttributedTitle(disabledAttributedTitle, for: .disabled)
     }
     
@@ -119,6 +125,13 @@ extension StyledButton {
             return
         }
         
+        if isSelected {
+            backgroundColor = appearanceConfiguration.selectedBackgroundColor
+            layer.borderColor = appearanceConfiguration.highlightedBackgroundColor.cgColor
+            return
+        }
+        
         backgroundColor = appearanceConfiguration.backgroundColor
+        layer.borderColor = appearanceConfiguration.borderColor.cgColor
     }
 }
