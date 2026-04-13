@@ -40,6 +40,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     private let selectedMidCategoryIDsRelay = BehaviorRelay<Set<String>>(value: [])
     /// 선택된 소분류 ID
     private let selectedSubCategoryIDsRelay = BehaviorRelay<Set<String>>(value: [])
+    /// 선택된 메인 카테고리 인덱스
+    private let selectedMainCategoryIndexRelay = BehaviorRelay<Int>(value: 0)
 
     struct Input {
         let viewDidLoad: Observable<Void>
@@ -208,16 +210,9 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     
     /// 메인 카테고리 필터 적용
     private func updatePredicate(for selectedIndex: Int) {
-        let mainCategoryPredicate: NSPredicate?
+        selectedMainCategoryIndexRelay.accept(selectedIndex)
         
-        switch selectedIndex {
-        case 0:
-            mainCategoryPredicate = NSPredicate(format: "mainCategory == %@", MainCategory.foodstuff.rawValue)
-        case 1:
-            mainCategoryPredicate = NSPredicate(format: "mainCategory == %@", MainCategory.household.rawValue)
-        default:
-            mainCategoryPredicate = nil
-        }
+        let mainCategoryPredicate = makeMainCategoryPredicate(for: selectedIndex)
         
         productFetchResultController?.fetchRequest.predicate = makeProductPredicate(
             mainCategoryPredicate: mainCategoryPredicate
@@ -230,13 +225,27 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     
     /// 선택 필터 적용
     private func updatePredicate() {
-        guard let mainCategoryPredicate = midCategoryFetchResultContoller?.fetchRequest.predicate else { return }
+        let mainCategoryPredicate = makeMainCategoryPredicate(
+            for: selectedMainCategoryIndexRelay.value
+        )
 
         productFetchResultController?.fetchRequest.predicate = makeProductPredicate(
             mainCategoryPredicate: mainCategoryPredicate
         )
 
         performFetch()
+    }
+    
+    /// 메인 카테고리 필터 조건 생성
+    private func makeMainCategoryPredicate(for selectedIndex: Int) -> NSPredicate? {
+        switch selectedIndex {
+        case 0:
+            return NSPredicate(format: "mainCategory == %@", MainCategory.foodstuff.rawValue)
+        case 1:
+            return NSPredicate(format: "mainCategory == %@", MainCategory.household.rawValue)
+        default:
+            return nil
+        }
     }
     
     /// 상품 필터 조건 생성
