@@ -125,11 +125,17 @@ extension RegisterDetailViewController {
             })
             .disposed(by: disposeBag)
         
-        //        mainView.saveButton.rx.tap
-        //            .bind(onNext: { [weak self] in
-        //
-        //            })
-        //            .disposed(by: disposeBag)
+        mainView.confirmButton.rx.tap
+            .bind(onNext: { [weak self] in
+                guard let self else { return }
+//                item.name = mainView.nameField.text
+//                item.quantity = Int(mainView.quantityField.text ?? "")
+//                item.mainCategory = selectedCategory == .food ? "식재료" : "생활용품"
+//                item.subCategory = mainView.subCategoryField.text
+//                item.expiryDate = nil //TODO: 수정 필요
+//                item.ca
+            })
+            .disposed(by: disposeBag)
     }
 }
 

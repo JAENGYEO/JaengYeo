@@ -29,6 +29,8 @@ struct Product {
     let updatedAt: Date
     let syncStatus: String
     let isLowStockNotificationEnabled: Bool
+    let caution: String?
+    let brand: String?
 }
 
 //MARK: - Method
@@ -56,7 +58,9 @@ extension Product {
             createdAt: createdAt,
             updatedAt: updatedAt,
             syncStatus: syncStatus,
-            isLowStockNotificationEnabled: isLowStockNotificationEnabled
+            isLowStockNotificationEnabled: isLowStockNotificationEnabled,
+            caution: caution,
+            brand: brand
         )
     }
 }

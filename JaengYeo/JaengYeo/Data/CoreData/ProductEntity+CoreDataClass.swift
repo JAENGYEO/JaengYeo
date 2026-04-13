@@ -37,6 +37,7 @@ public class ProductEntity: NSManagedObject {
         static let updatedAt = "updatedAt"
         static let syncStatus = "syncStatus"
         static let isLowStockNotificationEnabled = "isLowStockNotificationEnabled"
-
+        static let caution = "caution"
+        static let brand = "brand"
     }
 }

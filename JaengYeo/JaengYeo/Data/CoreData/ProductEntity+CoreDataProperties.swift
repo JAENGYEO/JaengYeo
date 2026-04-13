@@ -39,6 +39,8 @@ extension ProductEntity {
     @NSManaged public var updatedAt: Date
     @NSManaged public var syncStatus: String
     @NSManaged public var isLowStockNotificationEnabled: Bool
+    @NSManaged public var caution: String?
+    @NSManaged public var brand: String?
 
 }
 
