@@ -62,6 +62,13 @@ final class StyledButton: UIButton, ConfigurableButton {
 
 //MARK: - ConfigurableButton Setting
 extension StyledButton {
+    func updateTitle(_ title: String) {
+        setTitle(title, for: .normal)
+        
+        guard let titleConfiguration else { return }
+        applyAttributedTitle(config: titleConfiguration)
+    }
+    
     /// 버튼 스타일 외형 초기 설정
     private func applyConfiguration() {
         guard let titleConfiguration, let appearanceConfiguration else { return }
