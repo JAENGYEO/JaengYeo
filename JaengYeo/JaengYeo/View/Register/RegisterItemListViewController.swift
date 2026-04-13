@@ -85,6 +85,13 @@ extension RegisterItemListViewController {
                 self?.setSnapshot(items: items)
             })
             .disposed(by: disposeBag)
+        
+        output.error
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] error in
+                self?.showErrorAlert(title: "에러", message: error)
+            })
+            .disposed(by: disposeBag)
     }
 }
 
@@ -109,5 +116,13 @@ extension RegisterItemListViewController {
             
         }
         dataSource.apply(snapshot, animatingDifferences: true)
+    }
+}
+
+extension RegisterItemListViewController {
+    private func showErrorAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 }
