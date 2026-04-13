@@ -340,6 +340,8 @@ extension CoreDataManager {
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
         entity.isLowStockNotificationEnabled = payload.isLowStockNotificationEnabled
+        entity.caution = payload.caution
+        entity.brand = payload.brand
         
         do {
             try context.save()
@@ -373,7 +375,9 @@ extension CoreDataManager {
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
             syncStatus: entity.syncStatus,
-            isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled
+            isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled,
+            caution: entity.caution,
+            brand: entity.brand
         )
     }
     
@@ -405,7 +409,9 @@ extension CoreDataManager {
                     createdAt: $0.createdAt,
                     updatedAt: $0.updatedAt,
                     syncStatus: $0.syncStatus,
-                    isLowStockNotificationEnabled: $0.isLowStockNotificationEnabled
+                    isLowStockNotificationEnabled: $0.isLowStockNotificationEnabled,
+                    caution: $0.caution,
+                    brand: $0.brand
                 )
             }
         } catch {
@@ -436,6 +442,8 @@ extension CoreDataManager {
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
         entity.isLowStockNotificationEnabled = payload.isLowStockNotificationEnabled
+        entity.caution = payload.caution
+        entity.brand = payload.brand
         
         do {
             try context.save()
@@ -523,7 +531,9 @@ extension CoreDataManager {
                     createdAt: $0.createdAt,
                     updatedAt: $0.updatedAt,
                     syncStatus: $0.syncStatus,
-                    isLowStockNotificationEnabled: $0.isLowStockNotificationEnabled
+                    isLowStockNotificationEnabled: $0.isLowStockNotificationEnabled,
+                    caution: $0.caution,
+                    brand: $0.brand
                 )
             }
         } catch {
@@ -723,7 +733,9 @@ extension CoreDataManager {
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
             syncStatus: entity.syncStatus,
-            isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled
+            isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled,
+            caution: entity.caution,
+            brand: entity.brand
         )
     }
 }
