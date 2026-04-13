@@ -77,6 +77,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         let presentMidCategoryItems: Observable<[CategorySelectionItem]>
         let presentSubCategoryItems: Observable<[CategorySelectionItem]>
         let selectedSortTitle: Observable<String>
+        let isMidCategorySelected: Observable<Bool>
+        let isSubCategorySelected: Observable<Bool>
         let totalCountText: Observable<Int>
     }
     
@@ -154,6 +156,16 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
             .map { $0.rawValue }
             .asObservable()
         
+        /// 중분류 선택 여부
+        let isMidCategorySelected = selectedMidCategoryIDsRelay
+            .map { !$0.isEmpty }
+            .asObservable()
+        
+        /// 소분류 선택 여부
+        let isSubCategorySelected = selectedSubCategoryIDsRelay
+            .map { !$0.isEmpty }
+            .asObservable()
+        
         /// 상품 개수
         let totalCountText = productsRelay
             .map { $0.count }
@@ -165,6 +177,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
             presentMidCategoryItems: presentMidCategoryItemsRelay.asObservable(),
             presentSubCategoryItems: presentSubCategoryItemsRelay.asObservable(),
             selectedSortTitle: selectedSortTitle,
+            isMidCategorySelected: isMidCategorySelected,
+            isSubCategorySelected: isSubCategorySelected,
             totalCountText: totalCountText
         )
     }
