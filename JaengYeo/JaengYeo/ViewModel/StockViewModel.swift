@@ -58,27 +58,46 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     private let selectedSubCategoryIDsRelay = BehaviorRelay<Set<String>>(value: [])
     /// 선택된 메인 카테고리 인덱스
     private let selectedMainCategoryIndexRelay = BehaviorRelay<Int>(value: 0)
+    /// 대분류별 선택된 중분류 ID
+    private var selectedMidCategoryIDsByMainCategory = [Int: Set<String>]()
+    /// 대분류별 선택된 소분류 ID
+    private var selectedSubCategoryIDsByMainCategory = [Int: Set<String>]()
     /// 선택된 상품 정렬
     private let selectedSortOptionRelay = BehaviorRelay<ProductSortOption>(value: .createdAtDesc)
 
     struct Input {
+        /// 화면 로드 이벤트
         let viewDidLoad: Observable<Void>
+        /// 대분류 선택 이벤트
         let mainCategorySelected: Observable<Int>
+        /// 중분류 버튼 선택 이벤트
         let midCategoryTapped: Observable<Void>
+        /// 소분류 버튼 선택 이벤트
         let subCategoryTapped: Observable<Void>
+        /// 중분류 적용 이벤트
         let midCategoryApplied: Observable<[String]>
+        /// 소분류 적용 이벤트
         let subCategoryApplied: Observable<[String]>
+        /// 상품 정렬 선택 이벤트
         let sortOptionSelected: Observable<ProductSortOption>
     }
     
     struct Output {
+        /// 대분류 목록
         let mainCategories: Observable<[String]>
+        /// 상품 목록
         let products: Observable<[ProductCellItem]>
+        /// 중분류 아이템
         let presentMidCategoryItems: Observable<[CategorySelectionItem]>
+        /// 소분류 아이템
         let presentSubCategoryItems: Observable<[CategorySelectionItem]>
+        /// 선택 정렬 타이틀
         let selectedSortTitle: Observable<String>
+        /// 중분류 선택 여부
         let isMidCategorySelected: Observable<Bool>
+        /// 소분류 선택 여부
         let isSubCategorySelected: Observable<Bool>
+        /// 상품 개수
         let totalCountText: Observable<Int>
     }
     
@@ -103,7 +122,6 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         input.mainCategorySelected
             .subscribe(onNext: { [weak self] page in
                 guard let self else { return }
-                self.resetCategoryFilters()
                 self.updatePredicate(for: page)
             })
             .disposed(by: disposeBag)
@@ -128,7 +146,7 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         input.midCategoryApplied
             .subscribe(onNext: { [weak self] ids in
                 guard let self else { return }
-                self.selectedMidCategoryIDsRelay.accept(Set(ids))
+                self.updateSelectedMidCategoryIDs(Set(ids))
                 self.updatePredicate()
             })
             .disposed(by: disposeBag)
@@ -137,7 +155,7 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         input.subCategoryApplied
             .subscribe(onNext: { [weak self] ids in
                 guard let self else { return }
-                self.selectedSubCategoryIDsRelay.accept(Set(ids))
+                self.updateSelectedSubCategoryIDs(Set(ids))
                 self.updatePredicate()
             })
             .disposed(by: disposeBag)
@@ -260,6 +278,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     /// 메인 카테고리 필터 적용
     private func updatePredicate(for selectedIndex: Int) {
         selectedMainCategoryIndexRelay.accept(selectedIndex)
+        restoreCategoryFilters(for: selectedIndex)
         
         let mainCategoryPredicate = makeMainCategoryPredicate(for: selectedIndex)
         
@@ -321,10 +340,30 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
         return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
     }
     
-    /// 선택 필터 초기화
-    private func resetCategoryFilters() {
-        selectedMidCategoryIDsRelay.accept([])
-        selectedSubCategoryIDsRelay.accept([])
+    /// 중분류 선택값 저장
+    private func updateSelectedMidCategoryIDs(_ ids: Set<String>) {
+        selectedMidCategoryIDsByMainCategory[
+            selectedMainCategoryIndexRelay.value
+        ] = ids
+        selectedMidCategoryIDsRelay.accept(ids)
+    }
+    
+    /// 소분류 선택값 저장
+    private func updateSelectedSubCategoryIDs(_ ids: Set<String>) {
+        selectedSubCategoryIDsByMainCategory[
+            selectedMainCategoryIndexRelay.value
+        ] = ids
+        selectedSubCategoryIDsRelay.accept(ids)
+    }
+    
+    /// 대분류별 선택값 복원
+    private func restoreCategoryFilters(for selectedIndex: Int) {
+        selectedMidCategoryIDsRelay.accept(
+            selectedMidCategoryIDsByMainCategory[selectedIndex] ?? []
+        )
+        selectedSubCategoryIDsRelay.accept(
+            selectedSubCategoryIDsByMainCategory[selectedIndex] ?? []
+        )
     }
     
     /// 상품 도메인 변환 및 반영
