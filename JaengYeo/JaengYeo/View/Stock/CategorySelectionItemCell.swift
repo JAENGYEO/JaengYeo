@@ -39,12 +39,6 @@ final class CategorySelectionItemCell: UICollectionViewCell {
         $0.numberOfLines = 1
     }
 
-    override var isHighlighted: Bool {
-        didSet {
-            contentView.alpha = isHighlighted ? 0.6 : 1.0
-        }
-    }
-
     //MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -109,9 +103,9 @@ private extension CategorySelectionItemCell {
     }
 
     func applySelectionState() {
-        itemContainerView.backgroundColor = isItemSelected ? .accent : .clear
-        imageBackgroundView.backgroundColor = isItemSelected ? .clear : .gray200
-        titleLabel.updateColor(isItemSelected ? .white : .gray800)
+        itemContainerView.backgroundColor = isItemSelected ? .primary100 : .clear
+        //TODO: 아이콘 이미지 적용시 백그라운드 색상 clear로 변경
+        imageBackgroundView.backgroundColor = .gray200
     }
 }
 
