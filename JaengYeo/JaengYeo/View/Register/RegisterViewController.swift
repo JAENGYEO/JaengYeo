@@ -123,8 +123,6 @@ extension RegisterViewController {
                 switch items.count {
                 case 0:
                     self.showErrorAlert(title: "인식 실패", message: "인식된 항목이 없습니다.")
-                case 1:
-                    break
                 default:
                     self.delegate?.pushItemListView(items: items)
                 }
@@ -135,6 +133,7 @@ extension RegisterViewController {
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] isLoading in
                 isLoading ? self?.mainView.startScanAnimation() : self?.mainView.stopScanAnimation()
+                self?.mainView.captureButton.isEnabled = !isLoading
             })
             .disposed(by: disposeBag)
         
