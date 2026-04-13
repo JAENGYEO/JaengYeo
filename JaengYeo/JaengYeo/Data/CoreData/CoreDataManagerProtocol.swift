@@ -22,6 +22,7 @@ protocol CoreDataManagerProtocol {
     func updateProductSyncStatus(id: UUID) throws
     func softDeleteProduct(id: UUID) throws
     func hardDeleteProduct(id: UUID) throws
+    func createProducts(payloads: [ProductPayload]) throws
     
     //MARK: - SubCategory
     func createSubCategory(_ payload: SubCategoryPayload) throws

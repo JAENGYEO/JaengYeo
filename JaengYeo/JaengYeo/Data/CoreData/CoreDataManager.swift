@@ -350,6 +350,41 @@ extension CoreDataManager {
         }
     }
     
+    func createProducts(payloads: [ProductPayload]) throws {
+        payloads.forEach { payload in
+            let entity = ProductEntity(context: context)
+            entity.id = payload.id
+            entity.userId = payload.userId
+            entity.name = payload.name
+            entity.quantity = payload.quantity
+            entity.quantityUnit = payload.quantityUnit
+            entity.mainCategory = payload.mainCategory
+            entity.midCategoryId = payload.midCategoryId
+            entity.subCategoryId = payload.subCategoryId
+            entity.purchaseDate = payload.purchaseDate
+            entity.expiryDate = payload.expiryDate
+            entity.price = payload.price
+            entity.locationMemo = payload.locationMemo
+            entity.memo = payload.memo
+            entity.imageUrl = payload.imageUrl
+            entity.isClassified = payload.isClassified
+            entity.lowStockThreshold = payload.lowStockThreshold
+            entity.isFavorite = payload.isFavorite
+            entity.createdAt = payload.createdAt
+            entity.updatedAt = payload.updatedAt
+            entity.syncStatus = payload.syncStatus
+            entity.isLowStockNotificationEnabled = payload.isLowStockNotificationEnabled
+            entity.caution = payload.caution
+            entity.brand = payload.brand
+        }
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+    
+    
     // MARK: Product Read
     func fetchProduct(of id: UUID) throws -> ProductPayload {
         let entity = try fetchProductEntity(of: id)

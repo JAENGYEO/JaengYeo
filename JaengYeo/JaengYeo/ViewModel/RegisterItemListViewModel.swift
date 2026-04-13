@@ -81,9 +81,9 @@ extension RegisterItemListViewModel {
 extension RegisterItemListViewModel {
     private func saveAllItems(items: [RegisterFormData]) {
         let now = Date()
-        items.forEach { item in
-            guard let name = item.name, let mainCategory = item.mainCategory else { return }
-            let payload = ProductPayload(
+        let payloads: [ProductPayload] = items.compactMap { item in
+            guard let name = item.name, let mainCategory = item.mainCategory else { return nil }
+            return ProductPayload(
                 id: item.id,
                 userId: Constants.Dev.userId,
                 name: name,
@@ -108,11 +108,11 @@ extension RegisterItemListViewModel {
                 caution: item.caution,
                 brand: item.brand
             )
-            do {
-                try coreDataManager.createProduct(payload)
-            } catch {
-                errorSubject.onNext("저장 실패")
-            }
+        }
+        do {
+            try coreDataManager.createProducts(payloads: payloads)
+        } catch {
+            errorSubject.onNext("저장 실패")
         }
     }
 }
