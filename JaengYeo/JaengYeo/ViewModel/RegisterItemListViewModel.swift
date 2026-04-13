@@ -16,6 +16,9 @@ final class RegisterItemListViewModel: ViewModelProtocol {
     private let disposeBag = DisposeBag()
     private let errorSubject = PublishSubject<String>()
     
+    let navigateToDetail = PublishSubject<RegisterFormData>()
+    let navigateToAdd = PublishSubject<Void>()
+    
     init(items: [RegisterFormData], coreDataManager: CoreDataManagerProtocol) {
         self.itemsSubject = BehaviorSubject(value: items)
         self.coreDataManager = coreDataManager
@@ -29,8 +32,6 @@ final class RegisterItemListViewModel: ViewModelProtocol {
     
     struct Output {
         let items: Observable<[RegisterFormData]>
-        let navigateToDetail: Observable<RegisterFormData>
-        let navigateToAdd: Observable<Void>
         let error: Observable<String>
     }
     
@@ -43,10 +44,16 @@ final class RegisterItemListViewModel: ViewModelProtocol {
             })
             .disposed(by: disposeBag)
         
+        input.cellTapped
+            .bind(to: navigateToDetail)
+            .disposed(by: disposeBag)
+        
+        input.addButtonTapped
+            .bind(to: navigateToAdd)
+            .disposed(by: disposeBag)
+        
         return Output(
             items: itemsSubject.asObservable(),
-            navigateToDetail: input.cellTapped,
-            navigateToAdd: input.addButtonTapped,
             error: errorSubject.asObservable()
         )
     }
