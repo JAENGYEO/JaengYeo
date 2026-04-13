@@ -23,20 +23,24 @@ final class ProductCollectionView: UIView {
 
     private let sortedButton = UIButton(configuration: .plain()).then {
         var config = UIButton.Configuration.plain()
-        
+
         var title = AttributedString("최근 등록순")
         title.font = .systemFont(ofSize: 12, weight: .regular)
         title.foregroundColor = .gray800
-        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 10,
-                                                       weight: .medium)
+        let symbolConfig = UIImage.SymbolConfiguration(
+            pointSize: 10,
+            weight: .medium
+        )
         config.attributedTitle = title
-        config.image = UIImage(systemName: "chevron.down",
-                               withConfiguration: symbolConfig)
+        config.image = UIImage(
+            systemName: "chevron.down",
+            withConfiguration: symbolConfig
+        )
         config.baseForegroundColor = .gray800
         config.imagePlacement = .trailing
         config.imagePadding = 1
         config.contentInsets = .zero
-        
+
         $0.configuration = config
     }
 
@@ -60,35 +64,79 @@ final class ProductCollectionView: UIView {
 
 //MARK: - Configure CollectionView
 extension ProductCollectionView {
-    func applySnapshot(with productDatas: [Product]) {
+    func configureSortMenu(
+        onSelect: @escaping (ProductSortOption) -> Void
+    ) {
+        sortedButton.showsMenuAsPrimaryAction = true
+        sortedButton.menu = UIMenu(
+            children: ProductSortOption.allCases.map { option in
+                UIAction(title: option.rawValue) { _ in
+                    onSelect(option)
+                }
+            }
+        )
+    }
+
+    func updateSortTitle(_ title: String) {
+        var config = sortedButton.configuration ?? .plain()
+
+        var attributedTitle = AttributedString(title)
+        attributedTitle.font = .systemFont(ofSize: 12, weight: .regular)
+        attributedTitle.foregroundColor = .gray800
+        config.attributedTitle = attributedTitle
+
+        sortedButton.configuration = config
+    }
+
+    func applySnapshot(with productDatas: [ProductCellItem]) {
         totalCountLabel.text = "총 \(productDatas.count)개"
-        var snapshot = NSDiffableDataSourceSnapshot<ProductCellType, Product>()
+        var snapshot = NSDiffableDataSourceSnapshot<
+            ProductCellType, ProductCellItem
+        >()
         snapshot.appendSections([.defaultType])
         snapshot.appendItems(productDatas, toSection: .defaultType)
         dataSource.apply(snapshot, animatingDifferences: true)
     }
 
-    func configureDataSource() -> UICollectionViewDiffableDataSource<ProductCellType, Product> {
-        let cellRegistration = UICollectionView.CellRegistration<ProductCell, Product> {
-            cell, indexPath, item in
-            
+    func configureDataSource() -> UICollectionViewDiffableDataSource<
+        ProductCellType, ProductCellItem
+    > {
+        let cellRegistration = UICollectionView.CellRegistration<
+            ProductCell, ProductCellItem
+        > {
+            cell,
+            indexPath,
+            item in
+
             var freshness: Int? = nil
-            if let expiryDate = item.expiryDate {
-                freshness = Calendar.current.dateComponents([.day], from: Date(), to: expiryDate).day
+            if let expiryDate = item.product.expiryDate {
+                freshness =
+                    Calendar.current.dateComponents(
+                        [.day],
+                        from: Date(),
+                        to: expiryDate
+                    ).day
             }
-            
+
+            let descriptions = [
+                item.midCategory,
+                item.subCategory,
+            ].compactMap { $0 }
+
             cell.updateUI(
                 type: .defaultType,
-                title: item.name,
+                title: item.product.name,
                 freshness: freshness,
-                descriptions: [item.mainCategory],
+                descriptions: descriptions,
                 subdescriptions: nil,
-                count: item.quantity,
-                image: nil //TODO: 수정 필요
+                count: item.product.quantity,
+                image: nil
             )
         }
 
-        return UICollectionViewDiffableDataSource<ProductCellType, Product>(
+        return UICollectionViewDiffableDataSource<
+            ProductCellType, ProductCellItem
+        >(
             collectionView: collectionView
         ) { collectionView, indexPath, item in
             collectionView.dequeueConfiguredReusableCell(
@@ -100,15 +148,31 @@ extension ProductCollectionView {
     }
 
     func createLayout() -> UICollectionViewLayout {
-        var listConfiguration = UICollectionLayoutListConfiguration(
-            appearance: .plain
+        let item = NSCollectionLayoutItem(
+            layoutSize: .init(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .absolute(88)
+            )
         )
-        listConfiguration.showsSeparators = false
-        listConfiguration.backgroundColor = .gray50
 
-        return UICollectionViewCompositionalLayout.list(
-            using: listConfiguration
+        let group = NSCollectionLayoutGroup.vertical(
+            layoutSize: .init(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .absolute(88)
+            ),
+            subitems: [item]
         )
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 8
+        section.contentInsets = NSDirectionalEdgeInsets(
+            top: 0,
+            leading: 16,
+            bottom: 0,
+            trailing: 16
+        )
+
+        return UICollectionViewCompositionalLayout(section: section)
     }
 }
 
@@ -148,4 +212,3 @@ extension ProductCollectionView {
         }
     }
 }
-
