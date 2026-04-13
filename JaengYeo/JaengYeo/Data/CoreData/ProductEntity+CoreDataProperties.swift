@@ -69,7 +69,9 @@ extension ProductEntity {
             createdAt: createdAt,
             updatedAt: updatedAt,
             syncStatus: syncStatus,
-            isLowStockNotificationEnabled: isLowStockNotificationEnabled
+            isLowStockNotificationEnabled: isLowStockNotificationEnabled,
+            caution: caution,
+            brand: brand
         )
     }
 }

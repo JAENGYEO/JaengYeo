@@ -83,7 +83,8 @@ extension ProductCollectionView {
                 freshness: freshness,
                 descriptions: [item.mainCategory],
                 subdescriptions: nil,
-                count: item.quantity
+                count: item.quantity,
+                image: nil //TODO: 수정 필요
             )
         }
 

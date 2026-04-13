@@ -33,14 +33,15 @@ final class RegisterItemListViewController: UIViewController {
     
     private lazy var dataSource: UICollectionViewDiffableDataSource<SectionID, RegisterFormData> = {
         return UICollectionViewDiffableDataSource<SectionID, RegisterFormData>(collectionView: mainView.collectionView) { collectionView, indexPath, itemIdentifier in
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProductCell.productCellID, for: indexPath) as? ProductCell else { return UICollectionViewCell() }
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProductCell.id, for: indexPath) as? ProductCell else { return UICollectionViewCell() }
             cell.updateUI(
                 type: ProductCellType.registType,
                 title: itemIdentifier.name ?? "정보 없음",
                 freshness: nil,
                 descriptions: [itemIdentifier.mainCategory].compactMap { $0 },
                 subdescriptions: nil,
-                count: itemIdentifier.quantity
+                count: itemIdentifier.quantity,
+                image: nil //TODO: 수정필요
             )
             cell.accessories = [.disclosureIndicator(options: .init(tintColor: .gray300))]
             return cell
@@ -53,7 +54,7 @@ final class RegisterItemListViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        mainView.collectionView.register(ProductCell.self, forCellWithReuseIdentifier: ProductCell.productCellID)
+        mainView.collectionView.register(ProductCell.self, forCellWithReuseIdentifier: ProductCell.id)
         configNavigationBar()
         bind()
     }

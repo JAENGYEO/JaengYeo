@@ -35,7 +35,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -2, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -1, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -58,7 +60,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .hour, value: -20, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .hour, value: -6, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -81,7 +85,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -12, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -4, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: false
+                isLowStockNotificationEnabled: false,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -104,7 +110,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -4, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -2, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -127,7 +135,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -3, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -1, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -150,7 +160,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .hour, value: -18, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .hour, value: -5, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -173,7 +185,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -20, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -10, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: false
+                isLowStockNotificationEnabled: false,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -196,7 +210,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -8, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -3, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -219,7 +235,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -15, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -2, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -242,7 +260,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -5, to: now) ?? now,
                 updatedAt: now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -265,7 +285,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -11, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -7, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -288,7 +310,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -9, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -4, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -311,7 +335,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -13, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -2, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: true
+                isLowStockNotificationEnabled: true,
+                caution: nil,
+                brand: nil
             ),
             ProductPayload(
                 id: UUID(),
@@ -334,7 +360,9 @@ private enum ProductMockSeed {
                 createdAt: Calendar.current.date(byAdding: .day, value: -6, to: now) ?? now,
                 updatedAt: Calendar.current.date(byAdding: .day, value: -1, to: now) ?? now,
                 syncStatus: SyncStatus.synced.rawValue,
-                isLowStockNotificationEnabled: false
+                isLowStockNotificationEnabled: false,
+                caution: nil,
+                brand: nil
             )
         ]
     }
