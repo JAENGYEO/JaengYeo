@@ -9,7 +9,7 @@ import Foundation
 
 struct SubCategoryDTO: Codable {
     let id: UUID
-    let userId: String?
+    let userId: UUID?
     let mainCategory: String
     let name: String
     let iconName: String?

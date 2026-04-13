@@ -58,7 +58,7 @@ extension CoreDataManager {
         let entity = SubCategoryEntity(context: context)
         
         entity.id = payload.id
-        entity.userId = payload.userId
+        entity.userId = payload.userId?.uuidString
         entity.mainCategory = payload.mainCategory
         entity.name = payload.name
         entity.iconName = payload.iconName
@@ -81,7 +81,7 @@ extension CoreDataManager {
         
         return SubCategoryPayload(
             id: entity.id,
-            userId: entity.userId,
+            userId: entity.userId.flatMap { UUID(uuidString: $0) },
             mainCategory: entity.mainCategory,
             name: entity.name,
             iconName: entity.iconName,
@@ -92,7 +92,7 @@ extension CoreDataManager {
             syncStatus: entity.syncStatus
         )
     }
-    
+
     func fetchAllSubCategories(mainCategory: String) throws -> [SubCategoryPayload] {
         let request: NSFetchRequest<SubCategoryEntity> = SubCategoryEntity.fetchRequest()
         request.predicate = NSPredicate(
@@ -105,7 +105,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 SubCategoryPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: $0.userId.flatMap { UUID(uuidString: $0) },
                     mainCategory: $0.mainCategory,
                     name: $0.name,
                     iconName: $0.iconName,
@@ -120,12 +120,12 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-    
+
     // MARK: SubCategory Update
     func updateSubCategory(_ payload: borrowing SubCategoryPayload) throws {
         let entity = try fetchSubCategoryEntity(of: payload.id)
         
-        entity.userId = payload.userId
+        entity.userId = payload.userId?.uuidString
         entity.mainCategory = payload.mainCategory
         entity.name = payload.name
         entity.iconName = payload.iconName
@@ -190,7 +190,7 @@ extension CoreDataManager {
         let entity = MidCategoryEntity(context: context)
         
         entity.id = payload.id
-        entity.userId = payload.userId
+        entity.userId = payload.userId?.uuidString
         entity.mainCategory = payload.mainCategory
         entity.name = payload.name
         entity.iconName = payload.iconName
@@ -212,7 +212,7 @@ extension CoreDataManager {
         
         return MidCategoryPayload(
             id: entity.id,
-            userId: entity.userId,
+            userId: entity.userId.flatMap { UUID(uuidString: $0) },
             mainCategory: entity.mainCategory,
             name: entity.name,
             iconName: entity.iconName,
@@ -222,7 +222,7 @@ extension CoreDataManager {
             syncStatus: entity.syncStatus
         )
     }
-    
+
     func fetchAllMidCategories(mainCategory: String) throws -> [MidCategoryPayload] {
         let request: NSFetchRequest<MidCategoryEntity> = MidCategoryEntity.fetchRequest()
         request.predicate = NSPredicate(
@@ -235,7 +235,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 MidCategoryPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: $0.userId.flatMap { UUID(uuidString: $0) },
                     mainCategory: $0.mainCategory,
                     name: $0.name,
                     iconName: $0.iconName,
@@ -249,12 +249,12 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-    
+
     // MARK: MidCategory Update
     func updateMidCategory(_ payload: borrowing MidCategoryPayload) throws {
         let entity = try fetchMidCategoryEntity(of: payload.id)
         
-        entity.userId = payload.userId
+        entity.userId = payload.userId?.uuidString
         entity.mainCategory = payload.mainCategory
         entity.name = payload.name
         entity.iconName = payload.iconName
@@ -604,7 +604,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 SubCategoryPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: $0.userId.flatMap { UUID(uuidString: $0) },
                     mainCategory: $0.mainCategory,
                     name: $0.name,
                     iconName: $0.iconName,
@@ -619,7 +619,7 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-    
+
     func updateSubCategorySyncStatus(id: UUID) throws {
         let entity = try fetchSubCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.synced.rawValue
@@ -648,7 +648,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 MidCategoryPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: $0.userId.flatMap { UUID(uuidString: $0) },
                     mainCategory: $0.mainCategory,
                     name: $0.name,
                     iconName: $0.iconName,
@@ -662,7 +662,7 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-    
+
     func updateMidCategorySyncStatus(id: UUID) throws {
         let entity = try fetchMidCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.synced.rawValue
