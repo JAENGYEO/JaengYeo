@@ -62,36 +62,7 @@ extension RegisterCoordinator: RegisterItemListViewControllerDelegate {
     }
     
     func saveItems(items: [RegisterFormData]) {
-        let now = Date()
-        items.forEach { item in
-            guard let name = item.name, let mainCategory = item.mainCategory else { return }
-            let payload = ProductPayload(
-                id: item.id,
-                userId: Constants.Dev.userId,
-                name: name,
-                quantity: Int32(item.quantity ?? 0),
-                quantityUnit: item.quantityUnit,
-                mainCategory: mainCategory,
-                midCategoryId: item.midCategory,
-                subCategoryId: item.subCategory,
-                purchaseDate: item.purchaseDate,
-                expiryDate: item.expiryDate,
-                price: Int32(item.price ?? 0),
-                locationMemo: item.locationMemo,
-                memo: item.memo,
-                imageUrl: nil, //TODO: 수정 필요
-                isClassified: false,
-                lowStockThreshold: Int32(item.lowStockThreshold ?? 1),
-                isFavorite: false, //TODO: 수정 필요
-                createdAt: now,
-                updatedAt: now,
-                syncStatus: SyncStatus.pendingUpload.rawValue,
-                isLowStockNotificationEnabled: item.isLowStockNotificationEnabled ?? false,
-                caution: item.caution,
-                brand: item.brand
-            )
-            try? coreDataManager.createProduct(payload)
-        }
+        
     }
 }
 
