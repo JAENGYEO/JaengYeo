@@ -366,9 +366,7 @@ extension RegisterDetailView {
 
 // MARK: 대분류 버튼 상태 업데이트
 extension RegisterDetailView {
-    enum CategoryType { case food, household }
-
-    func updateCategoryButtons(selected: CategoryType?) {
+    func updateCategoryButtons(selected: RegisterDetailViewModel.CategoryType?) {
         let selectedColor = UIColor.accent
         let deselectedColor = UIColor.gray300
 

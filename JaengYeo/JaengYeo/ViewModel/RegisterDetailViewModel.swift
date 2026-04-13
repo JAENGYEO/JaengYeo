@@ -11,7 +11,7 @@ import RxCocoa
 
 final class RegisterDetailViewModel: ViewModelProtocol {
     
-    typealias CategoryType = RegisterDetailView.CategoryType
+    enum CategoryType { case food, household }
     
     struct Input {
         let foodCategoryTapped: Observable<Void>
@@ -26,7 +26,7 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         let selectedCategory: Observable<CategoryType?>
         let selectedFields: Observable<Set<RegisterOptionField>>
         let stockAlertValue: Observable<String>
-        let confirmError: Observable<Void>
+        let confirmError: Observable<String>
         let didConfirm: Observable<RegisterFormData>
     }
     
@@ -55,7 +55,7 @@ final class RegisterDetailViewModel: ViewModelProtocol {
     }
     
     func transform(_ input: Input) -> Output {
-        let confirmErrorSubject = PublishSubject<Void>()
+        let confirmErrorSubject = PublishSubject<String>()
         let didConfirmSubject = PublishSubject<RegisterFormData>()
         
         input.foodCategoryTapped
@@ -92,7 +92,7 @@ final class RegisterDetailViewModel: ViewModelProtocol {
             .bind(onNext: { item, category, fields, stock in
                 let mainCategory = category == .food ? "식재료" : category == .household ? "생활용품" : nil
                 guard item.name?.isEmpty == false, mainCategory != nil else {
-                    confirmErrorSubject.onNext(())
+                    confirmErrorSubject.onNext(("이름과 카테고리를 입력해주세요."))
                     return
                 }
                 var result = item

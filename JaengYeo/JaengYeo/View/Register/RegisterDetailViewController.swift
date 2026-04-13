@@ -146,6 +146,13 @@ extension RegisterDetailViewController {
             })
             .disposed(by: disposeBag)
         
+        output.confirmError
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] error in
+                self?.showErrorAlert(title: "에러", message: error)
+            })
+            .disposed(by: disposeBag)
+        
         mainView.addInfoButton.rx.tap
             .bind(onNext: { [weak self] in
                 self?.presentExtraField()
@@ -165,5 +172,13 @@ extension RegisterDetailViewController {
 extension RegisterDetailViewController: RegisterFieldSelectViewControllerDelegate {
     func didSelect(fields: Set<RegisterOptionField>) {
         fieldsSelectedRelay.accept(fields)
+    }
+}
+
+extension RegisterDetailViewController {
+    private func showErrorAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 }
