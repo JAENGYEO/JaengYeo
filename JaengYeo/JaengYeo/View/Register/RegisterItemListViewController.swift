@@ -9,28 +9,19 @@ import UIKit
 import RxSwift
 import RxCocoa
 
-protocol RegisterItemListViewControllerDelegate: AnyObject {
-    func pushRegisterDetailView(item: RegisterFormData)
-    func saveItems(items: [RegisterFormData])
-}
-
 final class RegisterItemListViewController: UIViewController {
     
     typealias SectionID = UUID
     
-    weak var delegate: RegisterItemListViewControllerDelegate?
-    
     private let disposeBag = DisposeBag()
     private let mainView = RegisterItemListView()
-    
-    private var items: [RegisterFormData]
+    private let viewModel: RegisterItemListViewModel
     private let pageTitle: String
     
     private let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil)
-    let addButtonTapped = PublishRelay<Void>()
     
-    init(items: [RegisterFormData], pageTitle: String) {
-        self.items = items
+    init(viewModel: RegisterItemListViewModel, pageTitle: String) {
+        self.viewModel = viewModel
         self.pageTitle = pageTitle
         super.init(nibName: nil, bundle: nil)
         hidesBottomBarWhenPushed = true
@@ -64,23 +55,35 @@ final class RegisterItemListViewController: UIViewController {
         super.viewDidLoad()
         mainView.collectionView.register(ProductCell.self, forCellWithReuseIdentifier: ProductCell.productCellID)
         configNavigationBar()
-        setSnapshot()
-        mainView.collectionView.delegate = self
         bind()
     }
 }
 
 extension RegisterItemListViewController {
     private func bind() {
-        mainView.saveButton.rx.tap
-            .bind(onNext: { [weak self] in
-                guard let self else { return }
-                delegate?.saveItems(items: self.items)
-            })
-            .disposed(by: disposeBag)
         
-        addButton.rx.tap
-            .bind(to: addButtonTapped)
+        let cellTapped = mainView.collectionView.rx.itemSelected
+            .do(onNext: { [weak self] indexPath in
+                self?.mainView.collectionView.deselectItem(at: indexPath, animated: true)
+            })
+            .compactMap { [weak self] indexPath in
+                self?.dataSource.itemIdentifier(for: indexPath)
+            }
+            .asObservable()
+        
+        let input = RegisterItemListViewModel.Input(
+            saveButtonTapped: mainView.saveButton.rx.tap.asObservable(),
+            addButtonTapped: addButton.rx.tap.asObservable(),
+            cellTapped: cellTapped
+        )
+        
+        let output = viewModel.transform(input)
+        
+        output.items
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] items in
+                self?.setSnapshot(items: items)
+            })
             .disposed(by: disposeBag)
     }
 }
@@ -97,7 +100,7 @@ extension RegisterItemListViewController {
 }
 
 extension RegisterItemListViewController {
-    private func setSnapshot() {
+    private func setSnapshot(items: [RegisterFormData]) {
         var snapshot = NSDiffableDataSourceSnapshot<SectionID, RegisterFormData>()
         items.forEach { item in
             let sectionID = UUID()
@@ -106,28 +109,5 @@ extension RegisterItemListViewController {
             
         }
         dataSource.apply(snapshot, animatingDifferences: true)
-    }
-    
-    func updateItem(item: RegisterFormData) {
-        guard let index = items.firstIndex (where: { $0.id == item.id }) else { return }
-        items[index] = item
-        setSnapshot()
-    }
-    
-    func appendItem(item: RegisterFormData) {
-        items.append(item)
-        setSnapshot()
-    }
-    
-    func hasItem(id: UUID) -> Bool {
-        items.contains(where: { $0.id == id })
-    }
-}
-
-extension RegisterItemListViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        collectionView.deselectItem(at: indexPath, animated: true)
-        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
-        delegate?.pushRegisterDetailView(item: item)
     }
 }
