@@ -17,6 +17,12 @@ enum MainCategory: String {
     case household = "생활용품"
 }
 
+struct ProductCellItem: Hashable {
+    let product: Product
+    let midCategory: String?
+    let subCategory: String?
+}
+
 final class StockViewModel:  NSObject, ViewModelProtocol {
     
     private let disposeBag = DisposeBag()
@@ -31,7 +37,7 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     var mainCategory = BehaviorRelay<[String]>(value:
                                                 [MainCategory.foodstuff.rawValue, MainCategory.household.rawValue])
     /// 상품 목록
-    private let productsRelay = BehaviorRelay<[Product]>(value: [])
+    private let productsRelay = BehaviorRelay<[ProductCellItem]>(value: [])
     /// 중분류 목록
     private let midCategoriesRelay = BehaviorRelay<[CategorySelectionItem]>(value: [])
     /// 소분류 목록
@@ -54,7 +60,7 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     
     struct Output {
         let mainCategories: Observable<[String]>
-        let products: Observable<[Product]>
+        let products: Observable<[ProductCellItem]>
         let presentMidCategoryItems: Observable<[CategorySelectionItem]>
         let presentSubCategoryItems: Observable<[CategorySelectionItem]>
         let totalCountText: Observable<Int>
@@ -280,8 +286,25 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     
     /// 상품 도메인 변환 및 반영
     private func updateProducts() {
+        let midCategoryNames = midCategoryFetchResultContoller?.fetchedObjects?
+            .reduce(into: [UUID: String]()) {
+                $0[$1.id] = $1.name
+            } ?? [:]
+        
+        let subCategoryNames = subCategoryFetchResultContoller?.fetchedObjects?
+            .reduce(into: [UUID: String]()) {
+                $0[$1.id] = $1.name
+            } ?? [:]
+        
         let products = productFetchResultController?.fetchedObjects?
-            .map { $0.toDomain } ?? []
+            .map { $0.toDomain }
+            .map {
+                ProductCellItem(
+                    product: $0,
+                    midCategory: $0.midCategoryId.flatMap { midCategoryNames[$0] },
+                    subCategory: $0.subCategoryId.flatMap { subCategoryNames[$0] }
+                )
+            } ?? []
 
         productsRelay.accept(products)
     }

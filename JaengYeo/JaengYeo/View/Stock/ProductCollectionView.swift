@@ -60,35 +60,40 @@ final class ProductCollectionView: UIView {
 
 //MARK: - Configure CollectionView
 extension ProductCollectionView {
-    func applySnapshot(with productDatas: [Product]) {
+    func applySnapshot(with productDatas: [ProductCellItem]) {
         totalCountLabel.text = "총 \(productDatas.count)개"
-        var snapshot = NSDiffableDataSourceSnapshot<ProductCellType, Product>()
+        var snapshot = NSDiffableDataSourceSnapshot<ProductCellType, ProductCellItem>()
         snapshot.appendSections([.defaultType])
         snapshot.appendItems(productDatas, toSection: .defaultType)
         dataSource.apply(snapshot, animatingDifferences: true)
     }
 
-    func configureDataSource() -> UICollectionViewDiffableDataSource<ProductCellType, Product> {
-        let cellRegistration = UICollectionView.CellRegistration<ProductCell, Product> {
+    func configureDataSource() -> UICollectionViewDiffableDataSource<ProductCellType, ProductCellItem> {
+        let cellRegistration = UICollectionView.CellRegistration<ProductCell, ProductCellItem> {
             cell, indexPath, item in
             
             var freshness: Int? = nil
-            if let expiryDate = item.expiryDate {
+            if let expiryDate = item.product.expiryDate {
                 freshness = Calendar.current.dateComponents([.day], from: Date(), to: expiryDate).day
             }
             
+            let descriptions = [
+                item.midCategory,
+                item.subCategory
+            ].compactMap { $0 }
+            
             cell.updateUI(
                 type: .defaultType,
-                title: item.name,
+                title: item.product.name,
                 freshness: freshness,
-                descriptions: [item.mainCategory],
+                descriptions: descriptions,
                 subdescriptions: nil,
-                count: item.quantity,
+                count: item.product.quantity,
                 image: nil
             )
         }
 
-        return UICollectionViewDiffableDataSource<ProductCellType, Product>(
+        return UICollectionViewDiffableDataSource<ProductCellType, ProductCellItem>(
             collectionView: collectionView
         ) { collectionView, indexPath, item in
             collectionView.dequeueConfiguredReusableCell(
@@ -148,4 +153,3 @@ extension ProductCollectionView {
         }
     }
 }
-
