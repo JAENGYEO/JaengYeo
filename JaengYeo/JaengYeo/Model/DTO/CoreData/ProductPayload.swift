@@ -10,7 +10,7 @@ import Foundation
 /// 상품 데이터 Payload 구조체
 struct ProductPayload {
     let id: UUID
-    let userId: String
+    let userId: UUID
     let name: String
     let quantity: Int32
     let quantityUnit: String?

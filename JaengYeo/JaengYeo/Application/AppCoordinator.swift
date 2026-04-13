@@ -20,13 +20,6 @@ final class AppCoordinator {
     func start() {
         let client = makeSupabaseClient()
         
-        Task {
-            try? await client.auth.signIn(
-                email: "test@test.com",
-                password: "test1234"
-            )
-        }
-        
         let productManager = ProductManager(client: client)
         let categoryManager = CategoryManager(client: client)
         let coreDataManager = CoreDataManager()
@@ -38,7 +31,15 @@ final class AppCoordinator {
             categoryManager: categoryManager,
             coreDataManager: coreDataManager
         )
-        syncManager.networkCheck()
+        
+        Task {
+            let session = try? await client.auth.signIn(
+                email: "test@test.com",
+                password: "test1234"
+            )
+            
+            syncManager.networkCheck()
+        }
         self.syncManager = syncManager
         
         let homeCoordinator = HomeCoordinator(
@@ -51,6 +52,7 @@ final class AppCoordinator {
             productManager: productManager,
             categoryManager: categoryManager,
             coreDataManager: coreDataManager,
+            syncManager: syncManager,
             client: client
         )
         

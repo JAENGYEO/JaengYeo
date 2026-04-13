@@ -13,4 +13,6 @@ protocol SyncManagerProtocol {
     func networkCheck()
     // 동기화 (pending_upload -> 서버 반영, pending_delete -> 서버 소프트 삭제)
     func synchronize() async
+    // 네트워크 상태가 true일 경우 바로 동기화
+    func syncIfConnected()
 }

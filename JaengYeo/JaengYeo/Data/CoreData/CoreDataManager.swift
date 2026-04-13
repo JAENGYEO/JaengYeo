@@ -320,7 +320,7 @@ extension CoreDataManager {
         let entity = ProductEntity(context: context)
         
         entity.id = payload.id
-        entity.userId = payload.userId
+        entity.userId = payload.userId.uuidString
         entity.name = payload.name
         entity.quantity = payload.quantity
         entity.quantityUnit = payload.quantityUnit
@@ -354,7 +354,7 @@ extension CoreDataManager {
         payloads.forEach { payload in
             let entity = ProductEntity(context: context)
             entity.id = payload.id
-            entity.userId = payload.userId
+            entity.userId = payload.userId.uuidString
             entity.name = payload.name
             entity.quantity = payload.quantity
             entity.quantityUnit = payload.quantityUnit
@@ -391,7 +391,7 @@ extension CoreDataManager {
         
         return ProductPayload(
             id: entity.id,
-            userId: entity.userId,
+            userId: UUID(uuidString: entity.userId) ?? UUID(),
             name: entity.name,
             quantity: entity.quantity,
             quantityUnit: entity.quantityUnit,
@@ -425,7 +425,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 ProductPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: UUID(uuidString: $0.userId) ?? UUID(),
                     name: $0.name,
                     quantity: $0.quantity,
                     quantityUnit: $0.quantityUnit,
@@ -458,7 +458,7 @@ extension CoreDataManager {
     func updateProduct(_ payload: borrowing ProductPayload) throws {
         let entity = try fetchProductEntity(of: payload.id)
         
-        entity.userId = payload.userId
+        entity.userId = payload.userId.uuidString
         entity.name = payload.name
         entity.quantity = payload.quantity
         entity.quantityUnit = payload.quantityUnit
@@ -547,7 +547,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 ProductPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: UUID(uuidString: $0.userId) ?? UUID(),
                     name: $0.name,
                     quantity: $0.quantity,
                     quantityUnit: $0.quantityUnit,
@@ -749,7 +749,7 @@ extension CoreDataManager {
     private func toDomainProduct(_ entity: ProductEntity) -> ProductPayload {
         ProductPayload(
             id: entity.id,
-            userId: entity.userId,
+            userId: UUID(uuidString: entity.userId) ?? UUID(),
             name: entity.name,
             quantity: entity.quantity,
             quantityUnit: entity.quantityUnit,

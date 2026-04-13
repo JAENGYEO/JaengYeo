@@ -18,6 +18,7 @@ final class SyncManager: SyncManagerProtocol {
     
     private var isMonitoring = false // 네트워크 중복 호출 방지용
     private var isSyncing = false // 동기화 중복 실행 방지용
+    private var isConnected = false
     
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol) {
         self.productManager = productManager
@@ -34,6 +35,7 @@ final class SyncManager: SyncManagerProtocol {
         guard !isMonitoring else { return }
         isMonitoring = true
         monitor.pathUpdateHandler = { [weak self] path in // 네트워크 상태 변경 시 호출
+            self?.isConnected = path.status == .satisfied
             if path.status == .satisfied { // 인터넷 연결됨 -> 동기화 진행
                 Task {
                     await self?.synchronize()
@@ -41,6 +43,11 @@ final class SyncManager: SyncManagerProtocol {
             }
         }
         monitor.start(queue: monitorQueue) // 백그라운드에서 네트워크 상태 감지 시작
+    }
+    
+    func syncIfConnected() {
+        guard isConnected else { return }
+        Task { await synchronize() }
     }
     
     // MARK: - pending 항목 전체 동기화

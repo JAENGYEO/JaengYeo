@@ -9,7 +9,7 @@ import Foundation
 
 struct ProductDTO: Codable {
     let id: UUID
-    let userId: String
+    let userId: UUID
     let name: String
     let quantity: Int
     let quantityUnit: String?
@@ -60,7 +60,7 @@ extension ProductDTO {
             name: name,
             quantity: quantity,
             quantityUnit: quantityUnit,
-            mainCategory: mainCategory,
+            mainCategory: mainCategory == "food" ? "식재료" : "생활용품",
             midCategoryId: midCategoryId,
             subCategoryId: subCategoryId,
             purchaseDate: purchaseDate,
@@ -90,7 +90,7 @@ extension ProductDTO {
         self.name = product.name
         self.quantity = product.quantity
         self.quantityUnit = product.quantityUnit
-        self.mainCategory = product.mainCategory
+        self.mainCategory = product.mainCategory == "식재료" ? "food" : "household"
         self.midCategoryId = product.midCategoryId
         self.subCategoryId = product.subCategoryId
         self.purchaseDate = product.purchaseDate

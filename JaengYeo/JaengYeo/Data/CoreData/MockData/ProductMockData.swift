@@ -16,7 +16,7 @@ private enum ProductMockSeed {
         return [
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "양파",
                 quantity: 3,
                 quantityUnit: "개",
@@ -41,7 +41,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "우유",
                 quantity: 1,
                 quantityUnit: "팩",
@@ -66,7 +66,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "고추장",
                 quantity: 1,
                 quantityUnit: "통",
@@ -91,7 +91,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "감자",
                 quantity: 6,
                 quantityUnit: "개",
@@ -116,7 +116,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "계란",
                 quantity: 12,
                 quantityUnit: "알",
@@ -141,7 +141,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "식빵",
                 quantity: 1,
                 quantityUnit: "봉",
@@ -166,7 +166,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "냉동만두",
                 quantity: 2,
                 quantityUnit: "봉",
@@ -191,7 +191,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "주방세제",
                 quantity: 2,
                 quantityUnit: "개",
@@ -216,7 +216,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "휴지",
                 quantity: 10,
                 quantityUnit: "롤",
@@ -241,7 +241,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "세탁세제",
                 quantity: 1,
                 quantityUnit: "통",
@@ -266,7 +266,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "고무장갑",
                 quantity: 2,
                 quantityUnit: "켤레",
@@ -291,7 +291,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "칫솔",
                 quantity: 4,
                 quantityUnit: "개",
@@ -316,7 +316,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "샴푸",
                 quantity: 1,
                 quantityUnit: "병",
@@ -341,7 +341,7 @@ private enum ProductMockSeed {
             ),
             ProductPayload(
                 id: UUID(),
-                userId: "mock-user",
+                userId: UUID(),
                 name: "지퍼백",
                 quantity: 5,
                 quantityUnit: "팩",

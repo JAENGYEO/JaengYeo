@@ -16,16 +16,19 @@ final class RegisterCoordinator {
     private let productManager: ProductManagerProtocol
     private let categoryManager: CategoryManagerProtocol
     private let coreDataManager: CoreDataManagerProtocol
+    private let syncManager: SyncManagerProtocol
     private let client: SupabaseClient
+
     
     private let disposeBag = DisposeBag()
     
     private weak var listViewModel: RegisterItemListViewModel?
     
-    init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, client: SupabaseClient) {
+    init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol, client: SupabaseClient) {
         self.productManager = productManager
         self.categoryManager = categoryManager
         self.coreDataManager = coreDataManager
+        self.syncManager = syncManager
         self.client = client
         
         let viewModel = RegisterViewModel(client: client)
@@ -42,7 +45,7 @@ final class RegisterCoordinator {
 
 extension RegisterCoordinator: RegisterViewControllerDelegate {
     func pushItemListView(items: [RegisterFormData]) {
-        let viewModel = RegisterItemListViewModel(items: items, coreDataManager: coreDataManager)
+        let viewModel = RegisterItemListViewModel(items: items, coreDataManager: coreDataManager, syncManager: syncManager)
         let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: "AI 인식 결과")
         listViewModel = viewModel
         viewModel.navigateToAdd

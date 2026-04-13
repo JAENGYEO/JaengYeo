@@ -50,7 +50,7 @@ extension ProductEntity {
     var toDomain: Product {
         Product(
             id: id,
-            userId: userId,
+            userId: UUID(uuidString: userId) ?? UUID(),
             name: name,
             quantity: Int(quantity),
             quantityUnit: quantityUnit,

@@ -13,15 +13,17 @@ final class RegisterItemListViewModel: ViewModelProtocol {
     
     private let itemsSubject: BehaviorSubject<[RegisterFormData]>
     private let coreDataManager: CoreDataManagerProtocol
+    private let syncManager: SyncManagerProtocol
     private let disposeBag = DisposeBag()
     private let errorSubject = PublishSubject<String>()
     
     let navigateToDetail = PublishSubject<RegisterFormData>()
     let navigateToAdd = PublishSubject<Void>()
     
-    init(items: [RegisterFormData], coreDataManager: CoreDataManagerProtocol) {
+    init(items: [RegisterFormData], coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol) {
         self.itemsSubject = BehaviorSubject(value: items)
         self.coreDataManager = coreDataManager
+        self.syncManager = syncManager
     }
     
     struct Input {
@@ -111,6 +113,7 @@ extension RegisterItemListViewModel {
         }
         do {
             try coreDataManager.createProducts(payloads: payloads)
+            syncManager.syncIfConnected()
         } catch {
             errorSubject.onNext("저장 실패")
         }
