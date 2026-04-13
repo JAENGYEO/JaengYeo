@@ -245,7 +245,7 @@ extension RegisterViewController {
 }
 
 extension RegisterViewController {
-    private func handleCaptureButtonTapped() {
+    private func handleCaptureButtonTapped() { //TODO: case에 따라 분리처리 필요
         guard currentMode == .aiVision else { return }
         let settings = AVCapturePhotoSettings()
         photoOutput.capturePhoto(with: settings, delegate: self)
@@ -256,8 +256,14 @@ extension RegisterViewController: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: (any Error)?) {
         guard error == nil,
               let data = photo.fileDataRepresentation(),
-              let image = UIImage(data: data),
-              let compressedData = image.jpegData(compressionQuality: 0.3) else { return }
+              let image = UIImage(data: data) else { return }
+        
+        let maxDimension: CGFloat
+        switch currentMode {
+        case .aiVision: maxDimension = 512
+        default: maxDimension = 1024
+        }
+        guard let compressedData = image.resized(maxDimension: maxDimension).jpegData(compressionQuality: 0.6) else { return }
         aiCapturedSubject.onNext(compressedData)
     }
 }
