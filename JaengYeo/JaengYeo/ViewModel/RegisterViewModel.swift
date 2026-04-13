@@ -64,7 +64,7 @@ final class RegisterViewModel: ViewModelProtocol {
 
 extension RegisterViewModel {
     // Supabase에 보낼 body 구성, invoke로 api 호출
-    private func analyzeByAi(base64: String) async throws -> GeminiResponse {
+    private func analyzeByAi(base64: String) async throws -> AIResponse {
         let body: [String: AnyJSON] = [
             "imageBase64": AnyJSON(stringLiteral: base64),
             "mimeType": AnyJSON(stringLiteral: "image/jpeg")
@@ -74,7 +74,7 @@ extension RegisterViewModel {
     }
     
     // analyzeByAi로 받아온 데이터 FormData화
-    private func aiResponseToFromData(response: GeminiResponse) -> [RegisterFormData] {
+    private func aiResponseToFromData(response: AIResponse) -> [RegisterFormData] {
         return response.items.map { item in
             var form = RegisterFormData()
             form.name = item.name
