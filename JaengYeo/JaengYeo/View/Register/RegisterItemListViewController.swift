@@ -11,6 +11,7 @@ import RxCocoa
 
 protocol RegisterItemListViewControllerDelegate: AnyObject {
     func pushRegisterDetailView(item: RegisterFormData)
+    func saveItems(items: [RegisterFormData])
 }
 
 final class RegisterItemListViewController: UIViewController {
@@ -62,6 +63,18 @@ final class RegisterItemListViewController: UIViewController {
         configNavigationBar()
         setSnapshot()
         mainView.collectionView.delegate = self
+        bind()
+    }
+}
+
+extension RegisterItemListViewController {
+    private func bind() {
+        mainView.saveButton.rx.tap
+            .bind(onNext: { [weak self] in
+                guard let self else { return }
+                delegate?.saveItems(items: self.items)
+            })
+            .disposed(by: disposeBag)
     }
 }
 
@@ -86,6 +99,12 @@ extension RegisterItemListViewController {
             
         }
         dataSource.apply(snapshot, animatingDifferences: true)
+    }
+    
+    func updateItem(item: RegisterFormData) {
+        guard let index = items.firstIndex (where: { $0.id == item.id }) else { return }
+        items[index] = item
+        setSnapshot()
     }
 }
 

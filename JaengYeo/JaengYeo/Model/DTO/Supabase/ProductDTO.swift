@@ -28,9 +28,11 @@ struct ProductDTO: Codable {
     let isFavorite: Bool
     let createdAt: Date
     let updatedAt: Date
+    let caution: String?
+    let brand: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, name, quantity, price, memo
+        case id, name, quantity, price, memo, caution, brand
         case userId = "user_id"
         case quantityUnit = "quantity_unit"
         case mainCategory = "main_category"
@@ -73,7 +75,9 @@ extension ProductDTO {
             createdAt: createdAt,
             updatedAt: updatedAt,
             syncStatus: SyncStatus.synced.rawValue, // 서버에서 받아온 데이터는 synced 상태
-            isLowStockNotificationEnabled: isLowStockNotificationEnabled
+            isLowStockNotificationEnabled: isLowStockNotificationEnabled,
+            caution: caution,
+            brand: brand
         )
     }
 }
@@ -101,5 +105,7 @@ extension ProductDTO {
         self.createdAt = product.createdAt
         self.updatedAt = product.updatedAt
         self.isLowStockNotificationEnabled = product.isLowStockNotificationEnabled
+        self.caution = product.caution
+        self.brand = product.brand
     }
 }

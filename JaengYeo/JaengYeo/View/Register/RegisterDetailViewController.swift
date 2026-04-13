@@ -128,12 +128,38 @@ extension RegisterDetailViewController {
         mainView.confirmButton.rx.tap
             .bind(onNext: { [weak self] in
                 guard let self else { return }
-//                item.name = mainView.nameField.text
-//                item.quantity = Int(mainView.quantityField.text ?? "")
-//                item.mainCategory = selectedCategory == .food ? "식재료" : "생활용품"
-//                item.subCategory = mainView.subCategoryField.text
-//                item.expiryDate = nil //TODO: 수정 필요
-//                item.ca
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                
+                item.name = mainView.nameField.text.flatMap { $0.isEmpty ? nil : $0 }
+                item.quantity = mainView.quantityField.text.flatMap { Int($0) }
+                item.mainCategory = selectedCategory == .food ? "식재료" : selectedCategory == .household ? "생활용품" : nil
+                item.locationMemo = mainView.locationField.text.flatMap { $0.isEmpty ? nil : $0 }
+                item.purchaseDate = formatter.date(from: mainView.purchaseDateField.text ?? "")
+                
+                if selectedFields.contains(.expiryDate) {
+                    item.expiryDate = formatter.date(from: mainView.expiryDateField.text ?? "")
+                }
+                if selectedFields.contains(.stockAlert) {
+                    item.lowStockThreshold = mainView.stockAlertLabel.text.flatMap { Int($0) }
+                    item.isLowStockNotificationEnabled = (item.lowStockThreshold ?? 0) > 0
+                }
+                if selectedFields.contains(.memo) {
+                    item.memo = mainView.memoField.text.flatMap { $0.isEmpty ? nil : $0 }
+                }
+                if selectedFields.contains(.caution) {
+                    item.caution = mainView.cautionField.text.flatMap { $0.isEmpty ? nil : $0 }
+                }
+                if selectedFields.contains(.brand) {
+                    item.brand = mainView.brandField.text.flatMap { $0.isEmpty ? nil : $0 }
+                }
+                
+                // name, mainCategory: nil일 경우 저장 x
+                guard item.name != nil, item.mainCategory != nil else {
+                    return
+                }
+                delegate?.didTapConfirmButton(item: item)
+                navigationController?.popViewController(animated: true)
             })
             .disposed(by: disposeBag)
     }

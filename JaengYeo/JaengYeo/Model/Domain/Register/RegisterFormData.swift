@@ -24,4 +24,6 @@ struct RegisterFormData: Hashable {
     var imageBase64: String?
     var isLowStockNotificationEnabled: Bool?
     var lowStockThreshold: Int?
+    var caution: String?
+    var brand: String?
 }
