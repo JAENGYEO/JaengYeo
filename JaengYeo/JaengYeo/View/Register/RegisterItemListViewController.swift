@@ -111,9 +111,8 @@ extension RegisterItemListViewController {
     private func setSnapshot(items: [RegisterFormData]) {
         var snapshot = NSDiffableDataSourceSnapshot<SectionID, RegisterFormData>()
         items.forEach { item in
-            let sectionID = UUID()
-            snapshot.appendSections([sectionID])
-            snapshot.appendItems([item], toSection: sectionID)
+            snapshot.appendSections([item.id])
+            snapshot.appendItems([item], toSection: item.id)
             
         }
         dataSource.apply(snapshot, animatingDifferences: true)
