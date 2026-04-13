@@ -158,6 +158,20 @@ extension RegisterDetailViewController {
                 self?.presentExtraField()
             })
             .disposed(by: disposeBag)
+
+        let purchaseDateTap = UITapGestureRecognizer()
+        mainView.purchaseDateGroupView.isUserInteractionEnabled = true
+        mainView.purchaseDateGroupView.addGestureRecognizer(purchaseDateTap)
+        purchaseDateTap.rx.event
+            .bind(onNext: { [weak self] _ in self?.presentDatePicker(type: .purchaseDate) })
+            .disposed(by: disposeBag)
+
+        let expiryDateTap = UITapGestureRecognizer()
+        mainView.expiryDateGroupView.isUserInteractionEnabled = true
+        mainView.expiryDateGroupView.addGestureRecognizer(expiryDateTap)
+        expiryDateTap.rx.event
+            .bind(onNext: { [weak self] _ in self?.presentDatePicker(type: .expiryDate) })
+            .disposed(by: disposeBag)
     }
 }
 
@@ -167,11 +181,42 @@ extension RegisterDetailViewController {
         sheet.delegate = self
         present(sheet, animated: false)
     }
+
+    private enum DatePickerType { case purchaseDate, expiryDate }
+
+    private func presentDatePicker(type: DatePickerType) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let (title, text): (String, String?) = {
+            switch type {
+            case .purchaseDate: return ("구매 날짜", mainView.purchaseDateField.text)
+            case .expiryDate:   return ("유통기한", mainView.expiryDateField.text)
+            }
+        }()
+        let initialDate = text.flatMap { formatter.date(from: $0) }
+        let sheet = DatePickerBottomSheetViewController(sheetTitle: title, initialDate: initialDate)
+        sheet.delegate = self
+        sheet.view.tag = type == .purchaseDate ? 0 : 1
+        present(sheet, animated: false)
+    }
 }
 
 extension RegisterDetailViewController: RegisterFieldSelectViewControllerDelegate {
     func didSelect(fields: Set<RegisterOptionField>) {
         fieldsSelectedRelay.accept(fields)
+    }
+}
+
+extension RegisterDetailViewController: DatePickerBottomSheetViewControllerDelegate {
+    func datePickerBottomSheet(_ vc: DatePickerBottomSheetViewController, didSelect date: Date) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let formatted = formatter.string(from: date)
+        if vc.view.tag == 0 {
+            mainView.purchaseDateField.text = formatted
+        } else {
+            mainView.expiryDateField.text = formatted
+        }
     }
 }
 

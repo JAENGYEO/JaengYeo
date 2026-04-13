@@ -43,6 +43,7 @@ final class RegisterDetailView: UIView {
     let purchaseDateField = UITextField().then {
         $0.font = LabelConfiguration.titleSemi16.font
         $0.textColor = .gray800
+        $0.isUserInteractionEnabled = false
         $0.attributedPlaceholder = NSAttributedString(
             string: "구매 날짜를 입력해주세요.",
             attributes: [.foregroundColor: UIColor.gray300, .font: LabelConfiguration.body14.font]
@@ -103,6 +104,7 @@ final class RegisterDetailView: UIView {
     let expiryDateField = UITextField().then {
         $0.font = LabelConfiguration.titleSemi16.font
         $0.textColor = .gray800
+        $0.isUserInteractionEnabled = false
         $0.attributedPlaceholder = NSAttributedString(
             string: "유통기한을 입력해주세요.",
             attributes: [.foregroundColor: UIColor.gray300, .font: LabelConfiguration.body14.font]
@@ -154,6 +156,7 @@ final class RegisterDetailView: UIView {
     }
 
     // MARK: 추가 필드 그룹뷰 (show/hide 단위)
+    private(set) lazy var purchaseDateGroupView = makeFieldGroup(title: "구매날짜*", field: purchaseDateField)
     private(set) lazy var subCategoryGroupView = makeFieldGroup(title: "소분류", field: subCategoryField)
     private(set) lazy var photoGroupView = makePhotoGroup()
     private(set) lazy var expiryDateGroupView = makeFieldGroup(title: "유통기한", field: expiryDateField)
@@ -189,11 +192,10 @@ extension RegisterDetailView {
 
         let nameGroup = makeFieldGroup(title: "상품명*", field: nameField)
         let quantityGroup = makeFieldGroup(title: "수량*", field: quantityField)
-        let purchaseDateGroup = makeFieldGroup(title: "구매날짜*", field: purchaseDateField)
         let categoryGroup = makeCategoryGroup()
         let locationGroup = makeFieldGroup(title: "중분류(위치)*", field: locationField)
 
-        [nameGroup, quantityGroup, purchaseDateGroup, categoryGroup, locationGroup].forEach {
+        [nameGroup, quantityGroup, purchaseDateGroupView, categoryGroup, locationGroup].forEach {
             stackView.addArrangedSubview($0)
         }
 
