@@ -24,17 +24,17 @@ final class StockViewController: UIViewController {
     private let mainCategorySegment = UISegmentedControl().then {
         let attributes: [NSAttributedString.Key: Any] = [
             .font: LabelConfiguration.bodyMedium14.font,
-            .foregroundColor: UIColor.black
+            .foregroundColor: UIColor.gray800
         ]
         let selectAttributes:
         [NSAttributedString.Key: Any] = [
             .font: LabelConfiguration.bodyMedium14.font,
-            .foregroundColor: UIColor.white
+            .foregroundColor: UIColor.accent
         ]
         $0.setTitleTextAttributes(attributes, for: .normal)
         $0.setTitleTextAttributes(selectAttributes, for: .selected)
 
-        $0.selectedSegmentTintColor = .accent
+        $0.selectedSegmentTintColor = .white
     }
 
     private let categoryFilterView = CategoryFilterView()
@@ -121,6 +121,22 @@ private extension StockViewController {
             })
             .disposed(by: disposeBag)
         
+        /// 중분류 버튼 선택 상태 바인딩
+        output.isMidCategorySelected
+            .bind(onNext: { [weak self] isSelected in
+                guard let self else { return }
+                self.categoryFilterView.midCategoryButton.isSelected = isSelected
+            })
+            .disposed(by: disposeBag)
+        
+        /// 소분류 버튼 선택 상태 바인딩
+        output.isSubCategorySelected
+            .bind(onNext: { [weak self] isSelected in
+                guard let self else { return }
+                self.categoryFilterView.subCategoryButton.isSelected = isSelected
+            })
+            .disposed(by: disposeBag)
+        
         /// 중분류 선택 모달 표시
         output.presentMidCategoryItems
             .bind(onNext: { [weak self] items in
@@ -184,13 +200,13 @@ private extension StockViewController {
             $0.height.equalTo(40)
         }
         categoryFilterView.snp.makeConstraints {
-            $0.top.equalTo(mainCategorySegment.snp.bottom)
+            $0.top.equalTo(mainCategorySegment.snp.bottom).offset(8)
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalToSuperview().inset(16)
             $0.height.equalTo(46)
         }
         productCollectionView.snp.makeConstraints {
-            $0.top.equalTo(categoryFilterView.snp.bottom)
+            $0.top.equalTo(categoryFilterView.snp.bottom).offset(8)
             $0.leading.equalToSuperview()
             $0.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
