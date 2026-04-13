@@ -26,4 +26,5 @@ struct RegisterFormData: Hashable {
     var lowStockThreshold: Int?
     var caution: String?
     var brand: String?
+    var selectedFields: Set<RegisterOptionField> = []
 }

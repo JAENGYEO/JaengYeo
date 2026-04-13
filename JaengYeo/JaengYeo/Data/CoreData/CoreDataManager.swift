@@ -352,7 +352,7 @@ extension CoreDataManager {
     
     // MARK: Product Read
     func fetchProduct(of id: UUID) throws -> ProductPayload {
-     -   let entity = try fetchProductEntity(of: id)
+        let entity = try fetchProductEntity(of: id)
         
         return ProductPayload(
             id: entity.id,

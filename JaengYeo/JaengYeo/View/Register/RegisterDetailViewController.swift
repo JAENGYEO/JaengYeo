@@ -81,6 +81,14 @@ extension RegisterDetailViewController {
                 default: selectedCategory = nil
                 }
                 mainView.updateCategoryButtons(selected: selectedCategory)
+                mainView.locationField.text = item.locationMemo
+                mainView.subCategoryField.text = item.subCategory
+                mainView.expiryDateField.text = item.expiryDate.map { formatter.string(from: $0) }
+                mainView.memoField.text = item.memo
+                mainView.cautionField.text = item.caution
+                mainView.brandField.text = item.brand
+                mainView.stockAlertLabel.text = item.lowStockThreshold.map { String($0)} ?? "0"
+                didSelect(fields: item.selectedFields)
             })
             .disposed(by: disposeBag)
         
@@ -158,6 +166,7 @@ extension RegisterDetailViewController {
                 guard item.name != nil, item.mainCategory != nil else {
                     return
                 }
+                item.selectedFields = selectedFields
                 delegate?.didTapConfirmButton(item: item)
                 navigationController?.popViewController(animated: true)
             })
