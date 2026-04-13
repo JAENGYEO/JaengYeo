@@ -88,7 +88,6 @@ extension ButtonTitleConfiguration {
         selectedColor: .white,
         disabledColor: .gray800,
         kern: -0.15
-
     )
 
     static let resetTitle = ButtonTitleConfiguration(
@@ -127,7 +126,7 @@ extension ButtonTitleConfiguration {
     static let categoryTitle = ButtonTitleConfiguration (
         font: .systemFont(ofSize: 12, weight: .regular),
         normalColor: .gray800,
-        selectedColor: .white,
+        selectedColor: .accent,
         disabledColor: .white,
         kern: -0.15
     )
@@ -180,8 +179,8 @@ extension ButtonAppearanceConfiguration {
     
     static let categoryAppearance = ButtonAppearanceConfiguration(
         backgroundColor: .white,
-        selectedBackgroundColor: .accent,
-        highlightedBackgroundColor: .primary300,
+        selectedBackgroundColor: .primary50,
+        highlightedBackgroundColor: .primary100,
         disabledBackgroundColor: .primary300,
         cornerRadius: 15,
         borderWidth: 1,
