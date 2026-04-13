@@ -58,7 +58,7 @@ extension CoreDataManager {
         let entity = SubCategoryEntity(context: context)
         
         entity.id = payload.id
-        entity.userId = payload.userId
+        entity.userId = payload.userId?.uuidString
         entity.mainCategory = payload.mainCategory
         entity.name = payload.name
         entity.iconName = payload.iconName
@@ -81,7 +81,7 @@ extension CoreDataManager {
         
         return SubCategoryPayload(
             id: entity.id,
-            userId: entity.userId,
+            userId: entity.userId.flatMap { UUID(uuidString: $0) },
             mainCategory: entity.mainCategory,
             name: entity.name,
             iconName: entity.iconName,
@@ -92,7 +92,7 @@ extension CoreDataManager {
             syncStatus: entity.syncStatus
         )
     }
-    
+
     func fetchAllSubCategories(mainCategory: String) throws -> [SubCategoryPayload] {
         let request: NSFetchRequest<SubCategoryEntity> = SubCategoryEntity.fetchRequest()
         request.predicate = NSPredicate(
@@ -105,7 +105,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 SubCategoryPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: $0.userId.flatMap { UUID(uuidString: $0) },
                     mainCategory: $0.mainCategory,
                     name: $0.name,
                     iconName: $0.iconName,
@@ -120,12 +120,12 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-    
+
     // MARK: SubCategory Update
     func updateSubCategory(_ payload: borrowing SubCategoryPayload) throws {
         let entity = try fetchSubCategoryEntity(of: payload.id)
         
-        entity.userId = payload.userId
+        entity.userId = payload.userId?.uuidString
         entity.mainCategory = payload.mainCategory
         entity.name = payload.name
         entity.iconName = payload.iconName
@@ -190,7 +190,7 @@ extension CoreDataManager {
         let entity = MidCategoryEntity(context: context)
         
         entity.id = payload.id
-        entity.userId = payload.userId
+        entity.userId = payload.userId?.uuidString
         entity.mainCategory = payload.mainCategory
         entity.name = payload.name
         entity.iconName = payload.iconName
@@ -212,7 +212,7 @@ extension CoreDataManager {
         
         return MidCategoryPayload(
             id: entity.id,
-            userId: entity.userId,
+            userId: entity.userId.flatMap { UUID(uuidString: $0) },
             mainCategory: entity.mainCategory,
             name: entity.name,
             iconName: entity.iconName,
@@ -222,7 +222,7 @@ extension CoreDataManager {
             syncStatus: entity.syncStatus
         )
     }
-    
+
     func fetchAllMidCategories(mainCategory: String) throws -> [MidCategoryPayload] {
         let request: NSFetchRequest<MidCategoryEntity> = MidCategoryEntity.fetchRequest()
         request.predicate = NSPredicate(
@@ -235,7 +235,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 MidCategoryPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: $0.userId.flatMap { UUID(uuidString: $0) },
                     mainCategory: $0.mainCategory,
                     name: $0.name,
                     iconName: $0.iconName,
@@ -249,12 +249,12 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-    
+
     // MARK: MidCategory Update
     func updateMidCategory(_ payload: borrowing MidCategoryPayload) throws {
         let entity = try fetchMidCategoryEntity(of: payload.id)
         
-        entity.userId = payload.userId
+        entity.userId = payload.userId?.uuidString
         entity.mainCategory = payload.mainCategory
         entity.name = payload.name
         entity.iconName = payload.iconName
@@ -320,7 +320,7 @@ extension CoreDataManager {
         let entity = ProductEntity(context: context)
         
         entity.id = payload.id
-        entity.userId = payload.userId
+        entity.userId = payload.userId.uuidString
         entity.name = payload.name
         entity.quantity = payload.quantity
         entity.quantityUnit = payload.quantityUnit
@@ -340,6 +340,8 @@ extension CoreDataManager {
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
         entity.isLowStockNotificationEnabled = payload.isLowStockNotificationEnabled
+        entity.caution = payload.caution
+        entity.brand = payload.brand
         
         do {
             try context.save()
@@ -348,13 +350,48 @@ extension CoreDataManager {
         }
     }
     
+    func createProducts(payloads: [ProductPayload]) throws {
+        payloads.forEach { payload in
+            let entity = ProductEntity(context: context)
+            entity.id = payload.id
+            entity.userId = payload.userId.uuidString
+            entity.name = payload.name
+            entity.quantity = payload.quantity
+            entity.quantityUnit = payload.quantityUnit
+            entity.mainCategory = payload.mainCategory
+            entity.midCategoryId = payload.midCategoryId
+            entity.subCategoryId = payload.subCategoryId
+            entity.purchaseDate = payload.purchaseDate
+            entity.expiryDate = payload.expiryDate
+            entity.price = payload.price
+            entity.locationMemo = payload.locationMemo
+            entity.memo = payload.memo
+            entity.imageUrl = payload.imageUrl
+            entity.isClassified = payload.isClassified
+            entity.lowStockThreshold = payload.lowStockThreshold
+            entity.isFavorite = payload.isFavorite
+            entity.createdAt = payload.createdAt
+            entity.updatedAt = payload.updatedAt
+            entity.syncStatus = payload.syncStatus
+            entity.isLowStockNotificationEnabled = payload.isLowStockNotificationEnabled
+            entity.caution = payload.caution
+            entity.brand = payload.brand
+        }
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+    
+    
     // MARK: Product Read
     func fetchProduct(of id: UUID) throws -> ProductPayload {
         let entity = try fetchProductEntity(of: id)
         
         return ProductPayload(
             id: entity.id,
-            userId: entity.userId,
+            userId: UUID(uuidString: entity.userId) ?? UUID(),
             name: entity.name,
             quantity: entity.quantity,
             quantityUnit: entity.quantityUnit,
@@ -373,7 +410,9 @@ extension CoreDataManager {
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
             syncStatus: entity.syncStatus,
-            isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled
+            isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled,
+            caution: entity.caution,
+            brand: entity.brand
         )
     }
     
@@ -386,7 +425,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 ProductPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: UUID(uuidString: $0.userId) ?? UUID(),
                     name: $0.name,
                     quantity: $0.quantity,
                     quantityUnit: $0.quantityUnit,
@@ -405,7 +444,9 @@ extension CoreDataManager {
                     createdAt: $0.createdAt,
                     updatedAt: $0.updatedAt,
                     syncStatus: $0.syncStatus,
-                    isLowStockNotificationEnabled: $0.isLowStockNotificationEnabled
+                    isLowStockNotificationEnabled: $0.isLowStockNotificationEnabled,
+                    caution: $0.caution,
+                    brand: $0.brand
                 )
             }
         } catch {
@@ -417,7 +458,7 @@ extension CoreDataManager {
     func updateProduct(_ payload: borrowing ProductPayload) throws {
         let entity = try fetchProductEntity(of: payload.id)
         
-        entity.userId = payload.userId
+        entity.userId = payload.userId.uuidString
         entity.name = payload.name
         entity.quantity = payload.quantity
         entity.quantityUnit = payload.quantityUnit
@@ -436,6 +477,8 @@ extension CoreDataManager {
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
         entity.isLowStockNotificationEnabled = payload.isLowStockNotificationEnabled
+        entity.caution = payload.caution
+        entity.brand = payload.brand
         
         do {
             try context.save()
@@ -504,7 +547,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 ProductPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: UUID(uuidString: $0.userId) ?? UUID(),
                     name: $0.name,
                     quantity: $0.quantity,
                     quantityUnit: $0.quantityUnit,
@@ -523,7 +566,9 @@ extension CoreDataManager {
                     createdAt: $0.createdAt,
                     updatedAt: $0.updatedAt,
                     syncStatus: $0.syncStatus,
-                    isLowStockNotificationEnabled: $0.isLowStockNotificationEnabled
+                    isLowStockNotificationEnabled: $0.isLowStockNotificationEnabled,
+                    caution: $0.caution,
+                    brand: $0.brand
                 )
             }
         } catch {
@@ -559,7 +604,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 SubCategoryPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: $0.userId.flatMap { UUID(uuidString: $0) },
                     mainCategory: $0.mainCategory,
                     name: $0.name,
                     iconName: $0.iconName,
@@ -574,7 +619,7 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-    
+
     func updateSubCategorySyncStatus(id: UUID) throws {
         let entity = try fetchSubCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.synced.rawValue
@@ -603,7 +648,7 @@ extension CoreDataManager {
             return try context.fetch(request).map {
                 MidCategoryPayload(
                     id: $0.id,
-                    userId: $0.userId,
+                    userId: $0.userId.flatMap { UUID(uuidString: $0) },
                     mainCategory: $0.mainCategory,
                     name: $0.name,
                     iconName: $0.iconName,
@@ -617,7 +662,7 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-    
+
     func updateMidCategorySyncStatus(id: UUID) throws {
         let entity = try fetchMidCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.synced.rawValue
@@ -704,7 +749,7 @@ extension CoreDataManager {
     private func toDomainProduct(_ entity: ProductEntity) -> ProductPayload {
         ProductPayload(
             id: entity.id,
-            userId: entity.userId,
+            userId: UUID(uuidString: entity.userId) ?? UUID(),
             name: entity.name,
             quantity: entity.quantity,
             quantityUnit: entity.quantityUnit,
@@ -723,7 +768,9 @@ extension CoreDataManager {
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
             syncStatus: entity.syncStatus,
-            isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled
+            isLowStockNotificationEnabled: entity.isLowStockNotificationEnabled,
+            caution: entity.caution,
+            brand: entity.brand
         )
     }
 }

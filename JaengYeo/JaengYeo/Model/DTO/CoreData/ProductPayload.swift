@@ -10,7 +10,7 @@ import Foundation
 /// 상품 데이터 Payload 구조체
 struct ProductPayload {
     let id: UUID
-    let userId: String
+    let userId: UUID
     let name: String
     let quantity: Int32
     let quantityUnit: String?
@@ -30,6 +30,8 @@ struct ProductPayload {
     let updatedAt: Date
     let syncStatus: String
     let isLowStockNotificationEnabled: Bool
+    let caution: String?
+    let brand: String?
 }
 
 //MARK: - Method
@@ -57,7 +59,9 @@ extension ProductPayload {
             createdAt: createdAt,
             updatedAt: updatedAt,
             syncStatus: syncStatus,
-            isLowStockNotificationEnabled: isLowStockNotificationEnabled
+            isLowStockNotificationEnabled: isLowStockNotificationEnabled,
+            caution: caution,
+            brand: brand
         )
     }
 }

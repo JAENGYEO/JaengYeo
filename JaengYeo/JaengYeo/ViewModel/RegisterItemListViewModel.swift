@@ -1,0 +1,121 @@
+//
+//  RegisterItemListViewModel.swift
+//  JaengYeo
+//
+//  Created by 손영빈 on 4/13/26.
+//
+
+import Foundation
+import RxSwift
+import RxCocoa
+
+final class RegisterItemListViewModel: ViewModelProtocol {
+    
+    private let itemsSubject: BehaviorSubject<[RegisterFormData]>
+    private let coreDataManager: CoreDataManagerProtocol
+    private let syncManager: SyncManagerProtocol
+    private let disposeBag = DisposeBag()
+    private let errorSubject = PublishSubject<String>()
+    
+    let navigateToDetail = PublishSubject<RegisterFormData>()
+    let navigateToAdd = PublishSubject<Void>()
+    
+    init(items: [RegisterFormData], coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol) {
+        self.itemsSubject = BehaviorSubject(value: items)
+        self.coreDataManager = coreDataManager
+        self.syncManager = syncManager
+    }
+    
+    struct Input {
+        let saveButtonTapped: Observable<Void>
+        let addButtonTapped: Observable<Void>
+        let cellTapped: Observable<RegisterFormData>
+    }
+    
+    struct Output {
+        let items: Observable<[RegisterFormData]>
+        let error: Observable<String>
+    }
+    
+    func transform(_ input: Input) -> Output {
+        
+        input.saveButtonTapped
+            .withLatestFrom(itemsSubject)
+            .bind(onNext: { [weak self] items in
+                self?.saveAllItems(items: items)
+            })
+            .disposed(by: disposeBag)
+        
+        input.cellTapped
+            .bind(to: navigateToDetail)
+            .disposed(by: disposeBag)
+        
+        input.addButtonTapped
+            .bind(to: navigateToAdd)
+            .disposed(by: disposeBag)
+        
+        return Output(
+            items: itemsSubject.asObservable(),
+            error: errorSubject.asObservable()
+        )
+    }
+}
+
+extension RegisterItemListViewModel {
+    func updateItem(item: RegisterFormData) {
+        guard var current = try? itemsSubject.value(),
+              let index = current.firstIndex(where: { $0.id == item.id }) else { return }
+        current[index] = item
+        itemsSubject.onNext(current)
+    }
+    
+    func appendItem(item: RegisterFormData) {
+        guard var current = try? itemsSubject.value() else { return }
+        current.append(item)
+        itemsSubject.onNext(current)
+    }
+    
+    func hasItem(id: UUID) -> Bool {
+        (try? itemsSubject.value())?.contains(where: { $0.id == id }) ?? false
+    }
+}
+
+extension RegisterItemListViewModel {
+    private func saveAllItems(items: [RegisterFormData]) {
+        let now = Date()
+        let payloads: [ProductPayload] = items.compactMap { item in
+            guard let name = item.name, let mainCategory = item.mainCategory else { return nil }
+            return ProductPayload(
+                id: item.id,
+                userId: Constants.Dev.userId,
+                name: name,
+                quantity: Int32(item.quantity ?? 0),
+                quantityUnit: item.quantityUnit,
+                mainCategory: mainCategory,
+                midCategoryId: item.midCategory,
+                subCategoryId: item.subCategory,
+                purchaseDate: item.purchaseDate,
+                expiryDate: item.expiryDate,
+                price: Int32(item.price ?? 0),
+                locationMemo: item.locationMemo,
+                memo: item.memo,
+                imageUrl: nil, //TODO: 수정 필요
+                isClassified: false,
+                lowStockThreshold: Int32(item.lowStockThreshold ?? 1),
+                isFavorite: false, //TODO: 수정 필요
+                createdAt: now,
+                updatedAt: now,
+                syncStatus: SyncStatus.pendingUpload.rawValue,
+                isLowStockNotificationEnabled: item.isLowStockNotificationEnabled ?? false,
+                caution: item.caution,
+                brand: item.brand
+            )
+        }
+        do {
+            try coreDataManager.createProducts(payloads: payloads)
+            syncManager.syncIfConnected()
+        } catch {
+            errorSubject.onNext("저장 실패")
+        }
+    }
+}

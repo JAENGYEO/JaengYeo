@@ -10,7 +10,7 @@ import Foundation
 /// 소분류  Payload 구조체
 struct SubCategoryPayload {
     let id: UUID
-    let userId: String?
+    let userId: UUID?
     let mainCategory: String
     let name: String
     let iconName: String?

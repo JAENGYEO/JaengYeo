@@ -18,6 +18,7 @@ final class SyncManager: SyncManagerProtocol {
     
     private var isMonitoring = false // 네트워크 중복 호출 방지용
     private var isSyncing = false // 동기화 중복 실행 방지용
+    private var isConnected = false
     
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol) {
         self.productManager = productManager
@@ -34,6 +35,7 @@ final class SyncManager: SyncManagerProtocol {
         guard !isMonitoring else { return }
         isMonitoring = true
         monitor.pathUpdateHandler = { [weak self] path in // 네트워크 상태 변경 시 호출
+            self?.isConnected = path.status == .satisfied
             if path.status == .satisfied { // 인터넷 연결됨 -> 동기화 진행
                 Task {
                     await self?.synchronize()
@@ -43,8 +45,13 @@ final class SyncManager: SyncManagerProtocol {
         monitor.start(queue: monitorQueue) // 백그라운드에서 네트워크 상태 감지 시작
     }
     
+    func syncIfConnected() {
+        guard isConnected else { return }
+        Task { await synchronize() }
+    }
+    
     // MARK: - pending 항목 전체 동기화
-    func synchronize() async {
+    @MainActor func synchronize() async {
         guard !isSyncing else { return }
         isSyncing = true
         defer { isSyncing = false } // 동기화 완료 시 false 복원
@@ -59,7 +66,7 @@ final class SyncManager: SyncManagerProtocol {
 
 //MARK: - Products (upload, delete 상태 동기화)
 extension SyncManager {
-    private func syncPendingUploadProducts() async {
+    @MainActor private func syncPendingUploadProducts() async {
         guard let payloads = try? coreDataManager.fetchPendingUploadProducts() else { return }
         for payload in payloads {
             let product = payload.toDomain()
@@ -72,7 +79,7 @@ extension SyncManager {
         }
     }
     
-    private func syncPendingDeleteProducts() async {
+    @MainActor private func syncPendingDeleteProducts() async {
         guard let payloads = try? coreDataManager.fetchPendingDeleteProducts() else { return }
         for payload in payloads {
             do {
@@ -86,7 +93,7 @@ extension SyncManager {
 
 //MARK: - SubCategory (upload, delete 상태 동기화)
 extension SyncManager {
-    private func syncPendingUploadSubCategories() async {
+    @MainActor private func syncPendingUploadSubCategories() async {
         guard let payloads = try? coreDataManager.fetchPendingUploadSubCategories() else { return }
         for payload in payloads {
             let subCategory = payload.toDomain()
@@ -99,7 +106,7 @@ extension SyncManager {
         }
     }
     
-    private func syncPendingDeleteSubCategories() async {
+    @MainActor private func syncPendingDeleteSubCategories() async {
         guard let payloads = try? coreDataManager.fetchPendingDeleteSubCategories() else { return }
         for payload in payloads {
             do {
@@ -113,7 +120,7 @@ extension SyncManager {
 
 //MARK: - MidCategory (upload, delete 상태 동기화)
 extension SyncManager {
-    private func syncPendingUploadMidCategories() async {
+    @MainActor private func syncPendingUploadMidCategories() async {
         guard let payloads = try? coreDataManager.fetchPendingUploadMidCategories() else { return }
         for payload in payloads {
             let midCategory = payload.toDomain()
@@ -126,7 +133,7 @@ extension SyncManager {
         }
     }
     
-    private func syncPendingDeleteMidCategories() async {
+    @MainActor private func syncPendingDeleteMidCategories() async {
         guard let payloads = try? coreDataManager.fetchPendingDeleteMidCategories() else { return }
         for payload in payloads {
             do {

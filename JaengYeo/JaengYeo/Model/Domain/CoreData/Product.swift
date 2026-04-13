@@ -9,7 +9,7 @@ import Foundation
 
 struct Product: Hashable {
     let id: UUID
-    let userId: String
+    let userId: UUID
     let name: String
     let quantity: Int
     let quantityUnit: String?
@@ -29,6 +29,8 @@ struct Product: Hashable {
     let updatedAt: Date
     let syncStatus: String
     let isLowStockNotificationEnabled: Bool
+    let caution: String?
+    let brand: String?
 }
 
 //MARK: - Method
@@ -56,7 +58,9 @@ extension Product {
             createdAt: createdAt,
             updatedAt: updatedAt,
             syncStatus: syncStatus,
-            isLowStockNotificationEnabled: isLowStockNotificationEnabled
+            isLowStockNotificationEnabled: isLowStockNotificationEnabled,
+            caution: caution,
+            brand: brand
         )
     }
 }

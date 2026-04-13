@@ -10,9 +10,18 @@ import AVFoundation
 import RxSwift
 import RxCocoa
 
+protocol RegisterViewControllerDelegate: AnyObject {
+    func pushItemListView(items: [RegisterFormData])
+}
+
 final class RegisterViewController: UIViewController {
     
     private let disposeBag = DisposeBag()
+    
+    weak var delegate: RegisterViewControllerDelegate?
+    
+    private let viewModel: RegisterViewModel
+    private let aiCapturedSubject = PublishSubject<Data>()
     
     private let mainView = RegisterView()
     
@@ -23,7 +32,14 @@ final class RegisterViewController: UIViewController {
     
     private var currentMode: CameraMode = .barcode
     
-    private let sessionQueue = DispatchQueue(label: "com.jaengyeo.camera.session")
+    init(viewModel: RegisterViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func loadView() {
         self.view = mainView
@@ -90,10 +106,44 @@ extension RegisterViewController {
             })
             .disposed(by: disposeBag)
         
-        //        registerView.captureButton.rx.tap
-        //            .bind(onNext: { [weak self] in
-        //            })
-        //            .disposed(by: disposeBag)
+        mainView.captureButton.rx.tap
+            .bind(onNext: { [weak self] in
+                self?.handleCaptureButtonTapped()
+            })
+            .disposed(by: disposeBag)
+        
+        //TODO: AI Response 로직 구현 필요 -> RegisterFormView 생성 이후 작업
+        let input = RegisterViewModel.Input(aiCaptured: aiCapturedSubject)
+        let output = viewModel.transform(input)
+        
+        output.aiResponseData
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] items in
+                guard let self else { return }
+                switch items.count {
+                case 0:
+                    self.showErrorAlert(title: "인식 실패", message: "인식된 항목이 없습니다.")
+                default:
+                    self.delegate?.pushItemListView(items: items)
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        output.isLoading
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] isLoading in
+                isLoading ? self?.mainView.startScanAnimation() : self?.mainView.stopScanAnimation()
+                self?.mainView.captureButton.isEnabled = !isLoading
+            })
+            .disposed(by: disposeBag)
+        
+        output.error
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] error in
+                self?.showErrorAlert(title: "오류", message: error)
+            })
+            .disposed(by: disposeBag)
+        
     }
     
     private func switchMode(mode: CameraMode) {
@@ -191,5 +241,37 @@ extension RegisterViewController {
             captureSession.addInput(input)
             captureSession.commitConfiguration()
         }
+    }
+}
+
+extension RegisterViewController {
+    private func handleCaptureButtonTapped() { //TODO: case에 따라 분리처리 필요
+        guard currentMode == .aiVision else { return }
+        let settings = AVCapturePhotoSettings()
+        photoOutput.capturePhoto(with: settings, delegate: self)
+    }
+}
+
+extension RegisterViewController: AVCapturePhotoCaptureDelegate {
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: (any Error)?) {
+        guard error == nil,
+              let data = photo.fileDataRepresentation(),
+              let image = UIImage(data: data) else { return }
+        
+        let maxDimension: CGFloat
+        switch currentMode {
+        case .aiVision: maxDimension = 512
+        default: maxDimension = 1024
+        }
+        guard let compressedData = image.resized(maxDimension: maxDimension).jpegData(compressionQuality: 0.6) else { return }
+        aiCapturedSubject.onNext(compressedData)
+    }
+}
+
+extension RegisterViewController {
+    private func showErrorAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
     }
 }

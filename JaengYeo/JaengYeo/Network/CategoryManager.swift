@@ -23,7 +23,6 @@ private enum Column: String {
 
 final class CategoryManager: CategoryManagerProtocol {
     
-    private let devUserId = "00000000-0000-0000-0000-000000000001" // 로그인 기능 구현 시 수정 필요
     private let client: SupabaseClient
     
     init(client: SupabaseClient) {
@@ -35,7 +34,7 @@ final class CategoryManager: CategoryManagerProtocol {
             .from(Table.midCategory.rawValue)
             .select()
             .eq(Column.mainCategory.rawValue, value: mainCategory)
-            .or("\(Column.userId.rawValue).is.null,\(Column.userId.rawValue).eq.\(devUserId)") // postgREST 필터 문법 사용
+            .or("\(Column.userId.rawValue).is.null,\(Column.userId.rawValue).eq.\(Constants.Dev.userId)") // postgREST 필터 문법 사용
             .order(Column.sortOrder.rawValue, ascending: true)
             .execute()
             .value
@@ -46,7 +45,7 @@ final class CategoryManager: CategoryManagerProtocol {
             .from(Table.subCategory.rawValue)
             .select()
             .eq(Column.mainCategory.rawValue, value: mainCategory)
-            .or("\(Column.userId.rawValue).is.null,\(Column.userId.rawValue).eq.\(devUserId)")
+            .or("\(Column.userId.rawValue).is.null,\(Column.userId.rawValue).eq.\(Constants.Dev.userId)")
             .order(Column.sortOrder.rawValue, ascending: true)
             .execute()
             .value

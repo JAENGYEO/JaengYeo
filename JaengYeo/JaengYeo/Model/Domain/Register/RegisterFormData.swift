@@ -8,7 +8,8 @@
 import Foundation
 
 //TODO: 추후 Entity 저장 로직 구현 시 수정 필요
-struct RegisterFormData {
+struct RegisterFormData: Hashable {
+    let id: UUID = UUID()
     var name: String?
     var mainCategory: String?
     var midCategory: UUID?
@@ -23,4 +24,7 @@ struct RegisterFormData {
     var imageBase64: String?
     var isLowStockNotificationEnabled: Bool?
     var lowStockThreshold: Int?
+    var caution: String?
+    var brand: String?
+    var selectedFields: Set<RegisterOptionField> = []
 }

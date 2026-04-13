@@ -39,6 +39,8 @@ extension ProductEntity {
     @NSManaged public var updatedAt: Date
     @NSManaged public var syncStatus: String
     @NSManaged public var isLowStockNotificationEnabled: Bool
+    @NSManaged public var caution: String?
+    @NSManaged public var brand: String?
 
 }
 
@@ -48,7 +50,7 @@ extension ProductEntity {
     var toDomain: Product {
         Product(
             id: id,
-            userId: userId,
+            userId: UUID(uuidString: userId) ?? UUID(),
             name: name,
             quantity: Int(quantity),
             quantityUnit: quantityUnit,
@@ -67,7 +69,9 @@ extension ProductEntity {
             createdAt: createdAt,
             updatedAt: updatedAt,
             syncStatus: syncStatus,
-            isLowStockNotificationEnabled: isLowStockNotificationEnabled
+            isLowStockNotificationEnabled: isLowStockNotificationEnabled,
+            caution: caution,
+            brand: brand
         )
     }
 }
