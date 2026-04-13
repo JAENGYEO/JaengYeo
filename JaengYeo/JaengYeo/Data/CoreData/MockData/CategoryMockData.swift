@@ -137,7 +137,7 @@ private extension CategoryMockSeed {
         return items.enumerated().map { index, item in
             MidCategoryPayload(
                 id: item.id,
-                userId: "mock-user",
+                userId: UUID(),
                 mainCategory: mainCategory,
                 name: item.name,
                 iconName: "Category",
@@ -159,7 +159,7 @@ private extension CategoryMockSeed {
         return items.enumerated().map { index, item in
             SubCategoryPayload(
                 id: item.id,
-                userId: "mock-user",
+                userId: UUID(),
                 mainCategory: mainCategory,
                 name: item.name,
                 iconName: "Category",
