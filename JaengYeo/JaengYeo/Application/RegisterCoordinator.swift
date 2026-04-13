@@ -20,7 +20,7 @@ final class RegisterCoordinator {
     
     private let disposeBag = DisposeBag()
     
-    private weak var listViewController: RegisterItemListViewController?
+    private weak var listViewModel: RegisterItemListViewModel?
     
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, client: SupabaseClient) {
         self.productManager = productManager
@@ -42,36 +42,40 @@ final class RegisterCoordinator {
 
 extension RegisterCoordinator: RegisterViewControllerDelegate {
     func pushItemListView(items: [RegisterFormData]) {
-        let viewController = RegisterItemListViewController(items: items, pageTitle: "AI 인식 결과")
-        viewController.delegate = self
-        listViewController = viewController
-        viewController.addButtonTapped
+        let viewModel = RegisterItemListViewModel(items: items, coreDataManager: coreDataManager)
+        let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: "AI 인식 결과")
+        listViewModel = viewModel
+        viewModel.navigateToAdd
             .bind(onNext: { [weak self] in
                 self?.pushRegisterDetailView(item: RegisterFormData())
             })
             .disposed(by: disposeBag)
+        
+        viewModel.navigateToDetail
+            .bind(onNext: { [weak self] item in
+                self?.pushRegisterDetailView(item: item)
+            })
+            .disposed(by: disposeBag)
+        
         navigationController.pushViewController(viewController, animated: true)
     }
 }
 
-extension RegisterCoordinator: RegisterItemListViewControllerDelegate {
+extension RegisterCoordinator {
     func pushRegisterDetailView(item: RegisterFormData) {
-        let viewController = RegisterDetailViewController(item: item)
+        let viewModel = RegisterDetailViewModel(item: item)
+        let viewController = RegisterDetailViewController(viewModel: viewModel)
         viewController.delegate = self
         navigationController.pushViewController(viewController, animated: true)
-    }
-    
-    func saveItems(items: [RegisterFormData]) {
-        
     }
 }
 
 extension RegisterCoordinator: RegisterDetailViewControllerDelegate {
     func didTapConfirmButton(item: RegisterFormData) {
-        if listViewController?.hasItem(id: item.id) == true {
-            listViewController?.updateItem(item: item)
+        if listViewModel?.hasItem(id: item.id) == true {
+            listViewModel?.updateItem(item: item)
         } else {
-            listViewController?.appendItem(item: item)
+            listViewModel?.appendItem(item: item)
         }
     }
 }

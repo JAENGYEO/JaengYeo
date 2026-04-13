@@ -17,17 +17,15 @@ final class RegisterDetailViewController: UIViewController {
     
     weak var delegate: RegisterDetailViewControllerDelegate?
     
-    private var item: RegisterFormData
-    
     private let disposeBag = DisposeBag()
     
     private let mainView = RegisterDetailView()
-    private var selectedCategory: RegisterDetailView.CategoryType?
     
-    private var selectedFields: Set<RegisterOptionField> = []
+    private let viewModel: RegisterDetailViewModel
+    private let fieldsSelectedRelay = PublishRelay<Set<RegisterOptionField>>()
     
-    init(item: RegisterFormData) {
-        self.item = item
+    init(viewModel: RegisterDetailViewModel) {
+        self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         hidesBottomBarWhenPushed = true
     }
@@ -43,6 +41,7 @@ final class RegisterDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configNavigationBar()
+        restoreFields()
         bind()
         
         let tap = UITapGestureRecognizer(target: view, action: #selector(UIView.endEditing))
@@ -53,7 +52,7 @@ final class RegisterDetailViewController: UIViewController {
 
 extension RegisterDetailViewController {
     private func configNavigationBar() {
-        navigationItem.title = item.name ?? "상세 입력"
+        navigationItem.title = viewModel.item.name ?? "상세 입력"
         let appearance = UINavigationBarAppearance()
         appearance.titleTextAttributes = [
             .foregroundColor: UIColor.gray800,
@@ -62,114 +61,94 @@ extension RegisterDetailViewController {
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
     }
+    
+    private func restoreFields() {
+        let item = viewModel.item
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        mainView.nameField.text = item.name
+        mainView.quantityField.text = item.quantity.map { String($0) }
+        mainView.purchaseDateField.text = formatter.string(from: item.purchaseDate ?? Date())
+        mainView.locationField.text = item.locationMemo
+        mainView.expiryDateField.text = item.expiryDate.map { formatter.string(from: $0) }
+        mainView.memoField.text = item.memo
+        mainView.cautionField.text = item.caution
+        mainView.brandField.text = item.brand
+        mainView.stockAlertLabel.text = item.lowStockThreshold.map { String($0) } ?? "0"
+        fieldsSelectedRelay.accept(item.selectedFields)
+    }
 }
 
 extension RegisterDetailViewController {
     private func bind() {
         
-        Observable.just(item)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        
+        let confirmTapped = mainView.confirmButton.rx.tap
+            .map { [weak self] _ -> RegisterFormData in
+                guard let self else { return RegisterFormData() }
+                var item = viewModel.item
+                item.name = mainView.nameField.text.flatMap { $0.isEmpty ? nil : $0 }
+                item.quantity = mainView.quantityField.text.flatMap { Int($0) }
+                item.locationMemo = mainView.locationField.text.flatMap { $0.isEmpty ? nil : $0 }
+                item.purchaseDate = formatter.date(from: mainView.purchaseDateField.text ?? "")
+                item.expiryDate = formatter.date(from: mainView.expiryDateField.text ?? "")
+                item.memo = mainView.memoField.text.flatMap { $0.isEmpty ? nil : $0 }
+                item.caution = mainView.cautionField.text.flatMap { $0.isEmpty ? nil : $0 }
+                item.brand = mainView.brandField.text.flatMap { $0.isEmpty ? nil : $0 }
+                return item
+            }
+            .asObservable()
+        
+        let input = RegisterDetailViewModel.Input(
+            foodCategoryTapped: mainView.foodButton.rx.tap.asObservable(),
+            householdCategoryTapped: mainView.householdButton.rx.tap.asObservable(),
+            fieldsSelected: fieldsSelectedRelay.asObservable(),
+            stockPlusTapped: mainView.stockPlusButton.rx.tap.asObservable(),
+            stockMinusTapped: mainView.stockMinusButton.rx.tap.asObservable(),
+            confirmTapped: confirmTapped
+        )
+        
+        let output = viewModel.transform(input)
+        
+        output.selectedFields
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] fields in
+                guard let self else { return }
+                mainView.subCategoryGroupView.isHidden = !fields.contains(.subCategory)
+                mainView.photoGroupView.isHidden = !fields.contains(.photo)
+                mainView.expiryDateGroupView.isHidden = !fields.contains(.expiryDate)
+                mainView.cautionGroupView.isHidden = !fields.contains(.caution)
+                mainView.brandGroupView.isHidden = !fields.contains(.brand)
+                mainView.stockAlertGroupView.isHidden = !fields.contains(.stockAlert)
+                mainView.memoGroupView.isHidden = !fields.contains(.memo)
+            })
+            .disposed(by: disposeBag)
+        
+        output.stockAlertValue
+            .observe(on: MainScheduler.instance)
+            .bind(to: mainView.stockAlertLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        output.didConfirm
+            .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] item in
-                guard let self else { return }
-                mainView.nameField.text = item.name
-                mainView.quantityField.text = item.quantity.map { String($0) }
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                mainView.purchaseDateField.text = formatter.string(from: item.purchaseDate ?? Date())
-                switch item.mainCategory {
-                case "식재료": selectedCategory = .food
-                case "생활용품": selectedCategory = .household
-                default: selectedCategory = nil
-                }
-                mainView.updateCategoryButtons(selected: selectedCategory)
-                mainView.locationField.text = item.locationMemo
-                //TODO: subCategory 데이터 복원 UI 구현 후 처리
-                mainView.expiryDateField.text = item.expiryDate.map { formatter.string(from: $0) }
-                mainView.memoField.text = item.memo
-                mainView.cautionField.text = item.caution
-                mainView.brandField.text = item.brand
-                mainView.stockAlertLabel.text = item.lowStockThreshold.map { String($0)} ?? "0"
-                didSelect(fields: item.selectedFields)
+                self?.delegate?.didTapConfirmButton(item: item)
+                self?.navigationController?.popViewController(animated: true)
             })
             .disposed(by: disposeBag)
         
-        mainView.foodButton.rx.tap
-            .bind(onNext: { [weak self] in
-                guard let self else { return }
-                selectedCategory = .food
-                mainView.updateCategoryButtons(selected: .food)
-            })
-            .disposed(by: disposeBag)
-        
-        mainView.householdButton.rx.tap
-            .bind(onNext: { [weak self] in
-                guard let self else { return }
-                selectedCategory = .household
-                mainView.updateCategoryButtons(selected: .household)
+        output.selectedCategory
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] category in
+                self?.mainView.updateCategoryButtons(selected: category)
             })
             .disposed(by: disposeBag)
         
         mainView.addInfoButton.rx.tap
             .bind(onNext: { [weak self] in
-                guard let self else { return }
-                self.presentExtraField()
-            })
-            .disposed(by: disposeBag)
-        
-        mainView.stockMinusButton.rx.tap
-            .bind(onNext: { [weak self] in
-                guard let self,
-                      let text = mainView.stockAlertLabel.text,
-                      let value = Int(text), value > 0 else { return }
-                mainView.stockAlertLabel.text = "\(value - 1)"
-            })
-            .disposed(by: disposeBag)
-        
-        mainView.stockPlusButton.rx.tap
-            .bind(onNext: { [weak self] in
-                guard let self,
-                      let text = mainView.stockAlertLabel.text,
-                      let value = Int(text) else { return }
-                mainView.stockAlertLabel.text = "\(value + 1)"
-            })
-            .disposed(by: disposeBag)
-        
-        mainView.confirmButton.rx.tap
-            .bind(onNext: { [weak self] in
-                guard let self else { return }
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                
-                item.name = mainView.nameField.text.flatMap { $0.isEmpty ? nil : $0 }
-                item.quantity = mainView.quantityField.text.flatMap { Int($0) }
-                item.mainCategory = selectedCategory == .food ? "식재료" : selectedCategory == .household ? "생활용품" : nil
-                item.locationMemo = mainView.locationField.text.flatMap { $0.isEmpty ? nil : $0 }
-                item.purchaseDate = formatter.date(from: mainView.purchaseDateField.text ?? "")
-                
-                if selectedFields.contains(.expiryDate) {
-                    item.expiryDate = formatter.date(from: mainView.expiryDateField.text ?? "")
-                }
-                if selectedFields.contains(.stockAlert) {
-                    item.lowStockThreshold = mainView.stockAlertLabel.text.flatMap { Int($0) }
-                    item.isLowStockNotificationEnabled = (item.lowStockThreshold ?? 0) > 0
-                }
-                if selectedFields.contains(.memo) {
-                    item.memo = mainView.memoField.text.flatMap { $0.isEmpty ? nil : $0 }
-                }
-                if selectedFields.contains(.caution) {
-                    item.caution = mainView.cautionField.text.flatMap { $0.isEmpty ? nil : $0 }
-                }
-                if selectedFields.contains(.brand) {
-                    item.brand = mainView.brandField.text.flatMap { $0.isEmpty ? nil : $0 }
-                }
-                //TODO: subCategory UUID 변환 필요, 카테고리 선택 UI 구현 후. ㅓ리
-                
-                // name, mainCategory: nil일 경우 저장 x
-                guard item.name != nil, item.mainCategory != nil else {
-                    return
-                }
-                item.selectedFields = selectedFields
-                delegate?.didTapConfirmButton(item: item)
-                navigationController?.popViewController(animated: true)
+                self?.presentExtraField()
             })
             .disposed(by: disposeBag)
     }
@@ -177,7 +156,7 @@ extension RegisterDetailViewController {
 
 extension RegisterDetailViewController {
     private func presentExtraField() {
-        let sheet = RegisterFieldSelectViewController(selectedFields: selectedFields)
+        let sheet = RegisterFieldSelectViewController(selectedFields: viewModel.currentFields)
         sheet.delegate = self
         present(sheet, animated: false)
     }
@@ -185,13 +164,6 @@ extension RegisterDetailViewController {
 
 extension RegisterDetailViewController: RegisterFieldSelectViewControllerDelegate {
     func didSelect(fields: Set<RegisterOptionField>) {
-        selectedFields = fields
-        mainView.subCategoryGroupView.isHidden = !fields.contains(.subCategory)
-        mainView.photoGroupView.isHidden = !fields.contains(.photo)
-        mainView.expiryDateGroupView.isHidden = !fields.contains(.expiryDate)
-        mainView.cautionGroupView.isHidden = !fields.contains(.caution)
-        mainView.brandGroupView.isHidden = !fields.contains(.brand)
-        mainView.stockAlertGroupView.isHidden = !fields.contains(.stockAlert)
-        mainView.memoGroupView.isHidden = !fields.contains(.memo)
+        fieldsSelectedRelay.accept(fields)
     }
 }
