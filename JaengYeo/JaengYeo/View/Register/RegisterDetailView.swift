@@ -166,7 +166,7 @@ final class RegisterDetailView: UIView {
     private let bottomView = UIView().then {
         $0.backgroundColor = .white
     }
-    let saveButton = UIButton().then {
+    let confirmButton = UIButton().then {
         $0.setTitle("완료", for: .normal)
         $0.titleLabel?.font = LabelConfiguration.bodyMedium14.font
         $0.backgroundColor = .accent
@@ -208,13 +208,13 @@ extension RegisterDetailView {
         scrollView.addSubview(contentView)
 
         [scrollView, bottomView].forEach { addSubview($0) }
-        bottomView.addSubview(saveButton)
+        bottomView.addSubview(confirmButton)
 
         bottomView.snp.makeConstraints {
             $0.leading.trailing.bottom.equalToSuperview()
-            $0.top.equalTo(saveButton.snp.top).offset(-8)
+            $0.top.equalTo(confirmButton.snp.top).offset(-8)
         }
-        saveButton.snp.makeConstraints {
+        confirmButton.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(16)
             $0.bottom.equalTo(safeAreaLayoutGuide).offset(-8)
             $0.height.equalTo(48)

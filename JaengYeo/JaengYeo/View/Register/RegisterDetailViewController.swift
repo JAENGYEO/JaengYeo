@@ -9,7 +9,13 @@ import UIKit
 import RxSwift
 import RxCocoa
 
+protocol RegisterDetailViewControllerDelegate: AnyObject {
+    func didTapConfirmButton(item: RegisterFormData)
+}
+
 final class RegisterDetailViewController: UIViewController {
+    
+    weak var delegate: RegisterDetailViewControllerDelegate?
     
     private var item: RegisterFormData
     
