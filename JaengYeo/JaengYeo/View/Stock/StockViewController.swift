@@ -66,6 +66,12 @@ private extension StockViewController {
         let midCategoryAppliedRelay = PublishRelay<[String]>()
         /// 소분류 적용 결과
         let subCategoryAppliedRelay = PublishRelay<[String]>()
+        /// 상품 정렬 선택
+        let sortOptionSelectedRelay = PublishRelay<ProductSortOption>()
+        
+        productCollectionView.configureSortMenu { sortOption in
+            sortOptionSelectedRelay.accept(sortOption)
+        }
         
         /// ViewModel 입력값
         let input = StockViewModel.Input(
@@ -76,7 +82,8 @@ private extension StockViewController {
             midCategoryTapped: categoryFilterView.midCategoryButton.rx.tap.asObservable(),
             subCategoryTapped: categoryFilterView.subCategoryButton.rx.tap.asObservable(),
             midCategoryApplied: midCategoryAppliedRelay.asObservable(),
-            subCategoryApplied: subCategoryAppliedRelay.asObservable()
+            subCategoryApplied: subCategoryAppliedRelay.asObservable(),
+            sortOptionSelected: sortOptionSelectedRelay.asObservable()
         )
         
         let output = viewModel.transform(input)
@@ -103,6 +110,14 @@ private extension StockViewController {
             .bind(onNext: { [weak self] products in
                 guard let self else { return }
                 self.productCollectionView.applySnapshot(with: products)
+            })
+            .disposed(by: disposeBag)
+        
+        /// 정렬 타이틀 바인딩
+        output.selectedSortTitle
+            .bind(onNext: { [weak self] title in
+                guard let self else { return }
+                self.productCollectionView.updateSortTitle(title)
             })
             .disposed(by: disposeBag)
         

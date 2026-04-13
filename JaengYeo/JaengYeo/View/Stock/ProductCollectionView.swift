@@ -60,6 +60,30 @@ final class ProductCollectionView: UIView {
 
 //MARK: - Configure CollectionView
 extension ProductCollectionView {
+    func configureSortMenu(
+        onSelect: @escaping (ProductSortOption) -> Void
+    ) {
+        sortedButton.showsMenuAsPrimaryAction = true
+        sortedButton.menu = UIMenu(
+            children: ProductSortOption.allCases.map { option in
+                UIAction(title: option.rawValue) { _ in
+                    onSelect(option)
+                }
+            }
+        )
+    }
+    
+    func updateSortTitle(_ title: String) {
+        var config = sortedButton.configuration ?? .plain()
+        
+        var attributedTitle = AttributedString(title)
+        attributedTitle.font = .systemFont(ofSize: 12, weight: .regular)
+        attributedTitle.foregroundColor = .gray800
+        config.attributedTitle = attributedTitle
+        
+        sortedButton.configuration = config
+    }
+    
     func applySnapshot(with productDatas: [ProductCellItem]) {
         totalCountLabel.text = "총 \(productDatas.count)개"
         var snapshot = NSDiffableDataSourceSnapshot<ProductCellType, ProductCellItem>()

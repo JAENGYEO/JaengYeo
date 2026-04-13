@@ -17,6 +17,16 @@ enum MainCategory: String {
     case household = "생활용품"
 }
 
+//MARK: - Sort
+enum ProductSortOption: String, CaseIterable {
+    case createdAtDesc = "등록일 최신순"
+    case createdAtAsc = "등록일 오래된순"
+    case expiryDateAsc = "소비기한 가까운순"
+    case expiryDateDesc = "소비기한 먼순"
+    case quantityDesc = "재고 많은순"
+    case quantityAsc = "재고 적은순"
+}
+
 struct ProductCellItem: Hashable {
     let product: Product
     let midCategory: String?
@@ -48,6 +58,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     private let selectedSubCategoryIDsRelay = BehaviorRelay<Set<String>>(value: [])
     /// 선택된 메인 카테고리 인덱스
     private let selectedMainCategoryIndexRelay = BehaviorRelay<Int>(value: 0)
+    /// 선택된 상품 정렬
+    private let selectedSortOptionRelay = BehaviorRelay<ProductSortOption>(value: .createdAtDesc)
 
     struct Input {
         let viewDidLoad: Observable<Void>
@@ -56,6 +68,7 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         let subCategoryTapped: Observable<Void>
         let midCategoryApplied: Observable<[String]>
         let subCategoryApplied: Observable<[String]>
+        let sortOptionSelected: Observable<ProductSortOption>
     }
     
     struct Output {
@@ -63,6 +76,7 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         let products: Observable<[ProductCellItem]>
         let presentMidCategoryItems: Observable<[CategorySelectionItem]>
         let presentSubCategoryItems: Observable<[CategorySelectionItem]>
+        let selectedSortTitle: Observable<String>
         let totalCountText: Observable<Int>
     }
     
@@ -126,6 +140,20 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
             })
             .disposed(by: disposeBag)
         
+        /// 상품 정렬 선택
+        input.sortOptionSelected
+            .subscribe(onNext: { [weak self] sortOption in
+                guard let self else { return }
+                self.selectedSortOptionRelay.accept(sortOption)
+                self.updateProducts()
+            })
+            .disposed(by: disposeBag)
+        
+        /// 선택 정렬 타이틀
+        let selectedSortTitle = selectedSortOptionRelay
+            .map { $0.rawValue }
+            .asObservable()
+        
         /// 상품 개수
         let totalCountText = productsRelay
             .map { $0.count }
@@ -136,6 +164,7 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
             products: productsRelay.asObservable(),
             presentMidCategoryItems: presentMidCategoryItemsRelay.asObservable(),
             presentSubCategoryItems: presentSubCategoryItemsRelay.asObservable(),
+            selectedSortTitle: selectedSortTitle,
             totalCountText: totalCountText
         )
     }
@@ -306,7 +335,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
                 )
             } ?? []
 
-        productsRelay.accept(products)
+        productsRelay.accept(sortProducts(products))
     }
     
     /// 중분류 아이템 변환 및 반영
@@ -350,6 +379,57 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
         
         if controller == subCategoryFetchResultContoller {
             updateSubCategories()
+        }
+    }
+}
+
+//MARK: - Sort
+private extension StockViewModel {
+    /// 상품 정렬
+    func sortProducts(_ products: [ProductCellItem]) -> [ProductCellItem] {
+        switch selectedSortOptionRelay.value {
+        case .createdAtDesc:
+            return products.sorted { $0.product.createdAt > $1.product.createdAt }
+        case .createdAtAsc:
+            return products.sorted { $0.product.createdAt < $1.product.createdAt }
+        case .expiryDateAsc:
+            return products.sorted {
+                compareOptionalDate(
+                    $0.product.expiryDate,
+                    $1.product.expiryDate,
+                    ascending: true
+                )
+            }
+        case .expiryDateDesc:
+            return products.sorted {
+                compareOptionalDate(
+                    $0.product.expiryDate,
+                    $1.product.expiryDate,
+                    ascending: false
+                )
+            }
+        case .quantityDesc:
+            return products.sorted { $0.product.quantity > $1.product.quantity }
+        case .quantityAsc:
+            return products.sorted { $0.product.quantity < $1.product.quantity }
+        }
+    }
+    
+    /// Optional Date 정렬
+    func compareOptionalDate(
+        _ lhs: Date?,
+        _ rhs: Date?,
+        ascending: Bool
+    ) -> Bool {
+        switch (lhs, rhs) {
+        case let (lhs?, rhs?):
+            return ascending ? lhs < rhs : lhs > rhs
+        case (.some, .none):
+            return true
+        case (.none, .some):
+            return false
+        case (.none, .none):
+            return false
         }
     }
 }
