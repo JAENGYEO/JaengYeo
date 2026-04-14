@@ -8,6 +8,8 @@
 import SnapKit
 import Then
 import UIKit
+import RxSwift
+import RxCocoa
 
 final class CategoryEditViewController: UIViewController {
 
@@ -19,9 +21,9 @@ final class CategoryEditViewController: UIViewController {
         var title: String {
             switch self {
             case .midCategory:
-                return "중분류"
+                return "중분류 (위치)"
             case .subCategory:
-                return "소분류"
+                return "소분류 (종류)"
             }
         }
     }
@@ -30,15 +32,32 @@ final class CategoryEditViewController: UIViewController {
     private let viewModel: CategoryEditViewModel
 
     //MARK: - Properties
-    private let coreDataManager: CoreDataManagerProtocol
+    private let disposeBag = DisposeBag()
     private lazy var dataSource = configureDataSource()
 
     //MARK: - Components
+    private let mainCategorySegment = UISegmentedControl().then {
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: LabelConfiguration.bodyMedium14.font,
+            .foregroundColor: UIColor.gray800
+        ]
+        let selectAttributes:
+        [NSAttributedString.Key: Any] = [
+            .font: LabelConfiguration.bodyMedium14.font,
+            .foregroundColor: UIColor.accent
+        ]
+        $0.setTitleTextAttributes(attributes, for: .normal)
+        $0.setTitleTextAttributes(selectAttributes, for: .selected)
+
+        $0.selectedSegmentTintColor = .white
+    }
+
     private lazy var categoryCollectionView = UICollectionView(
         frame: .zero,
         collectionViewLayout: createLayout()
     ).then {
         $0.backgroundColor = .gray50
+        $0.contentInset.top = 12
         $0.showsVerticalScrollIndicator = false
     }
 
@@ -56,12 +75,61 @@ final class CategoryEditViewController: UIViewController {
         super.viewDidLoad()
         configureNavigationBar()
         configureUI()
-        applySnapshot()
+        bind()
+    }
+}
+
+//MARK: - Bind
+private extension CategoryEditViewController {
+    func bind() {
+        let viewDidLoadSubject = PublishSubject<Void>()
+
+        let input = CategoryEditViewModel.Input(
+            viewDidLoad: viewDidLoadSubject.asObservable(),
+            mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
+                .asObservable()
+                .filter { $0 >= 0 }
+        )
+
+        let output = viewModel.transform(input)
+
+        /// 메인 카테고리 바인딩
+        output.mainCategories
+            .bind(onNext: { [weak self] categories in
+                guard let self else { return }
+
+                self.mainCategorySegment.removeAllSegments()
+                categories.enumerated().forEach { index, title in
+                    self.mainCategorySegment.insertSegment(
+                        withTitle: title,
+                        at: index,
+                        animated: false
+                    )
+                }
+                mainCategorySegment.selectedSegmentIndex = 0
+            })
+            .disposed(by: disposeBag)
+        
+        Observable.combineLatest(
+            output.presentMidCategoryItems,
+            output.presentSubCategoryItems
+        )
+        .bind(onNext: { [weak self] midItems, subItems in
+            guard let self else { return }
+            self.applySnapshot(
+                midItems: midItems,
+                subItems: subItems
+            )
+        })
+        .disposed(by: disposeBag)
+
+        viewDidLoadSubject.onNext(())
     }
 }
 
 //MARK: - DataSource
 private extension CategoryEditViewController {
+
     /// 데이터소스 설정
     private func configureDataSource() -> UICollectionViewDiffableDataSource<
         Section,
@@ -74,7 +142,8 @@ private extension CategoryEditViewController {
             cell.updateUI(
                 title: item.title,
                 image: item.image,
-                isSelect: false
+                isSelect: false,
+                showsDeleteButton: item.userId != nil
             )
         }
 
@@ -122,14 +191,33 @@ private extension CategoryEditViewController {
     }
 
     /// 스냅샷 적용
-    func applySnapshot() {
+    func applySnapshot(
+        midItems: [CategoryEditItem],
+        subItems: [CategoryEditItem]
+    ) {
         var snapshot = NSDiffableDataSourceSnapshot<Section, CategoryEditItem>()
         snapshot.appendSections(Section.allCases)
- 
+        snapshot.appendItems(
+            midItems + [makeAddItem(section: .midCategory)],
+            toSection: .midCategory
+        )
+        snapshot.appendItems(
+            subItems + [makeAddItem(section: .subCategory)],
+            toSection: .subCategory
+        )
         dataSource.apply(snapshot, animatingDifferences: false)
     }
+    
+    /// 추가 아이템 생성
+    private func makeAddItem(section: Section) -> CategoryEditItem {
+        CategoryEditItem(
+            id: "\(section)-add",
+            title: "추가",
+            image: UIImage(named: "iconSelectIcon"),
+            userId: nil
+        )
+    }
 }
-
 
 //MARK: - Compositional Layout
 private extension CategoryEditViewController {
@@ -150,6 +238,7 @@ private extension CategoryEditViewController {
             repeatingSubitem: item,
             count: 5
         )
+        group.interItemSpacing = .fixed(10)
 
         let header = NSCollectionLayoutBoundarySupplementaryItem(
             layoutSize: .init(
@@ -179,16 +268,37 @@ private extension CategoryEditViewController {
     /// 네비게이션 바 설정
     func configureNavigationBar() {
         title = "분류 편집"
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .white
+        appearance.shadowColor = .clear
+        appearance.titleTextAttributes = [
+            .font: LabelConfiguration.titleSemi18.font,
+            .foregroundColor: UIColor.gray800
+        ]
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        navigationController?.navigationBar.tintColor = .gray800
     }
 
     /// UI 설정
     func configureUI() {
-        view.backgroundColor = .gray50
-
+        view.backgroundColor = .white
+        view.addSubview(mainCategorySegment)
         view.addSubview(categoryCollectionView)
 
+        mainCategorySegment.snp.makeConstraints {
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(8)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalToSuperview().inset(16)
+            $0.height.equalTo(40)
+        }
+        
         categoryCollectionView.snp.makeConstraints {
-            $0.edges.equalTo(view.safeAreaLayoutGuide)
+            $0.top.equalTo(mainCategorySegment.snp.bottom).offset(12)
+            $0.leading.trailing.bottom.equalToSuperview()
         }
     }
 }
@@ -196,7 +306,7 @@ private extension CategoryEditViewController {
 #Preview {
     UINavigationController(
         rootViewController: CategoryEditViewController(
-            viewModel: StockViewModel(coreDataManager: CoreDataManager())
+            viewModel: CategoryEditViewModel(coreDataManager: CoreDataManager())
         )
     )
 }
