@@ -47,7 +47,7 @@ final class ProductCell: UICollectionViewListCell{
     // MARK: - Components
     /// 아이템 이미지 뷰
     private let productImageView = UIImageView().then {
-        $0.contentMode = .scaleAspectFill
+        $0.contentMode = .scaleAspectFit
         $0.clipsToBounds = true
         $0.layer.cornerRadius = 8
         $0.backgroundColor = .clear
