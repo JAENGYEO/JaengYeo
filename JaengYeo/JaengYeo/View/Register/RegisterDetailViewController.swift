@@ -38,6 +38,8 @@ final class RegisterDetailViewController: UIViewController {
     private let imagePickedSubject = PublishSubject<UIImage>()
     private let midCategorySelectedRelay = PublishRelay<UUID?>()
     private let subCategorySelectedRelay = PublishRelay<UUID?>()
+    private let imageClearedRelay = PublishRelay<Void>()
+    private let stockAlertClearedRelay = PublishRelay<Void>()
     
     init(viewModel: RegisterDetailViewModel) {
         self.viewModel = viewModel
@@ -148,7 +150,9 @@ extension RegisterDetailViewController {
             confirmTapped: confirmTapped,
             imagePicked: imagePickedSubject.asObservable(),
             midCategorySelected: midCategorySelectedRelay.asObservable(),
-            subCategorySelected: subCategorySelectedRelay.asObservable()
+            subCategorySelected: subCategorySelectedRelay.asObservable(),
+            imageCleared: imageClearedRelay.asObservable(),
+            stockAlertCleared: stockAlertClearedRelay.asObservable()
         )
         
         let output = viewModel.transform(input)
@@ -243,6 +247,31 @@ extension RegisterDetailViewController {
         expiryDateTap.rx.event
             .bind(onNext: { [weak self] _ in self?.presentDatePicker(type: .expiryDate) })
             .disposed(by: disposeBag)
+
+        bindDeleteButtons()
+    }
+
+    private func bindDeleteButtons() {
+        let deleteBindings: [(UIButton, RegisterOptionField)] = [
+            (mainView.subCategoryDeleteButton, .subCategory),
+            (mainView.photoDeleteButton, .photo),
+            (mainView.expiryDateDeleteButton, .expiryDate),
+            (mainView.cautionDeleteButton, .caution),
+            (mainView.brandDeleteButton, .brand),
+            (mainView.stockAlertDeleteButton, .stockAlert),
+            (mainView.memoDeleteButton, .memo)
+        ]
+        deleteBindings.forEach { button, field in
+            button.rx.tap
+                .bind(onNext: { [weak self] in
+                    guard let self else { return }
+                    clearFields([field])
+                    var fields = viewModel.currentFields
+                    fields.remove(field)
+                    fieldsSelectedRelay.accept(fields)
+                })
+                .disposed(by: disposeBag)
+        }
     }
 }
 
@@ -270,7 +299,31 @@ extension RegisterDetailViewController {
 
 extension RegisterDetailViewController: RegisterFieldSelectViewControllerDelegate {
     func didSelect(fields: Set<RegisterOptionField>) {
+        let removed = viewModel.currentFields.subtracting(fields)
+        clearFields(removed)
         fieldsSelectedRelay.accept(fields)
+    }
+
+    private func clearFields(_ fields: Set<RegisterOptionField>) {
+        for field in fields {
+            switch field {
+            case .subCategory:
+                mainView.subCategoryField.text = nil
+                subCategorySelectedRelay.accept(nil)
+            case .expiryDate:
+                mainView.expiryDateField.text = nil
+            case .caution:
+                mainView.cautionField.text = nil
+            case .brand:
+                mainView.brandField.text = nil
+            case .memo:
+                mainView.memoField.text = nil
+            case .photo:
+                imageClearedRelay.accept(())
+            case .stockAlert:
+                stockAlertClearedRelay.accept(())
+            }
+        }
     }
 }
 
