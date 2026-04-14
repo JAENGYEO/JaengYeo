@@ -25,6 +25,7 @@ final class AppCoordinator {
         let coreDataManager = CoreDataManager()
         
         try? coreDataManager.seedMockProductsIfNeeded()
+        try? coreDataManager.seedMockCategoriesIfNeeded()
         
         let syncManager = SyncManager(
             productManager: productManager,

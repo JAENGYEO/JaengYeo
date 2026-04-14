@@ -102,7 +102,7 @@ extension RegisterItemListViewModel {
                 purchaseDate: item.purchaseDate,
                 expiryDate: item.expiryDate,
                 price: Int32(item.price ?? 0),
-                locationMemo: item.locationMemo,
+                locationMemo: nil,
                 memo: item.memo,
                 imageUrl: imageUrl, //TODO: 수정 필요
                 isClassified: false,
