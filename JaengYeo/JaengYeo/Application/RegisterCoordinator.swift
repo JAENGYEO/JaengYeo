@@ -23,6 +23,7 @@ final class RegisterCoordinator {
     private let disposeBag = DisposeBag()
     
     private weak var listViewModel: RegisterItemListViewModel?
+    private weak var detailViewController: RegisterDetailViewController?
     
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol, client: SupabaseClient) {
         self.productManager = productManager
@@ -77,6 +78,7 @@ extension RegisterCoordinator {
         let viewModel = RegisterDetailViewModel(item: item)
         let viewController = RegisterDetailViewController(viewModel: viewModel)
         viewController.delegate = self
+        detailViewController = viewController
         navigationController.pushViewController(viewController, animated: true)
     }
 }
@@ -88,5 +90,33 @@ extension RegisterCoordinator: RegisterDetailViewControllerDelegate {
         } else {
             listViewModel?.appendItem(item: item)
         }
+    }
+    
+    func didTapMidCategory(midCategory: UUID?) {
+        guard let mainCategory = detailViewController?.currentMainCategory else { return }
+        let items = (try? coreDataManager.fetchAllMidCategories(mainCategory: mainCategory)) ?? []
+        let selectionItem = items.map {
+            CategorySelectionItem(id: $0.id.uuidString, title: $0.name, image: nil, isSelect: $0.id == midCategory)
+        }
+        let viewController = RegisterCategoryViewController(items: selectionItem, selectedID: midCategory?.uuidString)
+        viewController.onSelect = { [weak self] selectedID in
+            let selectedItem = items.first { $0.id.uuidString == selectedID }
+            self?.detailViewController?.didSelectMidCategory(id: selectedItem?.id, name: selectedItem?.name)
+        }
+        navigationController.present(viewController, animated: false)
+    }
+    
+    func didTapSubCategory(subCategory: UUID?) {
+        guard let mainCategory = detailViewController?.currentMainCategory else { return }
+        let items = (try? coreDataManager.fetchAllSubCategories(mainCategory: mainCategory)) ?? []
+        let selectionItem = items.map {
+            CategorySelectionItem(id: $0.id.uuidString, title: $0.name, image: nil, isSelect: $0.id == subCategory)
+        }
+        let viewController = RegisterCategoryViewController(items: selectionItem, selectedID: subCategory?.uuidString)
+        viewController.onSelect = { [weak self] selectedID in
+            let selectedItem = items.first { $0.id.uuidString == selectedID }
+            self?.detailViewController?.didSelectSubCategory(id: selectedItem?.id, name: selectedItem?.name)
+        }
+        navigationController.present(viewController, animated: false)
     }
 }
