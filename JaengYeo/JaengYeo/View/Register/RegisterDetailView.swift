@@ -113,11 +113,7 @@ final class RegisterDetailView: UIView {
     }
 
     let photoButton = UIButton().then {
-        $0.setImage(UIImage(systemName: "photo"), for: .normal)
-        $0.tintColor = UIColor(named: "Primary300")
-        $0.layer.cornerRadius = 12
-        $0.layer.borderWidth = 2
-        $0.layer.borderColor = UIColor(named: "Primary100")?.cgColor
+        $0.setImage(UIImage(named: "imageSelectIcon"), for: .normal)
     }
 
     let expiryDateField = UITextField().then {
