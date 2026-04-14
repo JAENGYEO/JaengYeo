@@ -72,6 +72,9 @@ extension CategorySelectionItemCell {
 //MARK: - Configure UI
 private extension CategorySelectionItemCell {
     func configureUI() {
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+        
         contentView.addSubview(itemContainerView)
         itemContainerView.addSubview(imageBackgroundView)
         itemContainerView.addSubview(titleLabel)

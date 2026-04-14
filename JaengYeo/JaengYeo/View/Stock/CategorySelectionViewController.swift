@@ -32,7 +32,9 @@ final class CategorySelectionViewController: UIViewController {
 
     //MARK: - Components
     /// 카테고리 선택 뷰
-    private let categorySelectionView = CategorySelectionView()
+    private let categorySelectionView = CategorySelectionView().then {
+        $0.backgroundColor = .white
+    }
 
     //MARK: - Init
     init(items: [CategorySelectionItem] = []) {
@@ -40,6 +42,7 @@ final class CategorySelectionViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .overFullScreen
         modalTransitionStyle = .coverVertical
+        overrideUserInterfaceStyle = .light
     }
 
     required init?(coder: NSCoder) {
@@ -186,6 +189,7 @@ extension CategorySelectionViewController {
     /// UI 설정
     private func configureUI() {
         view.backgroundColor = .clear
+        view.overrideUserInterfaceStyle = .light
 
         let tapGesture = UITapGestureRecognizer(
             target: self,
