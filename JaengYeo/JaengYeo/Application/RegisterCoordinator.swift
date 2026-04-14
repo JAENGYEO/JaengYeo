@@ -69,6 +69,16 @@ extension RegisterCoordinator: RegisterViewControllerDelegate {
             })
             .disposed(by: disposeBag)
         
+        viewModel.navigateToStock
+            .bind(onNext: { [weak self] in
+                self?.navigationController.tabBarController?.selectedIndex = 2
+                //TODO: DispatchQueue로 해도 pop 전환 애니메이션이 잠깐 보이는 문제 있음. 누군가 살려주길 바람.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                    self?.navigationController.setViewControllers(Array(self?.navigationController.viewControllers.prefix(1) ?? []), animated: false)
+                }
+            })
+            .disposed(by: disposeBag)
+        
         navigationController.pushViewController(viewController, animated: true)
     }
 }
