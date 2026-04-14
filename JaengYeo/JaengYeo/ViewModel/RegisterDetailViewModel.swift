@@ -46,6 +46,10 @@ final class RegisterDetailViewModel: ViewModelProtocol {
     var currentFields: Set<RegisterOptionField> {
         (try? selectedFieldsSubject.value()) ?? []
     }
+    var currentCategory: CategoryType? {
+        (try? selectedCategorySubject.value())
+    }
+    
     private let disposeBag = DisposeBag()
     
     init(item: RegisterFormData) {

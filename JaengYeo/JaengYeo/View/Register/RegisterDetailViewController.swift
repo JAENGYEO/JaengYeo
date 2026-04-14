@@ -24,7 +24,14 @@ final class RegisterDetailViewController: UIViewController {
     
     private let mainView = RegisterDetailView()
     var currentMainCategory: String? {
-        viewModel.item.mainCategory
+        switch viewModel.currentCategory {
+        case .food:
+            return "식재료"
+        case .household:
+            return "생활용품"
+        case nil:
+            return nil
+        }
     }
     
     private let viewModel: RegisterDetailViewModel
