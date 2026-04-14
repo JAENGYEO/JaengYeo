@@ -134,7 +134,7 @@ extension RegisterItemListViewModel {
             .appendingPathComponent(fileName)
         do {
             try data.write(to: url)
-            return url.path
+            return fileName
         } catch {
             return nil
         }
