@@ -11,6 +11,13 @@ import UIKit
 import RxSwift
 import RxCocoa
 
+protocol CategoryEditViewControllerDelegate: AnyObject {
+    func categoryEditViewController(
+        _ viewController: CategoryEditViewController,
+        didSelect mode: CategoryEditMode
+    )
+}
+
 final class CategoryEditViewController: UIViewController {
 
     //MARK: - Enum
@@ -26,6 +33,15 @@ final class CategoryEditViewController: UIViewController {
                 return "소분류 (종류)"
             }
         }
+        
+        var target: CategoryEditTarget {
+            switch self {
+            case .midCategory:
+                return .midCategory
+            case .subCategory:
+                return .subCategory
+            }
+        }
     }
 
     //MARK: - ViewModel
@@ -34,6 +50,7 @@ final class CategoryEditViewController: UIViewController {
     //MARK: - Properties
     private let disposeBag = DisposeBag()
     private lazy var dataSource = configureDataSource()
+    weak var delegate: CategoryEditViewControllerDelegate?
 
     //MARK: - Components
     private let mainCategorySegment = UISegmentedControl().then {
@@ -122,6 +139,20 @@ private extension CategoryEditViewController {
             )
         })
         .disposed(by: disposeBag)
+        
+        /// 아이템 선택 이벤트
+        categoryCollectionView.rx.itemSelected
+            .compactMap { [weak self] indexPath -> CategoryEditMode? in
+                self?.makeEditMode(at: indexPath)
+            }
+            .bind(onNext: { [weak self] mode in
+                guard let self else { return }
+                self.delegate?.categoryEditViewController(
+                    self,
+                    didSelect: mode
+                )
+            })
+            .disposed(by: disposeBag)
 
         viewDidLoadSubject.onNext(())
     }
@@ -216,6 +247,21 @@ private extension CategoryEditViewController {
             image: UIImage(named: "iconSelectIcon"),
             userId: nil
         )
+    }
+    
+    /// 화면 이동 모드 생성
+    func makeEditMode(at indexPath: IndexPath) -> CategoryEditMode? {
+        guard
+            let section = dataSource.sectionIdentifier(for: indexPath.section),
+            let item = dataSource.itemIdentifier(for: indexPath)
+        else { return nil }
+        
+        if item.id.hasSuffix("-add") {
+            return .add(section.target)
+        }
+        
+        guard item.userId != nil else { return nil }
+        return .edit(section.target, item)
     }
 }
 
