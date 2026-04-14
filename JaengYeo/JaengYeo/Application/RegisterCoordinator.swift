@@ -53,9 +53,9 @@ final class RegisterCoordinator {
 }
 
 extension RegisterCoordinator: RegisterViewControllerDelegate {
-    func pushItemListView(items: [RegisterFormData]) {
+    func pushItemListView(items: [RegisterFormData], pageTitle: String, showInfoLabel: Bool = true) {
         let viewModel = RegisterItemListViewModel(items: items, coreDataManager: coreDataManager, syncManager: syncManager)
-        let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: "AI 인식 결과")
+        let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: pageTitle, showInfoLabel: showInfoLabel)
         listViewModel = viewModel
         viewModel.navigateToAdd
             .bind(onNext: { [weak self] in
@@ -115,7 +115,7 @@ extension RegisterCoordinator: RegisterDetailViewControllerDelegate {
         let viewController = RegisterCategoryViewController(items: selectionItem, selectedID: subCategory?.uuidString)
         viewController.onSelect = { [weak self] selectedID in
             let selectedItem = items.first { $0.id.uuidString == selectedID }
-            self?.detailViewController?.didSelectSubCategory(id: selectedItem?.id, name: selectedItem?.name)
+            self?.detailViewController?.didSelectSubCategory(id: selectedItem?.id, name: selectedItem?.name, iconName: selectedItem?.iconName)
         }
         navigationController.present(viewController, animated: false)
     }

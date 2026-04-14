@@ -11,7 +11,7 @@ import RxSwift
 import RxCocoa
 
 protocol RegisterViewControllerDelegate: AnyObject {
-    func pushItemListView(items: [RegisterFormData])
+    func pushItemListView(items: [RegisterFormData], pageTitle: String, showInfoLabel: Bool)
 }
 
 final class RegisterViewController: UIViewController {
@@ -99,6 +99,7 @@ extension RegisterViewController {
         mainView.manualButton.rx.tap
             .bind(onNext: { [weak self] in
                 self?.switchMode(mode: .manual)
+                self?.delegate?.pushItemListView(items: [], pageTitle: "직접 입력", showInfoLabel: false)
             })
             .disposed(by: disposeBag)
         mainView.flipButton.rx.tap
@@ -128,7 +129,7 @@ extension RegisterViewController {
                 case 0:
                     self.showErrorAlert(title: "인식 실패", message: "인식된 항목이 없습니다.")
                 default:
-                    self.delegate?.pushItemListView(items: items)
+                    self.delegate?.pushItemListView(items: items, pageTitle: "AI 인식 결과", showInfoLabel: true)
                 }
             })
             .disposed(by: disposeBag)
