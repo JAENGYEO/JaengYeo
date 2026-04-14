@@ -50,7 +50,7 @@ final class ProductCell: UICollectionViewListCell{
         $0.contentMode = .scaleAspectFill
         $0.clipsToBounds = true
         $0.layer.cornerRadius = 8
-        $0.backgroundColor = .accent
+        $0.backgroundColor = .clear
     }
     
     /// 아이템 타이틀
@@ -119,8 +119,8 @@ final class ProductCell: UICollectionViewListCell{
         cellType = .defaultType
         productTitleLabel.text = nil
         productCountLabel.text = "0"
-        productImageView.image = nil
-        productImageView.backgroundColor = .accent
+        productImageView.image = UIImage(named: "imageSelectIcon")
+        productImageView.backgroundColor = .clear
         
         updateDescriptionStack(
             stackView: productDescriptionStack,
@@ -150,8 +150,8 @@ extension ProductCell {
     ) {
         cellType = type
         productTitleLabel.text = title
-        productImageView.image = image
-        productImageView.backgroundColor = image == nil ? .accent : .clear
+        productImageView.image = image ?? UIImage(named: "imageSelectIcon")
+        productImageView.backgroundColor = .clear
         
         updateDescriptionStack(
             stackView: productDescriptionStack,
