@@ -21,6 +21,8 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         let stockMinusTapped: Observable<Void>
         let confirmTapped: Observable<RegisterFormData>
         let imagePicked: Observable<UIImage>
+        let midCategorySelected: Observable<UUID?>
+        let subCategorySelected: Observable<UUID?>
     }
     
     struct Output {
@@ -61,6 +63,8 @@ final class RegisterDetailViewModel: ViewModelProtocol {
     func transform(_ input: Input) -> Output {
         let confirmErrorSubject = PublishSubject<String>()
         let didConfirmSubject = PublishSubject<RegisterFormData>()
+        let midCategorySubject = BehaviorSubject<UUID?>(value: item.midCategory)
+        let subCategorySubject = BehaviorSubject<UUID?>(value: item.subCategory)
         
         input.foodCategoryTapped
             .map { CategoryType.food }
@@ -91,9 +95,16 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         
         input.confirmTapped
             .withLatestFrom(
-                Observable.combineLatest(selectedCategorySubject, selectedFieldsSubject, stockValueSubject, imageSubject)
-            ) { item, state in (item, state.0, state.1, state.2, state.3) }
-            .bind(onNext: { item, category, fields, stock, image in
+                Observable.combineLatest(
+                    selectedCategorySubject,
+                    selectedFieldsSubject,
+                    stockValueSubject,
+                    imageSubject,
+                    midCategorySubject,
+                    subCategorySubject
+                )
+            ) { item, state in (item, state.0, state.1, state.2, state.3, state.4, state.5) }
+            .bind(onNext: { item, category, fields, stock, image, midCategory, subCategory in
                 let mainCategory = category == .food ? "식재료" : category == .household ? "생활용품" : nil
                 guard item.name?.isEmpty == false, mainCategory != nil else {
                     confirmErrorSubject.onNext(("이름과 카테고리를 입력해주세요."))
@@ -102,6 +113,8 @@ final class RegisterDetailViewModel: ViewModelProtocol {
                 var result = item
                 result.mainCategory = mainCategory
                 result.image = image
+                result.midCategory = midCategory
+                result.subCategory = subCategory
                 if fields.contains(.stockAlert) {
                     result.lowStockThreshold = stock
                     result.isLowStockNotificationEnabled = stock > 0
@@ -115,6 +128,14 @@ final class RegisterDetailViewModel: ViewModelProtocol {
             .bind(onNext: { [weak self] image in
                 self?.imageSubject.onNext(image)
             })
+            .disposed(by: disposeBag)
+        
+        input.midCategorySelected
+            .bind(to: midCategorySubject)
+            .disposed(by: disposeBag)
+        
+        input.subCategorySelected
+            .bind(to: subCategorySubject)
             .disposed(by: disposeBag)
         
         return Output(

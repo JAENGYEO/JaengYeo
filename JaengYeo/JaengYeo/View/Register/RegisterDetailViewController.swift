@@ -12,6 +12,8 @@ import PhotosUI
 
 protocol RegisterDetailViewControllerDelegate: AnyObject {
     func didTapConfirmButton(item: RegisterFormData)
+    func didTapMidCategory(midCategory: UUID?)
+    func didTapSubCategory(subCategory: UUID?)
 }
 
 final class RegisterDetailViewController: UIViewController {
@@ -21,6 +23,9 @@ final class RegisterDetailViewController: UIViewController {
     private let disposeBag = DisposeBag()
     
     private let mainView = RegisterDetailView()
+    var currentMainCategory: String? {
+        viewModel.item.mainCategory
+    }
     
     private let viewModel: RegisterDetailViewModel
     private let fieldsSelectedRelay = PublishRelay<Set<RegisterOptionField>>()
@@ -31,6 +36,8 @@ final class RegisterDetailViewController: UIViewController {
     }()
     
     private let imagePickedSubject = PublishSubject<UIImage>()
+    private let midCategorySelectedRelay = PublishRelay<UUID?>()
+    private let subCategorySelectedRelay = PublishRelay<UUID?>()
     
     init(viewModel: RegisterDetailViewModel) {
         self.viewModel = viewModel
@@ -75,7 +82,8 @@ extension RegisterDetailViewController {
         mainView.nameField.text = item.name
         mainView.quantityField.text = item.quantity.map { String($0) }
         mainView.purchaseDateField.text = dateFormatter.string(from: item.purchaseDate ?? Date())
-        mainView.locationField.text = item.locationMemo
+        mainView.midCategoryField.text = item.midCategoryName
+        mainView.subCategoryField.text = item.subCategoryName
         mainView.expiryDateField.text = item.expiryDate.map { dateFormatter.string(from: $0) }
         mainView.memoField.text = item.memo
         mainView.cautionField.text = item.caution
@@ -100,15 +108,36 @@ extension RegisterDetailViewController {
                 var item = viewModel.item
                 item.name = mainView.nameField.text.flatMap { $0.isEmpty ? nil : $0 }
                 item.quantity = mainView.quantityField.text.flatMap { Int($0) }
-                item.locationMemo = mainView.locationField.text.flatMap { $0.isEmpty ? nil : $0 }
                 item.purchaseDate = dateFormatter.date(from: mainView.purchaseDateField.text ?? "")
                 item.expiryDate = dateFormatter.date(from: mainView.expiryDateField.text ?? "")
                 item.memo = mainView.memoField.text.flatMap { $0.isEmpty ? nil : $0 }
                 item.caution = mainView.cautionField.text.flatMap { $0.isEmpty ? nil : $0 }
                 item.brand = mainView.brandField.text.flatMap { $0.isEmpty ? nil : $0 }
+                item.midCategoryName = mainView.midCategoryField.text.flatMap { $0.isEmpty ? nil : $0 }
+                item.subCategoryName = mainView.subCategoryField.text.flatMap { $0.isEmpty ? nil : $0 }
                 return item
             }
             .asObservable()
+        
+        let midCategoryTap = UITapGestureRecognizer()
+        mainView.midCategoryGroupView.isUserInteractionEnabled = true
+        mainView.midCategoryGroupView.addGestureRecognizer(midCategoryTap)
+        midCategoryTap.rx.event
+            .bind(onNext: { [weak self] _ in
+                guard let self else { return }
+                delegate?.didTapMidCategory(midCategory: viewModel.item.midCategory)
+            })
+            .disposed(by: disposeBag)
+        
+        let subCategoryTap = UITapGestureRecognizer()
+        mainView.subCategoryGroupView.isUserInteractionEnabled = true
+        mainView.subCategoryGroupView.addGestureRecognizer(subCategoryTap)
+        subCategoryTap.rx.event
+            .bind(onNext: { [weak self] _ in
+                guard let self else { return }
+                delegate?.didTapSubCategory(subCategory: viewModel.item.subCategory)
+            })
+            .disposed(by: disposeBag)
         
         let input = RegisterDetailViewModel.Input(
             foodCategoryTapped: mainView.foodButton.rx.tap.asObservable(),
@@ -117,7 +146,9 @@ extension RegisterDetailViewController {
             stockPlusTapped: mainView.stockPlusButton.rx.tap.asObservable(),
             stockMinusTapped: mainView.stockMinusButton.rx.tap.asObservable(),
             confirmTapped: confirmTapped,
-            imagePicked: imagePickedSubject.asObservable()
+            imagePicked: imagePickedSubject.asObservable(),
+            midCategorySelected: midCategorySelectedRelay.asObservable(),
+            subCategorySelected: subCategorySelectedRelay.asObservable()
         )
         
         let output = viewModel.transform(input)
@@ -273,5 +304,17 @@ extension RegisterDetailViewController: PHPickerViewControllerDelegate {
             guard let image = object as? UIImage else { return }
             self?.imagePickedSubject.onNext(image)
         }
+    }
+}
+
+extension RegisterDetailViewController {
+    func didSelectMidCategory(id: UUID?, name: String?) {
+        mainView.midCategoryField.text = name
+        midCategorySelectedRelay.accept(id)
+    }
+    
+    func didSelectSubCategory(id: UUID?, name: String?) {
+        mainView.subCategoryField.text = name
+        subCategorySelectedRelay.accept(id)
     }
 }

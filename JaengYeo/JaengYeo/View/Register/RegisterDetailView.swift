@@ -62,9 +62,10 @@ final class RegisterDetailView: UIView {
         $0.layer.borderWidth = 1
     }
 
-    let locationField = UITextField().then {
+    let midCategoryField = UITextField().then {
         $0.font = LabelConfiguration.titleSemi16.font
         $0.textColor = .gray800
+        $0.isUserInteractionEnabled = false
         $0.attributedPlaceholder = NSAttributedString(
             string: "보관 위치를 입력해주세요.",
             attributes: [.foregroundColor: UIColor.gray300, .font: LabelConfiguration.body14.font]
@@ -87,6 +88,7 @@ final class RegisterDetailView: UIView {
     let subCategoryField = UITextField().then {
         $0.font = LabelConfiguration.titleSemi16.font
         $0.textColor = .gray800
+        $0.isUserInteractionEnabled = false
         $0.attributedPlaceholder = NSAttributedString(
             string: "제품의 종류를 입력해주세요.",
             attributes: [.foregroundColor: UIColor.gray300, .font: LabelConfiguration.body14.font]
@@ -155,6 +157,7 @@ final class RegisterDetailView: UIView {
         )
     }
 
+    private(set) lazy var midCategoryGroupView = makeFieldGroup(title: "중분류(위치)*", field: midCategoryField)
     // MARK: 추가 필드 그룹뷰 (show/hide 단위)
     private(set) lazy var purchaseDateGroupView = makeFieldGroup(title: "구매날짜*", field: purchaseDateField)
     private(set) lazy var subCategoryGroupView = makeFieldGroup(title: "소분류", field: subCategoryField)
@@ -193,9 +196,8 @@ extension RegisterDetailView {
         let nameGroup = makeFieldGroup(title: "상품명*", field: nameField)
         let quantityGroup = makeFieldGroup(title: "수량*", field: quantityField)
         let categoryGroup = makeCategoryGroup()
-        let locationGroup = makeFieldGroup(title: "중분류(위치)*", field: locationField)
 
-        [nameGroup, quantityGroup, purchaseDateGroupView, categoryGroup, locationGroup].forEach {
+        [nameGroup, quantityGroup, purchaseDateGroupView, categoryGroup, midCategoryGroupView].forEach {
             stackView.addArrangedSubview($0)
         }
 
