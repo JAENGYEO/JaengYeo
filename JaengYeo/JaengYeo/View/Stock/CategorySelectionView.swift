@@ -133,7 +133,10 @@ private extension CategorySelectionView {
 private extension CategorySelectionView {
     /// UI 설정
     func configureUI() {
+        overrideUserInterfaceStyle = .light
         backgroundColor = .white
+        pageContainerView.backgroundColor = .white
+        collectionView.backgroundColor = .white
         layer.cornerRadius = 16
         layer.maskedCorners = [
             .layerMinXMinYCorner,

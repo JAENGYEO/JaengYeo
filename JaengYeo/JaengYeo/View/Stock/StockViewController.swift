@@ -45,6 +45,7 @@ final class StockViewController: UIViewController {
     init(viewModel: StockViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        overrideUserInterfaceStyle = .light
     }
 
     required init?(coder: NSCoder) {
@@ -180,6 +181,20 @@ private extension StockViewController {
 private extension StockViewController {
     func configureNavigationBar() {
         title = "재고현황"
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .white
+        appearance.titleTextAttributes = [
+            .font: LabelConfiguration.titleSemi18.font,
+            .foregroundColor: UIColor.gray800
+        ]
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        navigationController?.navigationBar.tintColor = .gray800
+        
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "magnifyingglass"),
             style: .plain,
@@ -189,6 +204,8 @@ private extension StockViewController {
     }
     
     private func configureUI() {
+        view.backgroundColor = .white
+        
         view.addSubview(mainCategorySegment)
         view.addSubview(categoryFilterView)
         view.addSubview(productCollectionView)
