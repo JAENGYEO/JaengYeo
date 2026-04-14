@@ -13,13 +13,14 @@ struct RegisterFormData: Hashable {
     var name: String?
     var mainCategory: String?
     var midCategory: UUID?
+    var midCategoryName: String?
     var subCategory: UUID?
+    var subCategoryName: String?
     var quantity: Int?
     var quantityUnit: String?
     var price: Int?
     var purchaseDate: Date?
     var expiryDate: Date?
-    var locationMemo: String?
     var memo: String?
     var image: UIImage?
     var imageUrl: String?
