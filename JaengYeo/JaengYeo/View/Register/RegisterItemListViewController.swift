@@ -109,12 +109,19 @@ extension RegisterItemListViewController {
 
 extension RegisterItemListViewController {
     private func setSnapshot(items: [RegisterFormData]) {
+        let currentItemIds = Set(dataSource.snapshot().itemIdentifiers.map { $0.id })
+        
         var snapshot = NSDiffableDataSourceSnapshot<SectionID, RegisterFormData>()
         items.forEach { item in
             snapshot.appendSections([item.id])
             snapshot.appendItems([item], toSection: item.id)
             
         }
+        let itemsToReconfig = items.filter { currentItemIds.contains($0.id) }
+        if !itemsToReconfig.isEmpty {
+            snapshot.reconfigureItems(itemsToReconfig)
+        }
+        
         dataSource.apply(snapshot, animatingDifferences: true)
     }
 }
