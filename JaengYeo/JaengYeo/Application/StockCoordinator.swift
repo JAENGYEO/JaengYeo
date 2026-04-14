@@ -21,10 +21,20 @@ final class StockCoordinator {
         
         let viewController = StockViewController(viewModel: StockViewModel(coreDataManager: coreDataManager))
         navigationController = UINavigationController(rootViewController: viewController)
+        viewController.delegate = self
         navigationController.tabBarItem = UITabBarItem(
             title: "재고",
             image: UIImage(systemName: "bag"),
             selectedImage: UIImage(systemName: "bag.fill")
         )
+    }
+}
+
+extension StockCoordinator: StockViewControllerDelegate {
+    func didTapCategoryEditButton() {
+        let categoryEditViewController = CategoryEditViewController(
+            CategoryEditViewModel(coreDataManager: coreDataManager)
+        )
+        navigationController.pushViewController(categoryEditViewController, animated: true)
     }
 }
