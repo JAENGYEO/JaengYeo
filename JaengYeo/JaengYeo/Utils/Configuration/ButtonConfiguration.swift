@@ -186,4 +186,14 @@ extension ButtonAppearanceConfiguration {
         borderWidth: 1,
         borderColor: .gray100
     )
+    
+    static let deleteAppearance = ButtonAppearanceConfiguration(
+        backgroundColor: .primaryRed,
+        selectedBackgroundColor: .primaryRed,
+        highlightedBackgroundColor: .primaryRed,
+        disabledBackgroundColor: .gray300,
+        cornerRadius: 12,
+        borderWidth: 0,
+        borderColor: UIColor.clear
+    )
 }
