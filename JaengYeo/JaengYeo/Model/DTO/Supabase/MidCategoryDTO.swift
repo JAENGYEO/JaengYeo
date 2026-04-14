@@ -45,6 +45,22 @@ extension MidCategoryDTO {
     }
 }
 
+extension MidCategoryDTO {
+    func toPayload() -> MidCategoryPayload {
+        MidCategoryPayload(
+            id: id,
+            userId: userId,
+            mainCategory: mainCategory,
+            name: name,
+            iconName: iconName,
+            sortOrder: Int32(sortOrder),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            syncStatus: SyncStatus.synced.rawValue
+        )
+    }
+}
+
 // 도메인 -> Supabase
 extension MidCategoryDTO {
     init(from midCategory: MidCategory) {
@@ -58,3 +74,4 @@ extension MidCategoryDTO {
         self.updatedAt = midCategory.updatedAt
     }
 }
+

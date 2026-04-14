@@ -48,6 +48,23 @@ extension SubCategoryDTO {
     }
 }
 
+extension SubCategoryDTO {
+    func toPayload() -> SubCategoryPayload {
+        SubCategoryPayload(
+            id: id,
+            userId: userId,
+            mainCategory: mainCategory,
+            name: name,
+            iconName: iconName,
+            thumbnailKey: thumbnailKey,
+            sortOrder: Int32(sortOrder),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            syncStatus: SyncStatus.synced.rawValue
+        )
+    }
+}
+
 // Domain -> Supabase
 extension SubCategoryDTO {
     init(from subCategory: SubCategory) {
