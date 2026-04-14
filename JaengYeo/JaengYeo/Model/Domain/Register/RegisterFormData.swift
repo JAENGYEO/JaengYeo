@@ -5,7 +5,7 @@
 //  Created by 손영빈 on 4/8/26.
 //
 
-import Foundation
+import UIKit
 
 //TODO: 추후 Entity 저장 로직 구현 시 수정 필요
 struct RegisterFormData: Hashable {
@@ -13,18 +13,28 @@ struct RegisterFormData: Hashable {
     var name: String?
     var mainCategory: String?
     var midCategory: UUID?
+    var midCategoryName: String?
     var subCategory: UUID?
+    var subCategoryName: String?
     var quantity: Int?
     var quantityUnit: String?
     var price: Int?
     var purchaseDate: Date?
     var expiryDate: Date?
-    var locationMemo: String?
     var memo: String?
-    var imageBase64: String?
+    var image: UIImage?
+    var imageUrl: String?
     var isLowStockNotificationEnabled: Bool?
     var lowStockThreshold: Int?
     var caution: String?
     var brand: String?
     var selectedFields: Set<RegisterOptionField> = []
+    
+    static func == (lhs: RegisterFormData, rhs: RegisterFormData) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }

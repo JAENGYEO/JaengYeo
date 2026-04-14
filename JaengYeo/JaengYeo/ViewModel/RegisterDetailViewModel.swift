@@ -5,7 +5,7 @@
 //  Created by 손영빈 on 4/13/26.
 //
 
-import Foundation
+import UIKit
 import RxSwift
 import RxCocoa
 
@@ -20,6 +20,11 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         let stockPlusTapped: Observable<Void>
         let stockMinusTapped: Observable<Void>
         let confirmTapped: Observable<RegisterFormData>
+        let imagePicked: Observable<UIImage>
+        let midCategorySelected: Observable<UUID?>
+        let subCategorySelected: Observable<UUID?>
+        let imageCleared: Observable<Void>
+        let stockAlertCleared: Observable<Void>
     }
     
     struct Output {
@@ -28,15 +33,23 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         let stockAlertValue: Observable<String>
         let confirmError: Observable<String>
         let didConfirm: Observable<RegisterFormData>
+        let selectedImage: Observable<UIImage?>
+        let categoryChanged: Observable<Void>
     }
     
     let item: RegisterFormData
     private let selectedCategorySubject: BehaviorSubject<CategoryType?>
     private let selectedFieldsSubject: BehaviorSubject<Set<RegisterOptionField>>
     private let stockValueSubject: BehaviorSubject<Int>
+    private lazy var imageSubject = BehaviorSubject<UIImage?>(value: item.image)
+    
     var currentFields: Set<RegisterOptionField> {
         (try? selectedFieldsSubject.value()) ?? []
     }
+    var currentCategory: CategoryType? {
+        (try? selectedCategorySubject.value())
+    }
+    
     private let disposeBag = DisposeBag()
     
     init(item: RegisterFormData) {
@@ -57,15 +70,26 @@ final class RegisterDetailViewModel: ViewModelProtocol {
     func transform(_ input: Input) -> Output {
         let confirmErrorSubject = PublishSubject<String>()
         let didConfirmSubject = PublishSubject<RegisterFormData>()
+        let midCategorySubject = BehaviorSubject<UUID?>(value: item.midCategory)
+        let subCategorySubject = BehaviorSubject<UUID?>(value: item.subCategory)
+        let categoryChangedSubject = PublishSubject<Void>()
         
         input.foodCategoryTapped
-            .map { CategoryType.food }
-            .bind(onNext: { [weak self] in self?.selectedCategorySubject.onNext($0) })
+            .bind(onNext: { [weak self] in
+                self?.selectedCategorySubject.onNext(.food)
+                midCategorySubject.onNext(nil)
+                subCategorySubject.onNext(nil)
+                categoryChangedSubject.onNext(())
+            })
             .disposed(by: disposeBag)
         
         input.householdCategoryTapped
-            .map { CategoryType.household }
-            .bind(onNext: { [weak self] in self?.selectedCategorySubject.onNext($0) })
+            .bind(onNext: { [weak self] in
+                self?.selectedCategorySubject.onNext(.household)
+                midCategorySubject.onNext(nil)
+                subCategorySubject.onNext(nil)
+                categoryChangedSubject.onNext(())
+            })
             .disposed(by: disposeBag)
         
         input.fieldsSelected
@@ -87,9 +111,16 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         
         input.confirmTapped
             .withLatestFrom(
-                Observable.combineLatest(selectedCategorySubject, selectedFieldsSubject, stockValueSubject)
-            ) { item, state in (item, state.0, state.1, state.2) }
-            .bind(onNext: { item, category, fields, stock in
+                Observable.combineLatest(
+                    selectedCategorySubject,
+                    selectedFieldsSubject,
+                    stockValueSubject,
+                    imageSubject,
+                    midCategorySubject,
+                    subCategorySubject
+                )
+            ) { item, state in (item, state.0, state.1, state.2, state.3, state.4, state.5) }
+            .bind(onNext: { item, category, fields, stock, image, midCategory, subCategory in
                 let mainCategory = category == .food ? "식재료" : category == .household ? "생활용품" : nil
                 guard item.name?.isEmpty == false, mainCategory != nil else {
                     confirmErrorSubject.onNext(("이름과 카테고리를 입력해주세요."))
@@ -97,6 +128,9 @@ final class RegisterDetailViewModel: ViewModelProtocol {
                 }
                 var result = item
                 result.mainCategory = mainCategory
+                result.image = image
+                result.midCategory = midCategory
+                result.subCategory = subCategory
                 if fields.contains(.stockAlert) {
                     result.lowStockThreshold = stock
                     result.isLowStockNotificationEnabled = stock > 0
@@ -106,12 +140,36 @@ final class RegisterDetailViewModel: ViewModelProtocol {
             })
             .disposed(by: disposeBag)
         
+        input.imagePicked
+            .bind(onNext: { [weak self] image in
+                self?.imageSubject.onNext(image)
+            })
+            .disposed(by: disposeBag)
+
+        input.imageCleared
+            .bind(onNext: { [weak self] in self?.imageSubject.onNext(nil) })
+            .disposed(by: disposeBag)
+
+        input.stockAlertCleared
+            .bind(onNext: { [weak self] in self?.stockValueSubject.onNext(0) })
+            .disposed(by: disposeBag)
+
+        input.midCategorySelected
+            .bind(to: midCategorySubject)
+            .disposed(by: disposeBag)
+        
+        input.subCategorySelected
+            .bind(to: subCategorySubject)
+            .disposed(by: disposeBag)
+        
         return Output(
             selectedCategory: selectedCategorySubject.asObservable(),
             selectedFields: selectedFieldsSubject.asObservable(),
             stockAlertValue: stockValueSubject.map { String($0) },
             confirmError: confirmErrorSubject.asObservable(),
-            didConfirm: didConfirmSubject.asObservable()
+            didConfirm: didConfirmSubject.asObservable(),
+            selectedImage: imageSubject.asObservable(),
+            categoryChanged: categoryChangedSubject.asObservable()
         )
     }
 }
