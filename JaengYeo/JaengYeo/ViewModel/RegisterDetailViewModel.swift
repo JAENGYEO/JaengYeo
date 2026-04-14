@@ -32,6 +32,7 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         let confirmError: Observable<String>
         let didConfirm: Observable<RegisterFormData>
         let selectedImage: Observable<UIImage?>
+        let categoryChanged: Observable<Void>
     }
     
     let item: RegisterFormData
@@ -65,15 +66,24 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         let didConfirmSubject = PublishSubject<RegisterFormData>()
         let midCategorySubject = BehaviorSubject<UUID?>(value: item.midCategory)
         let subCategorySubject = BehaviorSubject<UUID?>(value: item.subCategory)
+        let categoryChangedSubject = PublishSubject<Void>()
         
         input.foodCategoryTapped
-            .map { CategoryType.food }
-            .bind(onNext: { [weak self] in self?.selectedCategorySubject.onNext($0) })
+            .bind(onNext: { [weak self] in
+                self?.selectedCategorySubject.onNext(.food)
+                midCategorySubject.onNext(nil)
+                subCategorySubject.onNext(nil)
+                categoryChangedSubject.onNext(())
+            })
             .disposed(by: disposeBag)
         
         input.householdCategoryTapped
-            .map { CategoryType.household }
-            .bind(onNext: { [weak self] in self?.selectedCategorySubject.onNext($0) })
+            .bind(onNext: { [weak self] in
+                self?.selectedCategorySubject.onNext(.household)
+                midCategorySubject.onNext(nil)
+                subCategorySubject.onNext(nil)
+                categoryChangedSubject.onNext(())
+            })
             .disposed(by: disposeBag)
         
         input.fieldsSelected
@@ -144,7 +154,8 @@ final class RegisterDetailViewModel: ViewModelProtocol {
             stockAlertValue: stockValueSubject.map { String($0) },
             confirmError: confirmErrorSubject.asObservable(),
             didConfirm: didConfirmSubject.asObservable(),
-            selectedImage: imageSubject.asObservable()
+            selectedImage: imageSubject.asObservable(),
+            categoryChanged: categoryChangedSubject.asObservable()
         )
     }
 }
