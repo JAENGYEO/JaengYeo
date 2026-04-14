@@ -6,3 +6,11 @@
 //
 
 import Foundation
+import UIKit
+
+protocol ReceiptProtocol {
+    // OCR 분석
+    func analyzeReceipt(image: UIImage) async throws -> [RegisterFormData]
+    // 데이터 파싱
+    func parseReceipt(text: String) async throws -> [RegisterFormData]
+}
