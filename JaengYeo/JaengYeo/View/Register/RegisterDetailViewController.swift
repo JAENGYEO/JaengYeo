@@ -208,6 +208,16 @@ extension RegisterDetailViewController {
             })
             .disposed(by: disposeBag)
         
+        output.categoryChanged
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] in
+                self?.mainView.midCategoryField.text = nil
+                self?.mainView.subCategoryField.text = nil
+                self?.midCategorySelectedRelay.accept(nil)
+                self?.subCategorySelectedRelay.accept(nil)
+            })
+            .disposed(by: disposeBag)
+        
         mainView.addInfoButton.rx.tap
             .bind(onNext: { [weak self] in
                 self?.presentExtraField()
