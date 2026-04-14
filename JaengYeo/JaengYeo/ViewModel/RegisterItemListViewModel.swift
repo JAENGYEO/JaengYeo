@@ -5,7 +5,7 @@
 //  Created by 손영빈 on 4/13/26.
 //
 
-import Foundation
+import UIKit
 import RxSwift
 import RxCocoa
 
@@ -85,6 +85,11 @@ extension RegisterItemListViewModel {
         let now = Date()
         let payloads: [ProductPayload] = items.compactMap { item in
             guard let name = item.name, let mainCategory = item.mainCategory else { return nil }
+            let imageUrl: String? = {
+                guard let image = item.image else { return nil }
+                return saveImage(image: image)
+            }()
+            
             return ProductPayload(
                 id: item.id,
                 userId: Constants.Dev.userId,
@@ -99,7 +104,7 @@ extension RegisterItemListViewModel {
                 price: Int32(item.price ?? 0),
                 locationMemo: item.locationMemo,
                 memo: item.memo,
-                imageUrl: nil, //TODO: 수정 필요
+                imageUrl: imageUrl, //TODO: 수정 필요
                 isClassified: false,
                 lowStockThreshold: Int32(item.lowStockThreshold ?? 1),
                 isFavorite: false, //TODO: 수정 필요
@@ -119,3 +124,20 @@ extension RegisterItemListViewModel {
         }
     }
 }
+
+extension RegisterItemListViewModel {
+    private func saveImage(image: UIImage) -> String? {
+        guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+        let fileName = UUID().uuidString + ".jpg"
+        let url = FileManager.default
+            .urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent(fileName)
+        do {
+            try data.write(to: url)
+            return url.path
+        } catch {
+            return nil
+        }
+    }
+}
+

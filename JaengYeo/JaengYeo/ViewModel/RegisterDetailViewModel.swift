@@ -5,7 +5,7 @@
 //  Created by 손영빈 on 4/13/26.
 //
 
-import Foundation
+import UIKit
 import RxSwift
 import RxCocoa
 
@@ -20,6 +20,7 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         let stockPlusTapped: Observable<Void>
         let stockMinusTapped: Observable<Void>
         let confirmTapped: Observable<RegisterFormData>
+        let imagePicked: Observable<UIImage>
     }
     
     struct Output {
@@ -34,6 +35,8 @@ final class RegisterDetailViewModel: ViewModelProtocol {
     private let selectedCategorySubject: BehaviorSubject<CategoryType?>
     private let selectedFieldsSubject: BehaviorSubject<Set<RegisterOptionField>>
     private let stockValueSubject: BehaviorSubject<Int>
+    private lazy var imageSubject = BehaviorSubject<UIImage?>(value: item.image)
+    
     var currentFields: Set<RegisterOptionField> {
         (try? selectedFieldsSubject.value()) ?? []
     }
@@ -87,9 +90,9 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         
         input.confirmTapped
             .withLatestFrom(
-                Observable.combineLatest(selectedCategorySubject, selectedFieldsSubject, stockValueSubject)
-            ) { item, state in (item, state.0, state.1, state.2) }
-            .bind(onNext: { item, category, fields, stock in
+                Observable.combineLatest(selectedCategorySubject, selectedFieldsSubject, stockValueSubject, imageSubject)
+            ) { item, state in (item, state.0, state.1, state.2, state.3) }
+            .bind(onNext: { item, category, fields, stock, image in
                 let mainCategory = category == .food ? "식재료" : category == .household ? "생활용품" : nil
                 guard item.name?.isEmpty == false, mainCategory != nil else {
                     confirmErrorSubject.onNext(("이름과 카테고리를 입력해주세요."))
@@ -97,12 +100,19 @@ final class RegisterDetailViewModel: ViewModelProtocol {
                 }
                 var result = item
                 result.mainCategory = mainCategory
+                result.image = image
                 if fields.contains(.stockAlert) {
                     result.lowStockThreshold = stock
                     result.isLowStockNotificationEnabled = stock > 0
                 }
                 result.selectedFields = fields
                 didConfirmSubject.onNext(result)
+            })
+            .disposed(by: disposeBag)
+        
+        input.imagePicked
+            .bind(onNext: { [weak self] image in
+                self?.imageSubject.onNext(image)
             })
             .disposed(by: disposeBag)
         

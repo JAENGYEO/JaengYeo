@@ -8,6 +8,7 @@
 import UIKit
 import RxSwift
 import RxCocoa
+import PhotosUI
 
 protocol RegisterDetailViewControllerDelegate: AnyObject {
     func didTapConfirmButton(item: RegisterFormData)
@@ -28,6 +29,8 @@ final class RegisterDetailViewController: UIViewController {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
+    
+    private let imagePickedSubject = PublishSubject<UIImage>()
     
     init(viewModel: RegisterDetailViewModel) {
         self.viewModel = viewModel
@@ -107,7 +110,8 @@ extension RegisterDetailViewController {
             fieldsSelected: fieldsSelectedRelay.asObservable(),
             stockPlusTapped: mainView.stockPlusButton.rx.tap.asObservable(),
             stockMinusTapped: mainView.stockMinusButton.rx.tap.asObservable(),
-            confirmTapped: confirmTapped
+            confirmTapped: confirmTapped,
+            imagePicked: imagePickedSubject.asObservable()
         )
         
         let output = viewModel.transform(input)
@@ -156,6 +160,12 @@ extension RegisterDetailViewController {
         mainView.addInfoButton.rx.tap
             .bind(onNext: { [weak self] in
                 self?.presentExtraField()
+            })
+            .disposed(by: disposeBag)
+        
+        mainView.photoButton.rx.tap
+            .bind(onNext: { [weak self] in
+                self?.presentImagePicker()
             })
             .disposed(by: disposeBag)
 
@@ -219,5 +229,29 @@ extension RegisterDetailViewController {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "확인", style: .default))
         present(alert, animated: true)
+    }
+}
+
+extension RegisterDetailViewController {
+    private func presentImagePicker() {
+        var config = PHPickerConfiguration()
+        config.selectionLimit = 1
+        config.filter = .images
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+}
+
+extension RegisterDetailViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        dismiss(animated: true)
+        guard let provider = results.first?.itemProvider,
+              provider.canLoadObject(ofClass: UIImage.self) else { return }
+        
+        provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
+            guard let image = object as? UIImage else { return }
+            self?.imagePickedSubject.onNext(image)
+        }
     }
 }
