@@ -19,6 +19,7 @@ final class RegisterItemListViewModel: ViewModelProtocol {
     
     let navigateToDetail = PublishSubject<RegisterFormData>()
     let navigateToAdd = PublishSubject<Void>()
+    let navigateToStock = PublishSubject<Void>()
     
     init(items: [RegisterFormData], coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol) {
         self.itemsSubject = BehaviorSubject(value: items)
@@ -119,6 +120,7 @@ extension RegisterItemListViewModel {
         do {
             try coreDataManager.createProducts(payloads: payloads)
             syncManager.syncIfConnected()
+            navigateToStock.onNext(())
         } catch {
             errorSubject.onNext("저장 실패")
         }

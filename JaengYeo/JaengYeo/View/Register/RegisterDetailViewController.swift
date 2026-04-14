@@ -45,6 +45,7 @@ final class RegisterDetailViewController: UIViewController {
     private let imagePickedSubject = PublishSubject<UIImage>()
     private lazy var midCategorySelectedRelay = BehaviorRelay<UUID?>(value: viewModel.item.midCategory)
     private lazy var subCategorySelectedRelay = BehaviorRelay<UUID?>(value: viewModel.item.subCategory)
+    private lazy var subCategoryIconNameRelay = BehaviorRelay<String?>(value: viewModel.item.subCategoryIconName)
     private let imageClearedRelay = PublishRelay<Void>()
     private let stockAlertClearedRelay = PublishRelay<Void>()
     
@@ -124,6 +125,7 @@ extension RegisterDetailViewController {
                 item.brand = mainView.brandField.text.flatMap { $0.isEmpty ? nil : $0 }
                 item.midCategoryName = mainView.midCategoryField.text.flatMap { $0.isEmpty ? nil : $0 }
                 item.subCategoryName = mainView.subCategoryField.text.flatMap { $0.isEmpty ? nil : $0 }
+                item.subCategoryIconName = subCategoryIconNameRelay.value
                 return item
             }
             .asObservable()
@@ -214,7 +216,10 @@ extension RegisterDetailViewController {
                     self?.mainView.photoButton.clipsToBounds = true
                     self?.mainView.photoButton.layer.cornerRadius = 8
                 } else {
-                    self?.mainView.photoButton.setImage(UIImage(systemName: "photo"), for: .normal)
+                    self?.mainView.photoButton.setImage(UIImage(named: "imageSelectIcon"), for: .normal)
+                    self?.mainView.photoButton.imageView?.contentMode = .scaleAspectFit
+                    self?.mainView.photoButton.clipsToBounds = false
+                    self?.mainView.photoButton.layer.cornerRadius = 0
                 }
             })
             .disposed(by: disposeBag)
@@ -226,6 +231,7 @@ extension RegisterDetailViewController {
                 self?.mainView.subCategoryField.text = nil
                 self?.midCategorySelectedRelay.accept(nil)
                 self?.subCategorySelectedRelay.accept(nil)
+                self?.subCategoryIconNameRelay.accept(nil)
             })
             .disposed(by: disposeBag)
         
@@ -317,6 +323,7 @@ extension RegisterDetailViewController: RegisterFieldSelectViewControllerDelegat
             case .subCategory:
                 mainView.subCategoryField.text = nil
                 subCategorySelectedRelay.accept(nil)
+                subCategoryIconNameRelay.accept(nil)
             case .expiryDate:
                 mainView.expiryDateField.text = nil
             case .caution:
@@ -383,8 +390,9 @@ extension RegisterDetailViewController {
         midCategorySelectedRelay.accept(id)
     }
     
-    func didSelectSubCategory(id: UUID?, name: String?) {
+    func didSelectSubCategory(id: UUID?, name: String?, iconName: String?) {
         mainView.subCategoryField.text = name
         subCategorySelectedRelay.accept(id)
+        subCategoryIconNameRelay.accept(iconName)
     }
 }

@@ -24,6 +24,7 @@ struct RegisterFormData: Hashable {
     var memo: String?
     var image: UIImage?
     var imageUrl: String?
+    var subCategoryIconName: String?
     var isLowStockNotificationEnabled: Bool?
     var lowStockThreshold: Int?
     var caution: String?

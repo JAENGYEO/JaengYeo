@@ -53,9 +53,9 @@ final class RegisterCoordinator {
 }
 
 extension RegisterCoordinator: RegisterViewControllerDelegate {
-    func pushItemListView(items: [RegisterFormData]) {
+    func pushItemListView(items: [RegisterFormData], pageTitle: String, showInfoLabel: Bool = true) {
         let viewModel = RegisterItemListViewModel(items: items, coreDataManager: coreDataManager, syncManager: syncManager)
-        let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: "AI 인식 결과")
+        let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: pageTitle, showInfoLabel: showInfoLabel)
         listViewModel = viewModel
         viewModel.navigateToAdd
             .bind(onNext: { [weak self] in
@@ -66,6 +66,16 @@ extension RegisterCoordinator: RegisterViewControllerDelegate {
         viewModel.navigateToDetail
             .bind(onNext: { [weak self] item in
                 self?.pushRegisterDetailView(item: item)
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.navigateToStock
+            .bind(onNext: { [weak self] in
+                self?.navigationController.tabBarController?.selectedIndex = 2
+                //TODO: DispatchQueue로 해도 pop 전환 애니메이션이 잠깐 보이는 문제 있음. 누군가 살려주길 바람.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                    self?.navigationController.setViewControllers(Array(self?.navigationController.viewControllers.prefix(1) ?? []), animated: false)
+                }
             })
             .disposed(by: disposeBag)
         
@@ -115,7 +125,7 @@ extension RegisterCoordinator: RegisterDetailViewControllerDelegate {
         let viewController = RegisterCategoryViewController(items: selectionItem, selectedID: subCategory?.uuidString)
         viewController.onSelect = { [weak self] selectedID in
             let selectedItem = items.first { $0.id.uuidString == selectedID }
-            self?.detailViewController?.didSelectSubCategory(id: selectedItem?.id, name: selectedItem?.name)
+            self?.detailViewController?.didSelectSubCategory(id: selectedItem?.id, name: selectedItem?.name, iconName: selectedItem?.iconName)
         }
         navigationController.present(viewController, animated: false)
     }
