@@ -25,4 +25,8 @@ protocol CategoryManagerProtocol {
     func upsertMidCategory(dto: MidCategoryDTO) async throws
     // 소분류 upsert
     func upsertSubCategory(dto: SubCategoryDTO) async throws
+    // 기본 MidCategory Fetch
+    func fetchSystemMidCategories(mainCategory: String) async throws -> [MidCategoryDTO]
+    // 기본 SubCategory Fetch
+    func fetchSystemSubCategories(mainCategory: String) async throws -> [SubCategoryDTO]
 }
