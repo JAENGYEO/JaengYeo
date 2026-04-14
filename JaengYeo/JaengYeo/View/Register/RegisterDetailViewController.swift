@@ -36,8 +36,8 @@ final class RegisterDetailViewController: UIViewController {
     }()
     
     private let imagePickedSubject = PublishSubject<UIImage>()
-    private let midCategorySelectedRelay = PublishRelay<UUID?>()
-    private let subCategorySelectedRelay = PublishRelay<UUID?>()
+    private lazy var midCategorySelectedRelay = BehaviorRelay<UUID?>(value: viewModel.item.midCategory)
+    private lazy var subCategorySelectedRelay = BehaviorRelay<UUID?>(value: viewModel.item.subCategory)
     private let imageClearedRelay = PublishRelay<Void>()
     private let stockAlertClearedRelay = PublishRelay<Void>()
     
@@ -127,7 +127,7 @@ extension RegisterDetailViewController {
         midCategoryTap.rx.event
             .bind(onNext: { [weak self] _ in
                 guard let self else { return }
-                delegate?.didTapMidCategory(midCategory: viewModel.item.midCategory)
+                delegate?.didTapMidCategory(midCategory: midCategorySelectedRelay.value)
             })
             .disposed(by: disposeBag)
         
@@ -137,7 +137,7 @@ extension RegisterDetailViewController {
         subCategoryTap.rx.event
             .bind(onNext: { [weak self] _ in
                 guard let self else { return }
-                delegate?.didTapSubCategory(subCategory: viewModel.item.subCategory)
+                delegate?.didTapSubCategory(subCategory: subCategorySelectedRelay.value)
             })
             .disposed(by: disposeBag)
         
