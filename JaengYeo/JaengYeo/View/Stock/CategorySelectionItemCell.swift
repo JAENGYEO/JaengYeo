@@ -113,7 +113,7 @@ private extension CategorySelectionItemCell {
     let cell = CategorySelectionItemCell()
     cell.updateUI(
         title: "전체",
-        image: UIImage(named: "Category"),
+        image: UIImage(named: "categoryIcon"),
         isSelect: false
     )
     return cell

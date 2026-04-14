@@ -31,11 +31,6 @@ final class CategorySelectionViewController: UIViewController {
     var onApply: (([String]) -> Void)?
 
     //MARK: - Components
-    /// 배경 딤 뷰
-    private let dimView = UIView().then {
-        $0.backgroundColor = UIColor.black.withAlphaComponent(0.25)
-    }
-    
     /// 카테고리 선택 뷰
     private let categorySelectionView = CategorySelectionView()
 
@@ -44,7 +39,7 @@ final class CategorySelectionViewController: UIViewController {
         self.viewModel = CategorySelectionViewModel(items: items)
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .overFullScreen
-        modalTransitionStyle = .crossDissolve
+        modalTransitionStyle = .coverVertical
     }
 
     required init?(coder: NSCoder) {
@@ -140,6 +135,19 @@ extension CategorySelectionViewController {
     }
 }
 
+//MARK: - Action
+private extension CategorySelectionViewController {
+    /// 배경 선택 이벤트
+    @objc
+    func didTapBackground(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: view)
+        
+        if !categorySelectionView.frame.contains(location) {
+            dismiss(animated: true)
+        }
+    }
+}
+
 //MARK: - DataSource
 extension CategorySelectionViewController {
     /// 데이터소스 설정
@@ -179,12 +187,14 @@ extension CategorySelectionViewController {
     private func configureUI() {
         view.backgroundColor = .clear
 
-        view.addSubview(dimView)
-        view.addSubview(categorySelectionView)
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(didTapBackground)
+        )
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
 
-        dimView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-        }
+        view.addSubview(categorySelectionView)
 
         categorySelectionView.snp.makeConstraints {
             $0.leading.trailing.bottom.equalToSuperview()
@@ -199,7 +209,7 @@ extension CategorySelectionViewController {
             CategorySelectionItem(
                 id: "\($0)",
                 title: "항목\($0)",
-                image: UIImage(named: "Category"),
+                image: UIImage(named: "categoryIcon"),
                 isSelect: false
             )
         }

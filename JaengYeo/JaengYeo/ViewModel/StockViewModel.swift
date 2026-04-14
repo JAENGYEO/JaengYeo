@@ -398,7 +398,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
                 CategorySelectionItem(
                     id: $0.id.uuidString,
                     title: $0.name,
-                    image: UIImage(named: $0.iconName ?? "Category"),
+                    image: UIImage(named: $0.iconName ?? "categoryIcon"),
                     isSelect: selectedMidCategoryIDsRelay.value.contains($0.id.uuidString)
                 )
             } ?? []
@@ -413,7 +413,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
                 CategorySelectionItem(
                     id: $0.id.uuidString,
                     title: $0.name,
-                    image: UIImage(named: $0.iconName ?? "Category"),
+                    image: UIImage(named: $0.iconName ?? "categoryIcon"),
                     isSelect: selectedSubCategoryIDsRelay.value.contains($0.id.uuidString)
                 )
             } ?? []
