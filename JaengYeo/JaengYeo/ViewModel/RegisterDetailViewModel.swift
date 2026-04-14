@@ -23,6 +23,8 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         let imagePicked: Observable<UIImage>
         let midCategorySelected: Observable<UUID?>
         let subCategorySelected: Observable<UUID?>
+        let imageCleared: Observable<Void>
+        let stockAlertCleared: Observable<Void>
     }
     
     struct Output {
@@ -139,7 +141,15 @@ final class RegisterDetailViewModel: ViewModelProtocol {
                 self?.imageSubject.onNext(image)
             })
             .disposed(by: disposeBag)
-        
+
+        input.imageCleared
+            .bind(onNext: { [weak self] in self?.imageSubject.onNext(nil) })
+            .disposed(by: disposeBag)
+
+        input.stockAlertCleared
+            .bind(onNext: { [weak self] in self?.stockValueSubject.onNext(0) })
+            .disposed(by: disposeBag)
+
         input.midCategorySelected
             .bind(to: midCategorySubject)
             .disposed(by: disposeBag)
