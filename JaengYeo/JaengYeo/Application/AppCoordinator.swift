@@ -24,9 +24,6 @@ final class AppCoordinator {
         let categoryManager = CategoryManager(client: client)
         let coreDataManager = CoreDataManager()
         
-        try? coreDataManager.seedMockProductsIfNeeded()
-        try? coreDataManager.seedMockCategoriesIfNeeded()
-        
         let syncManager = SyncManager(
             productManager: productManager,
             categoryManager: categoryManager,
@@ -34,12 +31,28 @@ final class AppCoordinator {
         )
         
         Task {
-            let session = try? await client.auth.signIn(
+            _ = try? await client.auth.signIn(
                 email: "test@test.com",
                 password: "test1234"
             )
-            
-            syncManager.networkCheck()
+            if !UserDefaults.standard.bool(forKey: "firstLaunch") {
+                for main in ["식재료", "생활용품"] {
+                    if let mids = try? await categoryManager.fetchSystemMidCategories(mainCategory: main) {
+                        for dto in mids {
+                            try? coreDataManager.createMidCategory(dto.toPayload())
+                        }
+                    }
+                    if let subs = try? await categoryManager.fetchSystemSubCategories(mainCategory: main) {
+                        for dto in subs {
+                            try? coreDataManager.createSubCategory(dto.toPayload())
+                        }
+                    }
+                }
+                UserDefaults.standard.set(true, forKey: "firstLaunch")
+            }
+            await MainActor.run {
+                syncManager.networkCheck()
+            }
         }
         self.syncManager = syncManager
         
