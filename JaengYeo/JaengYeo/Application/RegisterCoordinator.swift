@@ -31,7 +31,15 @@ final class RegisterCoordinator {
         self.syncManager = syncManager
         self.client = client
         
-        let viewModel = RegisterViewModel(client: client)
+        let parser: ReceiptProtocol
+        if #available(iOS 26, *) {
+            parser = FoundationModelReceiptParser()
+        } else {
+            parser = AIReceiptParser(client: client)
+        }
+        let receiptAnalyzer = ReceiptAnalyzer(parser: parser)
+        
+        let viewModel = RegisterViewModel(client: client, receiptAnalyzer: receiptAnalyzer)
         let viewController = RegisterViewController(viewModel: viewModel)
         navigationController = UINavigationController(rootViewController: viewController)
         navigationController.tabBarItem = UITabBarItem(

@@ -8,18 +8,22 @@
 import Foundation
 import RxSwift
 import Supabase
+import UIKit
 
 final class RegisterViewModel: ViewModelProtocol {
     
     private let client: SupabaseClient
+    private let receiptAnalyzer: ReceiptProtocol
     private let disposeBag = DisposeBag()
     
-    init(client: SupabaseClient) {
+    init(client: SupabaseClient, receiptAnalyzer: ReceiptProtocol) {
         self.client = client
+        self.receiptAnalyzer = receiptAnalyzer
     }
     
     struct Input {
         let aiCaptured: PublishSubject<Data>
+        let receiptCaptured: PublishSubject<UIImage>
     }
     
     struct Output {
@@ -32,7 +36,7 @@ final class RegisterViewModel: ViewModelProtocol {
         let isLoadingSubject = PublishSubject<Bool>()
         let errorSubject = PublishSubject<String>()
         
-        let aiResponseData = input.aiCaptured
+        let aiStream = input.aiCaptured
             .do(onNext: { _ in isLoadingSubject.onNext(true) })
             .flatMapLatest { [weak self] data -> Observable<[RegisterFormData]> in
                 guard let self else { return .empty() }
@@ -54,6 +58,32 @@ final class RegisterViewModel: ViewModelProtocol {
                     return Disposables.create()
                 }
             }
+        
+        let receiptStream = input.receiptCaptured
+            .do(onNext: { _ in isLoadingSubject.onNext(true) })
+            .flatMapLatest { [weak self] image -> Observable<[RegisterFormData]> in
+                guard let self else { return .empty() }
+                return Observable.create { observer in
+                    let task = Task {
+                        do {
+                            let items = try await self.receiptAnalyzer.analyzeReceipt(image: image)
+                            observer.onNext(items)
+                            isLoadingSubject.onNext(false)
+                            observer.onCompleted()
+                        } catch {
+                            isLoadingSubject.onNext(false)
+                            errorSubject.onNext("영수증 인식 실패")
+                            observer.onCompleted()
+                        }
+                    }
+                    return Disposables.create {
+                        task.cancel()
+                    }
+                }
+            }
+        
+        let aiResponseData = Observable.merge(aiStream, receiptStream)
+        
         return Output(
             aiResponseData: aiResponseData,
             isLoading: isLoadingSubject.asObservable(),
