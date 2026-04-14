@@ -82,6 +82,12 @@ extension RegisterDetailViewController {
         mainView.brandField.text = item.brand
         mainView.stockAlertLabel.text = item.lowStockThreshold.map { String($0) } ?? "0"
         fieldsSelectedRelay.accept(item.selectedFields)
+        if let image = item.image {
+            mainView.photoButton.setImage(image, for: .normal)
+            mainView.photoButton.imageView?.contentMode = .scaleAspectFill
+            mainView.photoButton.clipsToBounds = true
+            mainView.photoButton.layer.cornerRadius = 8
+        }
     }
 }
 
@@ -154,6 +160,20 @@ extension RegisterDetailViewController {
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] error in
                 self?.showErrorAlert(title: "에러", message: error)
+            })
+            .disposed(by: disposeBag)
+        
+        output.selectedImage
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] image in
+                if let image {
+                    self?.mainView.photoButton.setImage(image, for: .normal)
+                    self?.mainView.photoButton.imageView?.contentMode = .scaleAspectFill
+                    self?.mainView.photoButton.clipsToBounds = true
+                    self?.mainView.photoButton.layer.cornerRadius = 8
+                } else {
+                    self?.mainView.photoButton.setImage(UIImage(systemName: "photo"), for: .normal)
+                }
             })
             .disposed(by: disposeBag)
         

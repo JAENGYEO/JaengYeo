@@ -29,6 +29,7 @@ final class RegisterDetailViewModel: ViewModelProtocol {
         let stockAlertValue: Observable<String>
         let confirmError: Observable<String>
         let didConfirm: Observable<RegisterFormData>
+        let selectedImage: Observable<UIImage?>
     }
     
     let item: RegisterFormData
@@ -121,7 +122,8 @@ final class RegisterDetailViewModel: ViewModelProtocol {
             selectedFields: selectedFieldsSubject.asObservable(),
             stockAlertValue: stockValueSubject.map { String($0) },
             confirmError: confirmErrorSubject.asObservable(),
-            didConfirm: didConfirmSubject.asObservable()
+            didConfirm: didConfirmSubject.asObservable(),
+            selectedImage: imageSubject.asObservable()
         )
     }
 }
