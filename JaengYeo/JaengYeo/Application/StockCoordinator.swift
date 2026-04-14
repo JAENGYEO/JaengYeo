@@ -33,7 +33,7 @@ final class StockCoordinator {
 extension StockCoordinator: StockViewControllerDelegate {
     func didTapCategoryEditButton() {
         let categoryEditViewController = CategoryEditViewController(
-            CategoryEditViewModel(coreDataManager: coreDataManager)
+            viewModel: CategoryEditViewModel(coreDataManager: coreDataManager)
         )
         navigationController.pushViewController(categoryEditViewController, animated: true)
     }
