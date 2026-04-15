@@ -106,7 +106,7 @@ extension RegisterItemListViewModel {
                 locationMemo: nil,
                 memo: item.memo,
                 imageUrl: imageUrl, //TODO: 수정 필요
-                isClassified: false,
+                isClassified: item.midCategory != nil,
                 lowStockThreshold: Int32(item.lowStockThreshold ?? 1),
                 isFavorite: false, //TODO: 수정 필요
                 createdAt: now,
