@@ -55,6 +55,43 @@ enum CategoryEditMode {
             return item
         }
     }
+    
+    var iconNames: [String] {
+        switch (target, mainCategory) {
+        case (.midCategory, MainCategory.foodstuff.rawValue):
+            return FoodMidCategoryIcon.iconNames
+        case (.subCategory, MainCategory.foodstuff.rawValue):
+            return FoodSubCategoryIcon.iconNames
+        case (.midCategory, MainCategory.household.rawValue):
+            return HouseholdMidCategoryIcon.iconNames
+        case (.subCategory, MainCategory.household.rawValue):
+            return HouseholdSubCategoryIcon.iconNames
+        default:
+            return ["categoryIcon"]
+        }
+    }
+    
+    var selectedIconName: String? {
+        item?.iconName
+    }
+    
+    private var target: CategoryEditTarget {
+        switch self {
+        case .add(let target, _):
+            return target
+        case .edit(let target, _, _):
+            return target
+        }
+    }
+    
+    private var mainCategory: String {
+        switch self {
+        case .add(_, let mainCategory):
+            return mainCategory
+        case .edit(_, _, let mainCategory):
+            return mainCategory
+        }
+    }
 }
 
 final class CategoryEditDetailViewController: UIViewController {
@@ -63,6 +100,8 @@ final class CategoryEditDetailViewController: UIViewController {
     private let mode: CategoryEditMode
     private let viewModel: CategoryEditDetailViewModel
     private let disposeBag = DisposeBag()
+    private let iconNameSelectedRelay = PublishRelay<String>()
+    private var selectedIconName: String = "categoryIcon"
 
     //MARK: - Components
     private let inputContainerView = UIView().then {
@@ -72,6 +111,7 @@ final class CategoryEditDetailViewController: UIViewController {
     private let categoryImageView = UIImageView().then {
         $0.image = UIImage(named: "iconSelectIcon")
         $0.contentMode = .scaleAspectFit
+        $0.isUserInteractionEnabled = true
     }
 
     private let nameTextField = UITextField().then {
@@ -124,6 +164,7 @@ private extension CategoryEditDetailViewController {
     func bind() {
         let input = CategoryEditDetailViewModel.Input(
             nameText: nameTextField.rx.text.asObservable(),
+            iconNameSelected: iconNameSelectedRelay.asObservable(),
             confirmTapped: confirmButton.rx.tap.asObservable(),
             deleteTapped: deleteButton.rx.tap.asObservable()
         )
@@ -136,6 +177,35 @@ private extension CategoryEditDetailViewController {
                 self.navigationController?.popViewController(animated: true)
             })
             .disposed(by: disposeBag)
+        
+        let tapGesture = UITapGestureRecognizer()
+        categoryImageView.addGestureRecognizer(tapGesture)
+        
+        tapGesture.rx.event
+            .bind(onNext: { [weak self] _ in
+                self?.presentCategoryIcons()
+            })
+            .disposed(by: disposeBag)
+    }
+}
+
+//MARK: - Present
+private extension CategoryEditDetailViewController {
+    /// 아이콘 선택 화면 표시
+    func presentCategoryIcons() {
+        let viewController = CategoryIconsViewController(
+            iconNames: mode.iconNames,
+            selectedIconName: selectedIconName
+        )
+        
+        viewController.onApply = { [weak self] iconName in
+            guard let self else { return }
+            self.selectedIconName = iconName
+            self.categoryImageView.image = UIImage(named: iconName)
+            self.iconNameSelectedRelay.accept(iconName)
+        }
+        
+        present(viewController, animated: true)
     }
 }
 
@@ -150,10 +220,12 @@ private extension CategoryEditDetailViewController {
     /// 데이터 설정
     func configureData() {
         guard let item = mode.item else {
+            selectedIconName = mode.selectedIconName ?? ""
             deleteButton.isEnabled = false
             return
         }
 
+        selectedIconName = item.iconName
         categoryImageView.image = item.image
         nameTextField.text = item.title
         deleteButton.isEnabled = item.userId != nil
@@ -211,4 +283,3 @@ private extension CategoryEditDetailViewController {
         }
     }
 }
-
