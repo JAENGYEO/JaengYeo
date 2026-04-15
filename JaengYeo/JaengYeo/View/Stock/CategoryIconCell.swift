@@ -5,14 +5,11 @@
 //  Created by Hanjuheon on 4/15/26.
 //
 
-
 import SnapKit
 import Then
 import UIKit
 
-final class CategortIconCell: UICollectionViewCell {
-
-    static let id = "CategortIconCell"
+final class CategoryIconCell: UICollectionViewCell {
 
     //MARK: - Components
     private let iconContainerView = UIView().then {
@@ -53,7 +50,7 @@ final class CategortIconCell: UICollectionViewCell {
 }
 
 //MARK: - Public
-extension CategortIconCell {
+extension CategoryIconCell {
     /// 아이콘 설정
     func updateUI(image: UIImage?) {
         iconImageView.image = image
@@ -62,7 +59,7 @@ extension CategortIconCell {
 }
 
 //MARK: - Configure UI
-private extension CategortIconCell {
+private extension CategoryIconCell {
     /// UI 설정
     func configureUI() {
         backgroundColor = .clear
@@ -72,7 +69,7 @@ private extension CategortIconCell {
         iconContainerView.addSubview(iconImageView)
 
         iconContainerView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.center.equalToSuperview()
             $0.size.equalTo(48)
         }
 
@@ -85,13 +82,11 @@ private extension CategortIconCell {
     /// 선택 상태 적용
     func applySelectionState() {
         iconContainerView.backgroundColor = isSelected ? .primary100 : .white
-        //TODO: 아이콘 이미지 적용시 백그라운드 색상 clear로 변경
-        iconImageView.backgroundColor = .clear
     }
 }
 
 #Preview {
-    let cell = CategortIconCell()
+    let cell = CategoryIconCell()
     cell.updateUI(image: UIImage(named: "categoryIcon"))
     return cell
 }

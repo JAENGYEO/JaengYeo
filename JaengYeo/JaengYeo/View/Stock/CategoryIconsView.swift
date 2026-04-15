@@ -11,6 +11,18 @@ import UIKit
 
 final class CategoryIconsView: UIView {
 
+    //MARK: - Enum
+    private enum Section {
+        case main
+    }
+
+    //MARK: - Properties
+    /// 아이콘 이름 목록
+    private var iconNames = [
+        "categoryIcon"
+    ]
+    private lazy var dataSource = configureDataSource()
+
     //MARK: - Components
     /// 카테고리 컬렉션 뷰
     lazy var collectionView = UICollectionView(
@@ -18,6 +30,7 @@ final class CategoryIconsView: UIView {
         collectionViewLayout: createLayout()
     ).then {
         $0.backgroundColor = .white
+        $0.allowsMultipleSelection = false
         $0.showsHorizontalScrollIndicator = false
     }
 
@@ -32,6 +45,7 @@ final class CategoryIconsView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         configureUI()
+        applySnapshot()
     }
     
     required init?(coder: NSCoder) {
@@ -39,10 +53,42 @@ final class CategoryIconsView: UIView {
     }
 }
 
+//MARK: - DataSource
+private extension CategoryIconsView {
+
+    /// 스냅샷 적용
+    func applySnapshot() {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, String>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(iconNames, toSection: .main)
+        dataSource.apply(snapshot, animatingDifferences: false)
+    }
+    
+    /// 데이터소스 설정
+    private func configureDataSource() -> UICollectionViewDiffableDataSource<Section, String> {
+        let cellRegistration = UICollectionView.CellRegistration<
+            CategoryIconCell,
+            String
+        > { cell, _, iconName in
+            cell.updateUI(image: UIImage(named: iconName))
+        }
+
+        return UICollectionViewDiffableDataSource<Section, String>(
+            collectionView: collectionView
+        ) { collectionView, indexPath, iconName in
+            collectionView.dequeueConfiguredReusableCell(
+                using: cellRegistration,
+                for: indexPath,
+                item: iconName
+            )
+        }
+    }
+}
+
 //MARK: - Compositional Layout
 private extension CategoryIconsView {
     /// 컬렉션 뷰 레이아웃 생성
-    func createLayout() -> UICollectionViewLayout {
+    private func createLayout() -> UICollectionViewLayout {
         let item = NSCollectionLayoutItem(
             layoutSize: .init(
                 widthDimension: .absolute(48),
@@ -76,7 +122,7 @@ private extension CategoryIconsView {
 //MARK: - Configure UI
 private extension CategoryIconsView {
     /// UI 설정
-    func configureUI() {
+    private func configureUI() {
         backgroundColor = .white
 
         addSubview(collectionView)
