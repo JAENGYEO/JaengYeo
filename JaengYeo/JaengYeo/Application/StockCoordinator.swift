@@ -45,7 +45,13 @@ extension StockCoordinator: CategoryEditViewControllerDelegate {
         _ viewController: CategoryEditViewController,
         didSelect mode: CategoryEditMode
     ) {
-        let viewController = CategoryEditDetailViewController(mode: mode)
+        let viewController = CategoryEditDetailViewController(
+            mode: mode,
+            viewModel: CategoryEditDetailViewModel(
+                mode: mode,
+                coreDataManager: coreDataManager
+            )
+        )
         navigationController.pushViewController(viewController, animated: true)
     }
 }

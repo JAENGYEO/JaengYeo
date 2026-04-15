@@ -253,15 +253,18 @@ private extension CategoryEditViewController {
     func makeEditMode(at indexPath: IndexPath) -> CategoryEditMode? {
         guard
             let section = dataSource.sectionIdentifier(for: indexPath.section),
-            let item = dataSource.itemIdentifier(for: indexPath)
+            let item = dataSource.itemIdentifier(for: indexPath),
+            let mainCategory = mainCategorySegment.titleForSegment(
+                at: mainCategorySegment.selectedSegmentIndex
+            )
         else { return nil }
         
         if item.id.hasSuffix("-add") {
-            return .add(section.target)
+            return .add(section.target, mainCategory)
         }
         
         guard item.userId != nil else { return nil }
-        return .edit(section.target, item)
+        return .edit(section.target, item, mainCategory)
     }
 }
 

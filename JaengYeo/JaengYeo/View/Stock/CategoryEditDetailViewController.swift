@@ -8,6 +8,8 @@
 import SnapKit
 import Then
 import UIKit
+import RxCocoa
+import RxSwift
 
 enum CategoryEditTarget {
     case midCategory
@@ -24,14 +26,14 @@ enum CategoryEditTarget {
 }
 
 enum CategoryEditMode {
-    case add(CategoryEditTarget)
-    case edit(CategoryEditTarget, CategoryEditItem)
+    case add(CategoryEditTarget, String)
+    case edit(CategoryEditTarget, CategoryEditItem, String)
 
     var navigationTitle: String {
         switch self {
-        case .add(let target):
+        case .add(let target, _):
             return "\(target.title) 카테고리 추가"
-        case .edit(let target, _):
+        case .edit(let target, _, _):
             return "\(target.title) 카테고리 편집"
         }
     }
@@ -49,7 +51,7 @@ enum CategoryEditMode {
         switch self {
         case .add:
             return nil
-        case .edit(_, let item):
+        case .edit(_, let item, _):
             return item
         }
     }
@@ -59,6 +61,8 @@ final class CategoryEditDetailViewController: UIViewController {
 
     //MARK: - Properties
     private let mode: CategoryEditMode
+    private let viewModel: CategoryEditDetailViewModel
+    private let disposeBag = DisposeBag()
 
     //MARK: - Components
     private let inputContainerView = UIView().then {
@@ -93,8 +97,12 @@ final class CategoryEditDetailViewController: UIViewController {
     )
 
     //MARK: - Init
-    init(mode: CategoryEditMode) {
+    init(
+        mode: CategoryEditMode,
+        viewModel: CategoryEditDetailViewModel
+    ) {
         self.mode = mode
+        self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -107,6 +115,27 @@ final class CategoryEditDetailViewController: UIViewController {
         configureNavigationBar()
         configureUI()
         configureData()
+        bind()
+    }
+}
+
+//MARK: - Bind
+private extension CategoryEditDetailViewController {
+    func bind() {
+        let input = CategoryEditDetailViewModel.Input(
+            nameText: nameTextField.rx.text.asObservable(),
+            confirmTapped: confirmButton.rx.tap.asObservable(),
+            deleteTapped: deleteButton.rx.tap.asObservable()
+        )
+
+        let output = viewModel.transform(input)
+
+        output.completed
+            .bind(onNext: { [weak self] in
+                guard let self else { return }
+                self.navigationController?.popViewController(animated: true)
+            })
+            .disposed(by: disposeBag)
     }
 }
 
@@ -183,10 +212,3 @@ private extension CategoryEditDetailViewController {
     }
 }
 
-#Preview {
-    UINavigationController(
-        rootViewController: CategoryEditDetailViewController(
-            mode: .add(.midCategory)
-        )
-    )
-}
