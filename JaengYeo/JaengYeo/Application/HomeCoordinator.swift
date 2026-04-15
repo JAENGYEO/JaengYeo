@@ -6,9 +6,13 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
 final class HomeCoordinator {
     let navigationController: UINavigationController
+    
+    private let disposeBag = DisposeBag()
     
     private let productManager: ProductManagerProtocol
     private let categoryManager: CategoryManagerProtocol
@@ -19,12 +23,19 @@ final class HomeCoordinator {
         self.categoryManager = categoryManager
         self.coreDataManager = coreDataManager
         
-        let viewController = HomeViewController()
+        let viewModel = HomeViewModel(coreDataManager: coreDataManager)
+        let viewController = HomeViewController(viewModel: viewModel)
         navigationController = UINavigationController(rootViewController: viewController)
         navigationController.tabBarItem = UITabBarItem(
             title: "홈",
             image: UIImage(systemName: "house"),
             selectedImage: UIImage(systemName: "house.fill")
         )
+        
+        viewModel.navigateToUnclassified
+            .bind(onNext: { [weak self] _ in //TODO: Stock 이동 적용
+                
+            })
+            .disposed(by: disposeBag)
     }
 }
