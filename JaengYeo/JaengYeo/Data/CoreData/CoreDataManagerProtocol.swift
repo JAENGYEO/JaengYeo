@@ -23,8 +23,8 @@ protocol CoreDataManagerProtocol {
     func softDeleteProduct(id: UUID) throws
     func hardDeleteProduct(id: UUID) throws
     func createProducts(payloads: [ProductPayload]) throws
-    func removeMidCategoryReferenceFromProducts(midCategoryId: UUID) throws
-    func removeSubCategoryReferenceFromProducts(subCategoryId: UUID) throws
+    func removeMidCategoryFromProducts(midCategoryId: UUID) throws
+    func removeSubCategoryFromProducts(subCategoryId: UUID) throws
     
     //MARK: - SubCategory
     func createSubCategory(_ payload: SubCategoryPayload) throws
