@@ -774,3 +774,26 @@ extension CoreDataManager {
         )
     }
 }
+
+extension CoreDataManager {
+    func fetchWithExpiryDate() throws -> [ProductPayload] {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "expiryDate != nil AND syncStatus != %@", SyncStatus.pendingDelete.rawValue)
+        
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    func fetchLowStockEnabled() throws -> [ProductPayload] {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "isLowStockNotificationEnabled == true AND syncStatus != %@", SyncStatus.pendingDelete.rawValue)
+        do {
+            return try context.fetch(request).map { toDomainProduct($0) }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+}

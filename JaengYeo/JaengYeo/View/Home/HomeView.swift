@@ -32,6 +32,7 @@ enum HomeSection: Int, CaseIterable {
 enum HomeItem: Hashable {
     case unclassified(Int)
     case categorySummary(HomeViewModel.CategorySummary)
+    case statusAlert(HomeViewModel.StatusSummary)
 }
 
 final class HomeView: UIView {
@@ -41,6 +42,7 @@ final class HomeView: UIView {
         $0.showsVerticalScrollIndicator = false
         $0.register(UnclassifiedCell.self, forCellWithReuseIdentifier: UnclassifiedCell.id)
         $0.register(CategorySummaryCell.self, forCellWithReuseIdentifier: CategorySummaryCell.id)
+        $0.register(StatusAlertCell.self, forCellWithReuseIdentifier: StatusAlertCell.id)
         $0.register(HomeSectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HomeSectionHeaderView.id)
     }
     
@@ -73,7 +75,9 @@ extension HomeView {
                 return self.makeListUnclassifiedSection()
             case .categorySummary:
                 return self.makeCategorySummarySection()
-            case .statusAlert, .recentItems:
+            case .statusAlert:
+                return self.makeStatusAlertSection()
+            case .recentItems:
                 return self.makeListUnclassifiedSection()
             case .none:
                 return self.makeListUnclassifiedSection()
@@ -103,6 +107,21 @@ extension HomeView {
         
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16)
+        
+        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(32))
+        let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)
+        section.boundarySupplementaryItems = [header]
+        return section
+    }
+    
+    private func makeStatusAlertSection() -> NSCollectionLayoutSection {
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(66))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(66))
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16)
+        section.interGroupSpacing = 8
         
         let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(32))
         let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)
