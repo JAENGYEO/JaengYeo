@@ -47,9 +47,10 @@ final class HomeViewController: UIViewController {
 
 extension HomeViewController {
     private func bind() {
-        
         let categoryCardTapped = mainView.collectionView.rx.itemSelected
-            .filter { $0.section == HomeSection.categorySummary.rawValue }
+            .filter { [weak self] indexPath in
+                self?.dataSource?.sectionIdentifier(for: indexPath.section) == .categorySummary
+            }
             .compactMap { [weak self] indexPath -> String? in
                 guard case .categorySummary(let summary) = self?.dataSource?.itemIdentifier(for: indexPath) else { return nil }
                 return summary.name
@@ -59,16 +60,18 @@ extension HomeViewController {
         let input = HomeViewModel.Input(
             viewWillAppear: viewWillAppearRelay.asObservable(),
             unclassifiedTapped: mainView.collectionView.rx.itemSelected
-                .filter { $0.section == HomeSection.unclassified.rawValue }
+                .filter { [weak self] indexPath in
+                    self?.dataSource?.sectionIdentifier(for: indexPath.section) == .unclassified
+                }
                 .map { _ in },
             categoryCardTapped: categoryCardTapped
         )
         let output = viewModel.transform(input)
         
-        Observable.combineLatest(output.unclassifiedCount, output.categorySummaries, output.statusAlerts)
+        Observable.combineLatest(output.unclassifiedCount, output.categorySummaries, output.statusAlerts, output.recentItems)
             .observe(on: MainScheduler.instance)
-            .bind(onNext: { [weak self] count, summaries, alerts in
-                self?.setSnapshot(unclassifiedCount: count, categorySummaries: summaries, statusAlerts: alerts)
+            .bind(onNext: { [weak self] count, summaries, alerts, recents in
+                self?.setSnapshot(unclassifiedCount: count, categorySummaries: summaries, statusAlerts: alerts, recentItems: recents)
             })
             .disposed(by: disposeBag)
     }
@@ -97,19 +100,31 @@ extension HomeViewController {
                     icon: isExpiry ? "timeIcon" : "bagIcon"
                 )
                 return cell
+            case .recentItem(let summary):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProductCell.id, for: indexPath) as? ProductCell else { return UICollectionViewCell() }
+                cell.updateUI(
+                    type: .homeType,
+                    title: summary.name,
+                    freshness: nil,
+                    descriptions: [summary.mainCategory],
+                    subdescriptions: nil,
+                    count: summary.quantity,
+                    image: summary.image ?? summary.subCategoryIconName.flatMap { UIImage(systemName: $0) } //TODO: 추후에 수정 필요
+                )
+                return cell
             }
         }
-        dataSource?.supplementaryViewProvider = { collectionView, kind, indexPath in
+        dataSource?.supplementaryViewProvider = { [weak self] collectionView, kind, indexPath in
             guard kind == UICollectionView.elementKindSectionHeader,
                   let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: HomeSectionHeaderView.id, for: indexPath) as? HomeSectionHeaderView else { return UICollectionReusableView() }
-            header.config(title: HomeSection(rawValue: indexPath.section)?.title ?? "")
+            header.config(title: self?.dataSource?.sectionIdentifier(for: indexPath.section)?.title ?? "")
             return header
         }
     }
 }
 
 extension HomeViewController {
-    private func setSnapshot(unclassifiedCount: Int, categorySummaries: [HomeViewModel.CategorySummary], statusAlerts: [HomeViewModel.StatusSummary]) {
+    private func setSnapshot(unclassifiedCount: Int, categorySummaries: [HomeViewModel.CategorySummary], statusAlerts: [HomeViewModel.StatusSummary], recentItems: [HomeViewModel.RecentItemSummary]) {
         var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
         if unclassifiedCount > 0 {
             snapshot.appendSections([.unclassified])
@@ -124,6 +139,12 @@ extension HomeViewController {
             snapshot.appendSections([.statusAlert])
             snapshot.appendItems(statusAlerts.map { .statusAlert($0)}, toSection: .statusAlert)
         }
+        
+        if !recentItems.isEmpty {
+            snapshot.appendSections([.recentItems])
+            snapshot.appendItems(recentItems.map { .recentItem($0) }, toSection:  .recentItems)
+        }
+        mainView.sections = snapshot.sectionIdentifiers
         dataSource?.apply(snapshot, animatingDifferences: false)
     }
 }

@@ -18,6 +18,8 @@ enum ProductCellType {
     case detailType
     /// 등록 디자인
     case registType
+    /// 홈디자인
+    case homeType
 }
 
 /// 공용 상품 셀
@@ -40,6 +42,14 @@ final class ProductCell: UICollectionViewListCell{
             case .registType:
                 productSubDescriptionStack.isHidden = true
                 productCountView.isHidden = true
+            
+            case .homeType:
+                productSubDescriptionStack.isHidden = true
+                productCountView.isHidden = false
+                var config = backgroundConfiguration ?? UIBackgroundConfiguration.clear()
+                config.strokeColor = UIColor.gray100
+                config.strokeWidth = 1
+                backgroundConfiguration = config
             }
         }
     }
@@ -47,7 +57,7 @@ final class ProductCell: UICollectionViewListCell{
     // MARK: - Components
     /// 아이템 이미지 뷰
     private let productImageView = UIImageView().then {
-        $0.contentMode = .scaleAspectFit
+        $0.contentMode = .scaleAspectFill
         $0.clipsToBounds = true
         $0.layer.cornerRadius = 8
         $0.backgroundColor = .clear
@@ -121,6 +131,11 @@ final class ProductCell: UICollectionViewListCell{
         productCountLabel.text = "0"
         productImageView.image = UIImage(named: "imageSelectIcon")
         productImageView.backgroundColor = .clear
+        
+        var config = backgroundConfiguration ?? UIBackgroundConfiguration.clear()
+        config.strokeWidth = 0
+        config.strokeColor = .clear
+        backgroundConfiguration = config
         
         updateDescriptionStack(
             stackView: productDescriptionStack,
@@ -264,6 +279,7 @@ private extension ProductCell {
         productCountView.snp.makeConstraints {
             $0.centerY.equalTo(contentView)
             $0.trailing.equalTo(contentView).inset(16)
+            $0.top.bottom.equalTo(productMainStack)
         }
         
         productInfoStack.snp.makeConstraints {
@@ -276,6 +292,7 @@ private extension ProductCell {
         
         productCountLabel.snp.makeConstraints {
             $0.trailing.equalTo(countUnitLabel.snp.leading).offset(-2)
+            $0.leading.equalToSuperview()
             $0.lastBaseline.equalTo(countUnitLabel.snp.lastBaseline)
         }
         

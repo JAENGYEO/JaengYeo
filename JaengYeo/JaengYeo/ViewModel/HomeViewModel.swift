@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import RxCocoa
+import UIKit
 
 final class HomeViewModel: ViewModelProtocol {
     
@@ -27,6 +28,15 @@ final class HomeViewModel: ViewModelProtocol {
         let imminentCount: Int
         let totalCount: Int
         var ratio: Float { totalCount == 0 ? 0 : Float(imminentCount) / Float(totalCount) }
+    }
+    
+    struct RecentItemSummary: Hashable {
+        let id: UUID
+        let name: String
+        let mainCategory: String
+        let quantity: Int
+        let image: UIImage?
+        let subCategoryIconName: String?
     }
     
     private let disposeBag = DisposeBag()
@@ -49,6 +59,7 @@ final class HomeViewModel: ViewModelProtocol {
         let unclassifiedCount: Observable<Int>
         let categorySummaries: Observable<[CategorySummary]>
         let statusAlerts: Observable<[StatusSummary]>
+        let recentItems: Observable<[RecentItemSummary]>
     }
     
     func transform(_ input: Input) -> Output {
@@ -107,6 +118,45 @@ final class HomeViewModel: ViewModelProtocol {
                 }
             }
         
+        let recentItems = trigger
+            .map { [weak self] _ -> [RecentItemSummary] in
+                guard let self else { return [] }
+                do {
+                    return try self.coreDataManager.fetchRecent(limit: 5)
+                        .map { payload in
+                            let image: UIImage?
+                            if let fileName = payload.imageUrl {
+                                let url = FileManager.default
+                                    .urls(for: .documentDirectory, in: .userDomainMask)[0]
+                                    .appendingPathComponent(fileName)
+                                image = UIImage(contentsOfFile: url.path)
+                            } else {
+                                image = nil
+                            }
+                            
+                            let iconName: String?
+                            if image == nil,
+                               let subCategoryId = payload.subCategoryId,
+                               let subCategory = try? self.coreDataManager.fetchSubCategory(of: subCategoryId) {
+                                iconName = subCategory.iconName
+                            } else {
+                                iconName = nil
+                            }
+                            
+                            return RecentItemSummary(
+                                id: payload.id,
+                                name: payload.name,
+                                mainCategory: payload.mainCategory,
+                                quantity: Int(payload.quantity),
+                                image: image,
+                                subCategoryIconName: iconName
+                            )
+                        }
+                } catch {
+                    return []
+                }
+            }
+        
         input.unclassifiedTapped
             .bind(to: navigateToUnclassified)
             .disposed(by: disposeBag)
@@ -118,7 +168,8 @@ final class HomeViewModel: ViewModelProtocol {
         return Output(
             unclassifiedCount: unclassifiedCount,
             categorySummaries: categorySummaries,
-            statusAlerts: statusAlerts
+            statusAlerts: statusAlerts,
+            recentItems: recentItems
         )
     }
 }

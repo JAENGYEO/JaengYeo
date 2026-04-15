@@ -33,9 +33,12 @@ enum HomeItem: Hashable {
     case unclassified(Int)
     case categorySummary(HomeViewModel.CategorySummary)
     case statusAlert(HomeViewModel.StatusSummary)
+    case recentItem(HomeViewModel.RecentItemSummary)
 }
 
 final class HomeView: UIView {
+    
+    var sections: [HomeSection] = []
     
     lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
         $0.backgroundColor = .white
@@ -43,6 +46,7 @@ final class HomeView: UIView {
         $0.register(UnclassifiedCell.self, forCellWithReuseIdentifier: UnclassifiedCell.id)
         $0.register(CategorySummaryCell.self, forCellWithReuseIdentifier: CategorySummaryCell.id)
         $0.register(StatusAlertCell.self, forCellWithReuseIdentifier: StatusAlertCell.id)
+        $0.register(ProductCell.self, forCellWithReuseIdentifier: ProductCell.id)
         $0.register(HomeSectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HomeSectionHeaderView.id)
     }
     
@@ -61,16 +65,19 @@ extension HomeView {
     private func setLayout() {
         addSubview(collectionView)
         collectionView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.top.equalTo(safeAreaLayoutGuide)
+            $0.leading.trailing.bottom.equalToSuperview()
         }
     }
 }
 
 extension HomeView {
     private func createLayout() -> UICollectionViewLayout {
-        UICollectionViewCompositionalLayout { sectionIndex, _ in
-            let section = HomeSection(rawValue: sectionIndex)
-            switch section {
+        UICollectionViewCompositionalLayout { [weak self] sectionIndex, _ in
+            guard let self, sectionIndex < self.sections.count else {
+                return self?.makeListUnclassifiedSection()
+            }
+            switch self.sections[sectionIndex] {
             case .unclassified:
                 return self.makeListUnclassifiedSection()
             case .categorySummary:
@@ -78,9 +85,7 @@ extension HomeView {
             case .statusAlert:
                 return self.makeStatusAlertSection()
             case .recentItems:
-                return self.makeListUnclassifiedSection()
-            case .none:
-                return self.makeListUnclassifiedSection()
+                return self.makeRecentItemSection()
             }
         }
     }
@@ -118,6 +123,21 @@ extension HomeView {
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(66))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
         let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(66))
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16)
+        section.interGroupSpacing = 8
+        
+        let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(32))
+        let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerSize, elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)
+        section.boundarySupplementaryItems = [header]
+        return section
+    }
+    
+    private func makeRecentItemSection() -> NSCollectionLayoutSection {
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(88))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(88))
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16)
