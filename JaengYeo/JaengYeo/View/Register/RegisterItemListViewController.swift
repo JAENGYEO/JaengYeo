@@ -96,6 +96,20 @@ extension RegisterItemListViewController {
                 self?.showErrorAlert(title: "에러", message: error)
             })
             .disposed(by: disposeBag)
+        
+        output.isSaveEnabled
+            .observe(on: MainScheduler.instance)
+            .bind(to: mainView.saveButton.rx.isEnabled)
+            .disposed(by: disposeBag)
+        
+        output.isSaveEnabled
+            .observe(on: MainScheduler.instance)
+            .map { $0 ? UIColor.accent : UIColor.accent.withAlphaComponent(0.3) }
+            .bind(onNext: { [weak self] color in
+                self?.mainView.saveButton.backgroundColor = color
+            })
+            .disposed(by: disposeBag)
+            
     }
 }
 

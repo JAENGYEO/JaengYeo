@@ -36,6 +36,7 @@ final class RegisterItemListViewModel: ViewModelProtocol {
     struct Output {
         let items: Observable<[RegisterFormData]>
         let error: Observable<String>
+        let isSaveEnabled: Observable<Bool>
     }
     
     func transform(_ input: Input) -> Output {
@@ -57,7 +58,8 @@ final class RegisterItemListViewModel: ViewModelProtocol {
         
         return Output(
             items: itemsSubject.asObservable(),
-            error: errorSubject.asObservable()
+            error: errorSubject.asObservable(),
+            isSaveEnabled: itemsSubject.map { !$0.isEmpty }
         )
     }
 }
