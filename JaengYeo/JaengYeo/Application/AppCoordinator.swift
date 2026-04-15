@@ -7,11 +7,14 @@
 
 import UIKit
 import Supabase
+import RxSwift
+import RxCocoa
 
 final class AppCoordinator {
     private let window: UIWindow
     private var syncManager: SyncManagerProtocol?
     private var childCoordinators: [Any] = []
+    private let disposeBag = DisposeBag()
     
     init(window: UIWindow) {
         self.window = window
@@ -81,7 +84,25 @@ final class AppCoordinator {
             registerNavigationController: registerCoordinator.navigationController,
             stockNavigationController: stockCoordinator.navigationController
         )
+        
+        homeCoordinator.navigateToCategory
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak mainController, weak stockCoordinator] category in
+                mainController?.selectedIndex = 2
+                stockCoordinator?.selectMainCategory(name: category)
+            })
+            .disposed(by: disposeBag)
+        
+        registerCoordinator.navigateToStock
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak mainController] in
+                mainController?.selectedIndex = 2
+            })
+            .disposed(by: disposeBag)
+        
         window.rootViewController = mainController
         window.makeKeyAndVisible()
+
+                  
     }
 }
