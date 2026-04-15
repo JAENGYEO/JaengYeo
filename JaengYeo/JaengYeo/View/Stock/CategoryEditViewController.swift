@@ -245,6 +245,7 @@ private extension CategoryEditViewController {
             id: "\(section)-add",
             title: "추가",
             image: UIImage(named: "iconSelectIcon"),
+            iconName: "iconSelectIcon",
             userId: nil
         )
     }

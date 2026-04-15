@@ -13,7 +13,7 @@ import UIKit
 final class CategoryIconsViewController: UIViewController {
 
     //MARK: - Properties
-    private let iconsViewHeight = 325
+    private let iconsViewHeight = 356
     private let iconNames: [String]
     private let disposeBag = DisposeBag()
     private var selectedIconName: String?
@@ -30,6 +30,7 @@ final class CategoryIconsViewController: UIViewController {
         self.iconNames = iconNames
         self.selectedIconName = selectedIconName
         super.init(nibName: nil, bundle: nil)
+        configurePresentation()
     }
 
     required init?(coder: NSCoder) {
@@ -54,26 +55,58 @@ private extension CategoryIconsViewController {
                 self?.categoryIconsView.iconName(at: indexPath)
             }
             .bind(onNext: { [weak self] iconName in
-                self?.selectedIconName = iconName
+                self?.selectIcon(named: iconName)
             })
             .disposed(by: disposeBag)
 
         /// 완료 버튼 선택
         categoryIconsView.applyButton.rx.tap
-            .compactMap { [weak self] in
-                self?.selectedIconName
-            }
-            .bind(onNext: { [weak self] iconName in
-                guard let self else { return }
-                self.onApply?(iconName)
-                self.navigationController?.popViewController(animated: true)
+            .bind(onNext: { [weak self] in
+                self?.applySelectedIcon()
             })
             .disposed(by: disposeBag)
     }
 }
 
+//MARK: - Action
+private extension CategoryIconsViewController {
+    /// 배경 선택 이벤트
+    @objc
+    func didTapBackground(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: view)
+        
+        if !categoryIconsView.frame.contains(location) {
+            close()
+        }
+    }
+    
+    /// 아이콘 선택
+    func selectIcon(named iconName: String) {
+        selectedIconName = iconName
+    }
+    
+    /// 선택 아이콘 적용
+    func applySelectedIcon() {
+        guard let selectedIconName else { return }
+        onApply?(selectedIconName)
+        close()
+    }
+    
+    /// 화면 닫기
+    func close() {
+        dismiss(animated: true)
+    }
+}
+
 //MARK: - Configure
 private extension CategoryIconsViewController {
+    /// 모달 설정
+    func configurePresentation() {
+        modalPresentationStyle = .overFullScreen
+        modalTransitionStyle = .coverVertical
+        overrideUserInterfaceStyle = .light
+    }
+    
     /// 네비게이션 바 설정
     func configureNavigationBar() {
         title = "아이콘 선택"
@@ -90,11 +123,20 @@ private extension CategoryIconsViewController {
 
     /// UI 설정
     func configureUI() {
-        view.backgroundColor = .white
+        view.backgroundColor = .clear
+        view.overrideUserInterfaceStyle = .light
+        
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(didTapBackground)
+        )
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
+
         view.addSubview(categoryIconsView)
 
         categoryIconsView.snp.makeConstraints {
-            $0.top.leading.trailing.equalTo(view.safeAreaLayoutGuide)
+            $0.leading.trailing.bottom.equalToSuperview()
             $0.height.equalTo(iconsViewHeight)
         }
     }

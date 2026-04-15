@@ -157,6 +157,12 @@ private extension CategoryIconsView {
     /// UI 설정
     private func configureUI() {
         backgroundColor = .white
+        layer.cornerRadius = 8
+        layer.maskedCorners = [
+            .layerMinXMinYCorner,
+            .layerMaxXMinYCorner
+        ]
+        clipsToBounds = true
 
         addSubview(collectionView)
         addSubview(applyButton)
@@ -170,7 +176,7 @@ private extension CategoryIconsView {
         applyButton.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalToSuperview().inset(16)
-            $0.bottom.equalToSuperview()
+            $0.bottom.equalTo(safeAreaLayoutGuide).inset(16)
             $0.height.equalTo(44)
         }
     }
