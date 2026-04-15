@@ -23,6 +23,9 @@ final class RegisterCoordinator {
     private let disposeBag = DisposeBag()
     
     private weak var listViewModel: RegisterItemListViewModel?
+    private weak var detailViewController: RegisterDetailViewController?
+    
+    let navigateToStock = PublishSubject<Void>()
     
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol, client: SupabaseClient) {
         self.productManager = productManager
@@ -31,7 +34,15 @@ final class RegisterCoordinator {
         self.syncManager = syncManager
         self.client = client
         
-        let viewModel = RegisterViewModel(client: client)
+        let parser: ReceiptProtocol
+        if #available(iOS 26, *) {
+            parser = FoundationModelReceiptParser()
+        } else {
+            parser = AIReceiptParser(client: client)
+        }
+        let receiptAnalyzer = ReceiptAnalyzer(parser: parser)
+        
+        let viewModel = RegisterViewModel(client: client, receiptAnalyzer: receiptAnalyzer)
         let viewController = RegisterViewController(viewModel: viewModel)
         navigationController = UINavigationController(rootViewController: viewController)
         navigationController.tabBarItem = UITabBarItem(
@@ -44,9 +55,9 @@ final class RegisterCoordinator {
 }
 
 extension RegisterCoordinator: RegisterViewControllerDelegate {
-    func pushItemListView(items: [RegisterFormData]) {
+    func pushItemListView(items: [RegisterFormData], pageTitle: String, showInfoLabel: Bool = true) {
         let viewModel = RegisterItemListViewModel(items: items, coreDataManager: coreDataManager, syncManager: syncManager)
-        let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: "AI 인식 결과")
+        let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: pageTitle, showInfoLabel: showInfoLabel)
         listViewModel = viewModel
         viewModel.navigateToAdd
             .bind(onNext: { [weak self] in
@@ -60,6 +71,14 @@ extension RegisterCoordinator: RegisterViewControllerDelegate {
             })
             .disposed(by: disposeBag)
         
+        viewModel.navigateToStock
+            .bind(onNext: { [weak self] in
+                guard let self else { return }
+                navigationController.setViewControllers(Array(navigationController.viewControllers.prefix(1)), animated: false)
+                navigateToStock.onNext(())
+            })
+            .disposed(by: disposeBag)
+        
         navigationController.pushViewController(viewController, animated: true)
     }
 }
@@ -69,6 +88,7 @@ extension RegisterCoordinator {
         let viewModel = RegisterDetailViewModel(item: item)
         let viewController = RegisterDetailViewController(viewModel: viewModel)
         viewController.delegate = self
+        detailViewController = viewController
         navigationController.pushViewController(viewController, animated: true)
     }
 }
@@ -80,5 +100,33 @@ extension RegisterCoordinator: RegisterDetailViewControllerDelegate {
         } else {
             listViewModel?.appendItem(item: item)
         }
+    }
+    
+    func didTapMidCategory(midCategory: UUID?) {
+        guard let mainCategory = detailViewController?.currentMainCategory else { return }
+        let items = (try? coreDataManager.fetchAllMidCategories(mainCategory: mainCategory)) ?? []
+        let selectionItem = items.map {
+            CategorySelectionItem(id: $0.id.uuidString, title: $0.name, image: nil, isSelect: $0.id == midCategory)
+        }
+        let viewController = RegisterCategoryViewController(items: selectionItem, selectedID: midCategory?.uuidString)
+        viewController.onSelect = { [weak self] selectedID in
+            let selectedItem = items.first { $0.id.uuidString == selectedID }
+            self?.detailViewController?.didSelectMidCategory(id: selectedItem?.id, name: selectedItem?.name)
+        }
+        navigationController.present(viewController, animated: false)
+    }
+    
+    func didTapSubCategory(subCategory: UUID?) {
+        guard let mainCategory = detailViewController?.currentMainCategory else { return }
+        let items = (try? coreDataManager.fetchAllSubCategories(mainCategory: mainCategory)) ?? []
+        let selectionItem = items.map {
+            CategorySelectionItem(id: $0.id.uuidString, title: $0.name, image: nil, isSelect: $0.id == subCategory)
+        }
+        let viewController = RegisterCategoryViewController(items: selectionItem, selectedID: subCategory?.uuidString)
+        viewController.onSelect = { [weak self] selectedID in
+            let selectedItem = items.first { $0.id.uuidString == selectedID }
+            self?.detailViewController?.didSelectSubCategory(id: selectedItem?.id, name: selectedItem?.name, iconName: selectedItem?.iconName)
+        }
+        navigationController.present(viewController, animated: false)
     }
 }

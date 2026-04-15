@@ -17,12 +17,14 @@ final class RegisterItemListViewController: UIViewController {
     private let mainView = RegisterItemListView()
     private let viewModel: RegisterItemListViewModel
     private let pageTitle: String
+    private let showInfoLabel: Bool
     
     private let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil)
     
-    init(viewModel: RegisterItemListViewModel, pageTitle: String) {
+    init(viewModel: RegisterItemListViewModel, pageTitle: String, showInfoLabel: Bool) {
         self.viewModel = viewModel
         self.pageTitle = pageTitle
+        self.showInfoLabel = showInfoLabel
         super.init(nibName: nil, bundle: nil)
         hidesBottomBarWhenPushed = true
     }
@@ -41,7 +43,7 @@ final class RegisterItemListViewController: UIViewController {
                 descriptions: [itemIdentifier.mainCategory].compactMap { $0 },
                 subdescriptions: nil,
                 count: itemIdentifier.quantity,
-                image: nil //TODO: 수정필요
+                image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(systemName: $0) }
             )
             cell.accessories = [.disclosureIndicator(options: .init(tintColor: .gray300))]
             return cell
@@ -57,6 +59,7 @@ final class RegisterItemListViewController: UIViewController {
         mainView.collectionView.register(ProductCell.self, forCellWithReuseIdentifier: ProductCell.id)
         configNavigationBar()
         bind()
+        mainView.infoLabel.isHidden = !showInfoLabel
     }
 }
 
@@ -109,12 +112,19 @@ extension RegisterItemListViewController {
 
 extension RegisterItemListViewController {
     private func setSnapshot(items: [RegisterFormData]) {
+        let currentItemIds = Set(dataSource.snapshot().itemIdentifiers.map { $0.id })
+        
         var snapshot = NSDiffableDataSourceSnapshot<SectionID, RegisterFormData>()
         items.forEach { item in
             snapshot.appendSections([item.id])
             snapshot.appendItems([item], toSection: item.id)
             
         }
+        let itemsToReconfig = items.filter { currentItemIds.contains($0.id) }
+        if !itemsToReconfig.isEmpty {
+            snapshot.reconfigureItems(itemsToReconfig)
+        }
+        
         dataSource.apply(snapshot, animatingDifferences: true)
     }
 }

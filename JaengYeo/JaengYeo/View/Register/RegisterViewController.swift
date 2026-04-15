@@ -11,7 +11,7 @@ import RxSwift
 import RxCocoa
 
 protocol RegisterViewControllerDelegate: AnyObject {
-    func pushItemListView(items: [RegisterFormData])
+    func pushItemListView(items: [RegisterFormData], pageTitle: String, showInfoLabel: Bool)
 }
 
 final class RegisterViewController: UIViewController {
@@ -22,6 +22,7 @@ final class RegisterViewController: UIViewController {
     
     private let viewModel: RegisterViewModel
     private let aiCapturedSubject = PublishSubject<Data>()
+    private let receiptCapturedSubject = PublishSubject<UIImage>()
     
     private let mainView = RegisterView()
     
@@ -98,6 +99,7 @@ extension RegisterViewController {
         mainView.manualButton.rx.tap
             .bind(onNext: { [weak self] in
                 self?.switchMode(mode: .manual)
+                self?.delegate?.pushItemListView(items: [], pageTitle: "직접 입력", showInfoLabel: false)
             })
             .disposed(by: disposeBag)
         mainView.flipButton.rx.tap
@@ -113,7 +115,10 @@ extension RegisterViewController {
             .disposed(by: disposeBag)
         
         //TODO: AI Response 로직 구현 필요 -> RegisterFormView 생성 이후 작업
-        let input = RegisterViewModel.Input(aiCaptured: aiCapturedSubject)
+        let input = RegisterViewModel.Input(
+            aiCaptured: aiCapturedSubject,
+            receiptCaptured: receiptCapturedSubject
+        )
         let output = viewModel.transform(input)
         
         output.aiResponseData
@@ -124,7 +129,7 @@ extension RegisterViewController {
                 case 0:
                     self.showErrorAlert(title: "인식 실패", message: "인식된 항목이 없습니다.")
                 default:
-                    self.delegate?.pushItemListView(items: items)
+                    self.delegate?.pushItemListView(items: items, pageTitle: "AI 인식 결과", showInfoLabel: true)
                 }
             })
             .disposed(by: disposeBag)
@@ -246,7 +251,7 @@ extension RegisterViewController {
 
 extension RegisterViewController {
     private func handleCaptureButtonTapped() { //TODO: case에 따라 분리처리 필요
-        guard currentMode == .aiVision else { return }
+        guard currentMode == .aiVision || currentMode == .receipt else { return }
         let settings = AVCapturePhotoSettings()
         photoOutput.capturePhoto(with: settings, delegate: self)
     }
@@ -258,13 +263,16 @@ extension RegisterViewController: AVCapturePhotoCaptureDelegate {
               let data = photo.fileDataRepresentation(),
               let image = UIImage(data: data) else { return }
         
-        let maxDimension: CGFloat
         switch currentMode {
-        case .aiVision: maxDimension = 512
-        default: maxDimension = 1024
+        case .receipt:
+            let resizedImage = image.resized(maxDimension: 1024)
+            receiptCapturedSubject.onNext(resizedImage)
+        case .aiVision:
+            guard let compressedData = image.resized(maxDimension: 512).jpegData(compressionQuality: 0.6) else { return }
+            aiCapturedSubject.onNext(compressedData)
+        default:
+            break
         }
-        guard let compressedData = image.resized(maxDimension: maxDimension).jpegData(compressionQuality: 0.6) else { return }
-        aiCapturedSubject.onNext(compressedData)
     }
 }
 

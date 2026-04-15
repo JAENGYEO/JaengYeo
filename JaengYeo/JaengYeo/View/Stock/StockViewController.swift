@@ -243,3 +243,13 @@ private extension StockViewController {
         }
     }
 }
+
+// Home에서 세그먼트 변경 후 접근할 메서드
+extension StockViewController {
+    func selectMainCategory(name: String) {
+        guard let index = (0..<mainCategorySegment.numberOfSegments)
+            .first(where: { mainCategorySegment.titleForSegment(at: $0) == name }) else { return }
+        mainCategorySegment.selectedSegmentIndex = index
+        mainCategorySegment.sendActions(for: .valueChanged)
+    }
+}

@@ -55,4 +55,6 @@ protocol CoreDataManagerProtocol {
     func fetchLowStock() throws -> [ProductPayload]
     func fetchRecent(limit: Int) throws -> [ProductPayload]
     func fetchByMainCategory(mainCategory: String) throws -> [ProductPayload]
+    func fetchWithExpiryDate() throws -> [ProductPayload]
+    func fetchLowStockEnabled() throws -> [ProductPayload]
 }

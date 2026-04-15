@@ -94,4 +94,26 @@ final class CategoryManager: CategoryManagerProtocol {
             .upsert(dto)
             .execute()
     }
+    
+    func fetchSystemMidCategories(mainCategory: String) async throws -> [MidCategoryDTO] {
+        try await client
+            .from(Table.midCategory.rawValue)
+            .select()
+            .eq(Column.mainCategory.rawValue, value: mainCategory)
+            .or("\(Column.userId.rawValue).is.null")
+            .order(Column.sortOrder.rawValue, ascending: true)
+            .execute()
+            .value
+    }
+    
+    func fetchSystemSubCategories(mainCategory: String) async throws -> [SubCategoryDTO] {
+        try await client
+            .from(Table.subCategory.rawValue)
+            .select()
+            .eq(Column.mainCategory.rawValue, value: mainCategory)
+            .or("\(Column.userId.rawValue).is.null")
+            .order(Column.sortOrder.rawValue, ascending: true)
+            .execute()
+            .value
+    }
 }
