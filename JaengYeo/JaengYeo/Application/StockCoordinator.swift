@@ -23,6 +23,7 @@ final class StockCoordinator {
         let viewController = StockViewController(viewModel: StockViewModel(coreDataManager: coreDataManager))
         self.stockViewController = viewController
         navigationController = UINavigationController(rootViewController: viewController)
+        viewController.delegate = self
         navigationController.tabBarItem = UITabBarItem(
             title: "재고",
             image: UIImage(systemName: "bag"),
@@ -31,6 +32,29 @@ final class StockCoordinator {
     }
 }
 
+extension StockCoordinator: StockViewControllerDelegate {
+    func didTapCategoryEditButton() {
+        let categoryEditViewController = CategoryEditViewController(
+            viewModel: CategoryEditViewModel(coreDataManager: coreDataManager)
+        )
+        categoryEditViewController.delegate = self
+        navigationController.pushViewController(categoryEditViewController, animated: true)
+    }
+}
+
+extension StockCoordinator: CategoryEditViewControllerDelegate {
+    func categoryEditViewController(
+        _ viewController: CategoryEditViewController,
+        didSelect mode: CategoryEditMode
+    ) {
+        let viewController = CategoryEditDetailViewController(
+            mode: mode,
+            viewModel: CategoryEditDetailViewModel(
+                mode: mode,
+                coreDataManager: coreDataManager
+            )
+        )
+        navigationController.pushViewController(viewController, animated: true)
 extension StockCoordinator {
     func selectMainCategory(name: String) {
         stockViewController.selectMainCategory(name: name)

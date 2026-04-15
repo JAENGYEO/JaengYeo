@@ -2,7 +2,7 @@
 //  StockViewController.swift
 //  JaengYeo
 //
-//  Created by 손영빈 on 4/7/26.
+//  Created by Hanjuheon on 4/7/26.
 //
 
 import RxCocoa
@@ -12,6 +12,10 @@ import SnapKit
 import Then
 import UIKit
 
+protocol StockViewControllerDelegate: AnyObject {
+    func didTapCategoryEditButton()
+}
+
 final class StockViewController: UIViewController {
 
     //MARK: - ViewModel
@@ -19,6 +23,7 @@ final class StockViewController: UIViewController {
 
     //MARK: - Properties
     private let disposeBag = DisposeBag()
+    weak var delegate: StockViewControllerDelegate?
 
     //MARK: - Components
     private let mainCategorySegment = UISegmentedControl().then {
@@ -86,6 +91,14 @@ private extension StockViewController {
             subCategoryApplied: subCategoryAppliedRelay.asObservable(),
             sortOptionSelected: sortOptionSelectedRelay.asObservable()
         )
+        
+        /// 카테고리 편집 버튼 바인딩
+        categoryFilterView.categoryEditButton.rx.tap
+            .bind(onNext: { [weak self] in
+                guard let self else { return }
+                self.delegate?.didTapCategoryEditButton()
+            })
+            .disposed(by: disposeBag)
         
         let output = viewModel.transform(input)
         

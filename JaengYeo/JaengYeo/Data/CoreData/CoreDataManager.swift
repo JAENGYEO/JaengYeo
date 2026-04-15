@@ -163,11 +163,7 @@ extension CoreDataManager {
         let entity = try fetchSubCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
-        do {
-            try context.save()
-        } catch {
-            throw CoreDataError.saveFailed
-        }
+        try removeSubCategoryFromProducts(subCategoryId: id)
     }
     
     //MARK: SubCategory Hard Delete
@@ -291,11 +287,7 @@ extension CoreDataManager {
         let entity = try fetchMidCategoryEntity(of: id)
         entity.syncStatus = SyncStatus.pendingDelete.rawValue
         entity.updatedAt = Date()
-        do {
-            try context.save()
-        } catch {
-            throw CoreDataError.saveFailed
-        }
+        try removeMidCategoryFromProducts(midCategoryId: id)
     }
     
     // MARK: MidCategory Hard Delete
@@ -524,6 +516,59 @@ extension CoreDataManager {
             try context.save()
         } catch {
             throw CoreDataError.contextSaveFailed(error)
+        }
+    }
+    
+    // MARK: Product Category Reference Update
+    func removeMidCategoryFromProducts(midCategoryId: UUID) throws {
+        let request: NSFetchRequest<ProductEntity> = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "%K == %@ AND %K != %@",
+            ProductEntity.Keys.midCategoryId,
+            midCategoryId as CVarArg,
+            ProductEntity.Keys.syncStatus,
+            SyncStatus.pendingDelete.rawValue
+        )
+
+        do {
+            let products = try context.fetch(request)
+            products.forEach {
+                $0.midCategoryId = nil
+                $0.updatedAt = Date()
+                
+                if $0.syncStatus == SyncStatus.synced.rawValue {
+                    $0.syncStatus = SyncStatus.pendingUpload.rawValue
+                }
+            }
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+
+    func removeSubCategoryFromProducts(subCategoryId: UUID) throws {
+        let request: NSFetchRequest<ProductEntity> = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "%K == %@ AND %K != %@",
+            ProductEntity.Keys.subCategoryId,
+            subCategoryId as CVarArg,
+            ProductEntity.Keys.syncStatus,
+            SyncStatus.pendingDelete.rawValue
+        )
+        
+        do {
+            let products = try context.fetch(request)
+            products.forEach {
+                $0.subCategoryId = nil
+                $0.updatedAt = Date()
+                
+                if $0.syncStatus == SyncStatus.synced.rawValue {
+                    $0.syncStatus = SyncStatus.pendingUpload.rawValue
+                }
+            }
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
         }
     }
 }
