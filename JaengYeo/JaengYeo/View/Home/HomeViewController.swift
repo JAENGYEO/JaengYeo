@@ -61,7 +61,7 @@ extension HomeViewController {
             viewWillAppear: viewWillAppearRelay.asObservable(),
             unclassifiedTapped: mainView.collectionView.rx.itemSelected
                 .filter { [weak self] indexPath in
-                    self?.dataSource?.sectionIdentifier(for: indexPath.section) == .categorySummary
+                    self?.dataSource?.sectionIdentifier(for: indexPath.section) == .unclassified
                 }
                 .map { _ in },
             categoryCardTapped: categoryCardTapped
