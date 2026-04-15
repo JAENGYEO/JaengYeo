@@ -8,11 +8,14 @@
 import SnapKit
 import Then
 import UIKit
+import RxCocoa
+import RxSwift
 
 final class CategorySelectionItemCell: UICollectionViewCell {
 
     //MARK: - Properties
     private let usesDeleteButton = false
+    private var disposeBag = DisposeBag()
     
     private var isItemSelected = false {
         didSet {
@@ -60,11 +63,13 @@ final class CategorySelectionItemCell: UICollectionViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
     override func prepareForReuse() {
         super.prepareForReuse()
         titleLabel.text = nil
         imageView.image = nil
         deleteButton.isHidden = true
+        disposeBag = DisposeBag()
         isItemSelected = false
     }
 }
@@ -81,6 +86,16 @@ extension CategorySelectionItemCell {
         imageView.image = image
         deleteButton.isHidden = !(showsDeleteButton ?? usesDeleteButton)
         isItemSelected = isSelect
+    }
+    
+    /// 삭제 버튼 선택 이벤트
+    var deleteButtonTap: ControlEvent<Void> {
+        deleteButton.rx.tap
+    }
+    
+    /// 재사용 바인딩 가방
+    var reuseDisposeBag: DisposeBag {
+        disposeBag
     }
 }
 

@@ -49,6 +49,7 @@ final class CategoryEditViewController: UIViewController {
 
     //MARK: - Properties
     private let disposeBag = DisposeBag()
+    private let deleteItemSelectedRelay = PublishRelay<(CategoryEditTarget, CategoryEditItem)>()
     private lazy var dataSource = configureDataSource()
     weak var delegate: CategoryEditViewControllerDelegate?
 
@@ -105,7 +106,8 @@ private extension CategoryEditViewController {
             viewDidLoad: viewDidLoadSubject.asObservable(),
             mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
                 .asObservable()
-                .filter { $0 >= 0 }
+                .filter { $0 >= 0 },
+            deleteItemSelected: deleteItemSelectedRelay.asObservable()
         )
 
         let output = viewModel.transform(input)
@@ -162,20 +164,21 @@ private extension CategoryEditViewController {
 private extension CategoryEditViewController {
 
     /// 데이터소스 설정
-    private func configureDataSource() -> UICollectionViewDiffableDataSource<
-        Section,
-        CategoryEditItem
-    > {
+    private func configureDataSource() -> UICollectionViewDiffableDataSource< Section,CategoryEditItem > {
         let cellRegistration = UICollectionView.CellRegistration<
-            CategorySelectionItemCell,
-            CategoryEditItem
-        > { cell, _, item in
+            CategorySelectionItemCell, CategoryEditItem > { cell, _, item in
             cell.updateUI(
                 title: item.title,
                 image: item.image,
                 isSelect: false,
                 showsDeleteButton: item.userId != nil
             )
+            
+            cell.deleteButtonTap
+                .bind(onNext: { [weak self] in
+                    self?.deleteItem(item)
+                })
+                .disposed(by: cell.reuseDisposeBag)
         }
 
         let headerRegistration = UICollectionView.SupplementaryRegistration<
@@ -267,10 +270,25 @@ private extension CategoryEditViewController {
         guard item.userId != nil else { return nil }
         return .edit(section.target, item, mainCategory)
     }
+    
+    /// 삭제 아이템 전달
+    func deleteItem(_ item: CategoryEditItem) {
+        
+        //TODO: 삭제 알림 화면 추가 필요
+        let snapshot = dataSource.snapshot()
+        guard
+            item.userId != nil,
+            let section = snapshot.sectionIdentifiers.first(where: {
+                snapshot.itemIdentifiers(inSection: $0).contains(item)
+            })
+        else { return }
+        deleteItemSelectedRelay.accept((section.target, item))
+    }
 }
 
 //MARK: - Compositional Layout
 private extension CategoryEditViewController {
+    
     /// 컬렉션 뷰 레이아웃 생성
     func createLayout() -> UICollectionViewLayout {
         let item = NSCollectionLayoutItem(

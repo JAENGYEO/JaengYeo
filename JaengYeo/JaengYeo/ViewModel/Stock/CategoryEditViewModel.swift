@@ -58,6 +58,8 @@ final class CategoryEditViewModel: NSObject, ViewModelProtocol {
         let viewDidLoad: Observable<Void>
         /// 메인 카테고리 선택 이벤트
         let mainCategorySelected: Observable<Int>
+        /// 삭제 버튼 선택 이벤트
+        let deleteItemSelected: Observable<(CategoryEditTarget, CategoryEditItem)>
     }
     
     /// 출력
@@ -82,6 +84,19 @@ final class CategoryEditViewModel: NSObject, ViewModelProtocol {
             .subscribe(onNext: { [weak self] index in
                 guard let self else { return }
                 self.updatePredicate(for: index)
+            })
+            .disposed(by: disposeBag)
+        
+        input.deleteItemSelected
+            .subscribe(onNext: { [weak self] target, item in
+                guard let self else { return }
+                do {
+                    try self.deleteCategory(
+                        target: target,
+                        item: item
+                    )
+                } catch {
+                }
             })
             .disposed(by: disposeBag)
 
@@ -212,5 +227,23 @@ extension CategoryEditViewModel: NSFetchedResultsControllerDelegate {
         subCategoryFetchResultController?.fetchRequest.predicate = mainCategoryPredicate
 
         performFetch()
+    }
+    
+    /// 카테고리 삭제
+    private func deleteCategory(
+        target: CategoryEditTarget,
+        item: CategoryEditItem
+    ) throws {
+        guard
+            item.userId != nil,
+            let id = UUID(uuidString: item.id)
+        else { return }
+        
+        switch target {
+        case .midCategory:
+            try coreDataManager.softDeleteMidCategory(id: id)
+        case .subCategory:
+            try coreDataManager.softDeleteSubCategory(id: id)
+        }
     }
 }

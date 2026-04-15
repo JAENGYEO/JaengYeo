@@ -162,11 +162,13 @@ final class CategoryEditDetailViewController: UIViewController {
 //MARK: - Bind
 private extension CategoryEditDetailViewController {
     func bind() {
+        let deleteConfirmedRelay = PublishRelay<Void>()
+
         let input = CategoryEditDetailViewModel.Input(
             nameText: nameTextField.rx.text.asObservable(),
             iconNameSelected: iconNameSelectedRelay.asObservable(),
             confirmTapped: confirmButton.rx.tap.asObservable(),
-            deleteTapped: deleteButton.rx.tap.asObservable()
+            deleteTapped: deleteConfirmedRelay.asObservable()
         )
 
         let output = viewModel.transform(input)
@@ -175,6 +177,13 @@ private extension CategoryEditDetailViewController {
             .bind(onNext: { [weak self] in
                 guard let self else { return }
                 self.navigationController?.popViewController(animated: true)
+            })
+            .disposed(by: disposeBag)
+        
+        deleteButton.rx.tap
+            .bind(onNext: {
+                //TODO: 삭제 알림 화면 추가 필요
+                deleteConfirmedRelay.accept(())
             })
             .disposed(by: disposeBag)
         
