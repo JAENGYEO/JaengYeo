@@ -18,6 +18,8 @@ final class HomeCoordinator {
     private let categoryManager: CategoryManagerProtocol
     private let coreDataManager: CoreDataManagerProtocol
     
+    let navigateToCategory = PublishSubject<String>()
+    
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol) {
         self.productManager = productManager
         self.categoryManager = categoryManager
@@ -36,6 +38,10 @@ final class HomeCoordinator {
             .bind(onNext: { [weak self] _ in //TODO: Stock 이동 적용
                 
             })
+            .disposed(by: disposeBag)
+        
+        viewModel.navigateToCategory
+            .bind(to: navigateToCategory)
             .disposed(by: disposeBag)
     }
 }
