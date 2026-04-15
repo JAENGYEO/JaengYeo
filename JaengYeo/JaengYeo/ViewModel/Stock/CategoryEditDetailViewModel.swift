@@ -20,6 +20,8 @@ final class CategoryEditDetailViewModel: ViewModelProtocol {
     struct Input {
         /// 이름 입력값
         let nameText: Observable<String?>
+        /// 아이콘 선택값
+        let iconNameSelected: Observable<String>
         /// 생성/수정 버튼 선택
         let confirmTapped: Observable<Void>
         /// 삭제 버튼 선택
@@ -33,17 +35,32 @@ final class CategoryEditDetailViewModel: ViewModelProtocol {
 
     func transform(_ input: Input) -> Output {
         let completedRelay = PublishRelay<Void>()
+        let nameTextRelay = BehaviorRelay<String>(value: "")
+        let iconNameRelay = BehaviorRelay<String>(
+            value: mode.selectedIconName ?? ""
+        )
 
-        let nameText = input.nameText
+        input.nameText
             .map { $0 ?? "" }
+            .bind(to: nameTextRelay)
+            .disposed(by: disposeBag)
+        
+        input.iconNameSelected
+            .bind(to: iconNameRelay)
+            .disposed(by: disposeBag)
 
         input.confirmTapped
-            .withLatestFrom(nameText)
-            .filter { !$0.isEmpty }
-            .subscribe(onNext: { [weak self] name in
+            .subscribe(onNext: { [weak self] in
                 guard let self else { return }
+                let name = nameTextRelay.value
+                let iconName = iconNameRelay.value
+                guard !name.isEmpty else { return }
+
                 do {
-                    try self.saveCategory(name: name)
+                    try self.saveCategory(
+                        name: name,
+                        iconName: iconName
+                    )
                     completedRelay.accept(())
                 } catch {
                 }
@@ -80,20 +97,25 @@ final class CategoryEditDetailViewModel: ViewModelProtocol {
 //MARK: - CoreData
 private extension CategoryEditDetailViewModel {
     /// 카테고리 저장
-    func saveCategory(name: String) throws {
+    func saveCategory(
+        name: String,
+        iconName: String
+    ) throws {
         switch mode {
         case .add(let target, let mainCategory):
             try createCategory(
                 target: target,
                 mainCategory: mainCategory,
-                name: name
+                name: name,
+                iconName: iconName
             )
 
         case .edit(let target, let item, _):
             try updateCategory(
                 target: target,
                 item: item,
-                name: name
+                name: name,
+                iconName: iconName
             )
         }
     }
@@ -102,14 +124,16 @@ private extension CategoryEditDetailViewModel {
     func createCategory(
         target: CategoryEditTarget,
         mainCategory: String,
-        name: String
+        name: String,
+        iconName: String
     ) throws {
         switch target {
         case .midCategory:
             try coreDataManager.createMidCategory(
                 makeMidCategoryPayload(
                     mainCategory: mainCategory,
-                    name: name
+                    name: name,
+                    iconName: iconName
                 )
             )
 
@@ -117,7 +141,8 @@ private extension CategoryEditDetailViewModel {
             try coreDataManager.createSubCategory(
                 makeSubCategoryPayload(
                     mainCategory: mainCategory,
-                    name: name
+                    name: name,
+                    iconName: iconName
                 )
             )
         }
@@ -127,7 +152,8 @@ private extension CategoryEditDetailViewModel {
     func updateCategory(
         target: CategoryEditTarget,
         item: CategoryEditItem,
-        name: String
+        name: String,
+        iconName: String
     ) throws {
         guard let id = UUID(uuidString: item.id) else { return }
 
@@ -140,7 +166,7 @@ private extension CategoryEditDetailViewModel {
                     userId: payload.userId,
                     mainCategory: payload.mainCategory,
                     name: name,
-                    iconName: payload.iconName,
+                    iconName: iconName,
                     sortOrder: payload.sortOrder,
                     createdAt: payload.createdAt,
                     updatedAt: Date(),
@@ -156,7 +182,7 @@ private extension CategoryEditDetailViewModel {
                     userId: payload.userId,
                     mainCategory: payload.mainCategory,
                     name: name,
-                    iconName: payload.iconName,
+                    iconName: iconName,
                     thumbnailKey: payload.thumbnailKey,
                     sortOrder: payload.sortOrder,
                     createdAt: payload.createdAt,
@@ -194,7 +220,8 @@ private extension CategoryEditDetailViewModel {
     /// 중분류 Payload 생성
     func makeMidCategoryPayload(
         mainCategory: String,
-        name: String
+        name: String,
+        iconName: String
     ) throws -> MidCategoryPayload {
         let now = Date()
 
@@ -203,7 +230,7 @@ private extension CategoryEditDetailViewModel {
             userId: Constants.Dev.userId,
             mainCategory: mainCategory,
             name: name,
-            iconName: "categoryIcon",
+            iconName: iconName,
             sortOrder: try nextMidCategorySortOrder(mainCategory: mainCategory),
             createdAt: now,
             updatedAt: now,
@@ -214,7 +241,8 @@ private extension CategoryEditDetailViewModel {
     /// 소분류 Payload 생성
     func makeSubCategoryPayload(
         mainCategory: String,
-        name: String
+        name: String,
+        iconName: String
     ) throws -> SubCategoryPayload {
         let now = Date()
 
@@ -223,7 +251,7 @@ private extension CategoryEditDetailViewModel {
             userId: Constants.Dev.userId,
             mainCategory: mainCategory,
             name: name,
-            iconName: "categoryIcon",
+            iconName: iconName,
             thumbnailKey: nil,
             sortOrder: try nextSubCategorySortOrder(mainCategory: mainCategory),
             createdAt: now,
