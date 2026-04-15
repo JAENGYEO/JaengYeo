@@ -73,7 +73,9 @@ extension HomeView {
                 return self.makeListUnclassifiedSection()
             case .categorySummary:
                 return self.makeCategorySummarySection()
-            default:
+            case .statusAlert, .recentItems:
+                return self.makeListUnclassifiedSection()
+            case .none:
                 return self.makeListUnclassifiedSection()
             }
         }
