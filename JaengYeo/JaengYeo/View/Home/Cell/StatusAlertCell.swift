@@ -53,6 +53,9 @@ final class StatusAlertCell: UICollectionViewCell {
         super.prepareForReuse()
         titleLabel.text = nil
         countLabel.text = nil
+        iconImageView.image = nil
+        iconImageView.tintColor = nil
+        progressFillView.backgroundColor = nil
     }
 }
 
