@@ -11,6 +11,7 @@ import UIKit
 import RxCocoa
 import RxSwift
 
+/// 편집 대상 분류
 enum CategoryEditTarget {
     case midCategory
     case subCategory
@@ -25,10 +26,12 @@ enum CategoryEditTarget {
     }
 }
 
+/// 분류 편집 화면 모드
 enum CategoryEditMode {
     case add(CategoryEditTarget, String)
     case edit(CategoryEditTarget, CategoryEditItem, String)
 
+    /// 네비게이션 타이틀
     var navigationTitle: String {
         switch self {
         case .add(let target, _):
@@ -38,6 +41,7 @@ enum CategoryEditMode {
         }
     }
 
+    /// 완료 버튼 타이틀
     var buttonTitle: String {
         switch self {
         case .add:
@@ -47,6 +51,7 @@ enum CategoryEditMode {
         }
     }
 
+    /// 편집 아이템
     var item: CategoryEditItem? {
         switch self {
         case .add:
@@ -55,7 +60,8 @@ enum CategoryEditMode {
             return item
         }
     }
-    
+
+    /// 선택 가능 아이콘 목록
     var iconNames: [String] {
         switch (target, mainCategory) {
         case (.midCategory, MainCategory.foodstuff.rawValue):
@@ -70,11 +76,12 @@ enum CategoryEditMode {
             return ["categoryIcon"]
         }
     }
-    
+
+    /// 현재 선택된 아이콘 이름
     var selectedIconName: String? {
         item?.iconName
     }
-    
+
     private var target: CategoryEditTarget {
         switch self {
         case .add(let target, _):
@@ -97,39 +104,50 @@ enum CategoryEditMode {
 final class CategoryEditDetailViewController: UIViewController {
 
     //MARK: - Properties
+    /// 편집 모드
     private let mode: CategoryEditMode
+    /// 뷰모델
     private let viewModel: CategoryEditDetailViewModel
+    /// 메모리 해제 가방
     private let disposeBag = DisposeBag()
+    /// 아이콘 선택값 전달
     private let iconNameSelectedRelay = PublishRelay<String>()
+    /// 현재 선택된 아이콘 이름
     private var selectedIconName: String = "categoryIcon"
 
     //MARK: - Components
+    /// 입력 영역 뷰
     private let inputContainerView = UIView().then {
         $0.backgroundColor = .white
     }
 
+    /// 카테고리 이미지 뷰
     private let categoryImageView = UIImageView().then {
         $0.image = UIImage(named: "iconSelectIcon")
         $0.contentMode = .scaleAspectFit
         $0.isUserInteractionEnabled = true
     }
 
+    /// 분류 이름 입력 필드
     private let nameTextField = UITextField().then {
         $0.font = LabelConfiguration.bodyMedium14.font
         $0.textColor = .gray800
         $0.placeholder = "분류 이름을 입력해주세요"
     }
 
+    /// 입력 필드 하단 라인
     private let textFieldLineView = UIView().then {
         $0.backgroundColor = .gray200
     }
 
+    /// 삭제 버튼
     private let deleteButton = StyledButton(
         title: "삭제",
         titleConfiguration: .redTitle,
         appearanceConfiguration: .redAppearance
     )
 
+    /// 생성/수정 버튼
     private lazy var confirmButton = StyledButton(
         title: mode.buttonTitle,
         titleConfiguration: .defaultTitle,
@@ -179,14 +197,16 @@ private extension CategoryEditDetailViewController {
                 self.navigationController?.popViewController(animated: true)
             })
             .disposed(by: disposeBag)
-        
+
+        /// 삭제 버튼 선택
         deleteButton.rx.tap
             .bind(onNext: {
                 //TODO: 삭제 알림 화면 추가 필요
                 deleteConfirmedRelay.accept(())
             })
             .disposed(by: disposeBag)
-        
+
+        /// 아이콘 선택 화면 표시
         let tapGesture = UITapGestureRecognizer()
         categoryImageView.addGestureRecognizer(tapGesture)
         
@@ -229,7 +249,7 @@ private extension CategoryEditDetailViewController {
     /// 데이터 설정
     func configureData() {
         guard let item = mode.item else {
-            selectedIconName = mode.selectedIconName ?? ""
+            selectedIconName = mode.selectedIconName ?? "categoryIcon"
             deleteButton.isEnabled = false
             return
         }

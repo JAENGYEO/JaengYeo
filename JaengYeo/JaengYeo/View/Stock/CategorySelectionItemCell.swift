@@ -14,7 +14,6 @@ import RxSwift
 final class CategorySelectionItemCell: UICollectionViewCell {
 
     //MARK: - Properties
-    private let usesDeleteButton = false
     private var disposeBag = DisposeBag()
     
     private var isItemSelected = false {
@@ -84,18 +83,15 @@ extension CategorySelectionItemCell {
     ) {
         titleLabel.text = title
         imageView.image = image
-        deleteButton.isHidden = !(showsDeleteButton ?? usesDeleteButton)
+        deleteButton.isHidden = !(showsDeleteButton ?? false)
         isItemSelected = isSelect
     }
     
-    /// 삭제 버튼 선택 이벤트
-    var deleteButtonTap: ControlEvent<Void> {
+    /// 삭제 버튼 선택 바인딩
+    func bindDeleteButtonTap(onNext: @escaping () -> Void) {
         deleteButton.rx.tap
-    }
-    
-    /// 재사용 바인딩 가방
-    var reuseDisposeBag: DisposeBag {
-        disposeBag
+            .bind(onNext: onNext)
+            .disposed(by: disposeBag)
     }
 }
 
@@ -157,7 +153,7 @@ private extension CategorySelectionItemCell {
         title: "전체",
         image: UIImage(named: "categoryIcon"),
         isSelect: false,
-        showsDeleteButton : nil
+        showsDeleteButton: nil
     )
     return cell
 }

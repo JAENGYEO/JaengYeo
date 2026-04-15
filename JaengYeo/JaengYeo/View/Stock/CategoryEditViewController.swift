@@ -8,9 +8,10 @@
 import SnapKit
 import Then
 import UIKit
-import RxSwift
 import RxCocoa
+import RxSwift
 
+/// 분류 편집 화면 이벤트 전달
 protocol CategoryEditViewControllerDelegate: AnyObject {
     func categoryEditViewController(
         _ viewController: CategoryEditViewController,
@@ -49,11 +50,13 @@ final class CategoryEditViewController: UIViewController {
 
     //MARK: - Properties
     private let disposeBag = DisposeBag()
+    /// 삭제할 분류 전달
     private let deleteItemSelectedRelay = PublishRelay<(CategoryEditTarget, CategoryEditItem)>()
     private lazy var dataSource = configureDataSource()
     weak var delegate: CategoryEditViewControllerDelegate?
 
     //MARK: - Components
+    /// 메인 카테고리 세그먼트
     private let mainCategorySegment = UISegmentedControl().then {
         let attributes: [NSAttributedString.Key: Any] = [
             .font: LabelConfiguration.bodyMedium14.font,
@@ -70,6 +73,7 @@ final class CategoryEditViewController: UIViewController {
         $0.selectedSegmentTintColor = .white
     }
 
+    /// 분류 목록 컬렉션 뷰
     private lazy var categoryCollectionView = UICollectionView(
         frame: .zero,
         collectionViewLayout: createLayout()
@@ -100,10 +104,8 @@ final class CategoryEditViewController: UIViewController {
 //MARK: - Bind
 private extension CategoryEditViewController {
     func bind() {
-        let viewDidLoadSubject = PublishSubject<Void>()
-
         let input = CategoryEditViewModel.Input(
-            viewDidLoad: viewDidLoadSubject.asObservable(),
+            viewDidLoad: Observable.just(()),
             mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
                 .asObservable()
                 .filter { $0 >= 0 },
@@ -128,7 +130,8 @@ private extension CategoryEditViewController {
                 mainCategorySegment.selectedSegmentIndex = 0
             })
             .disposed(by: disposeBag)
-        
+
+        /// 분류 목록 바인딩
         Observable.combineLatest(
             output.presentMidCategoryItems,
             output.presentSubCategoryItems
@@ -155,8 +158,6 @@ private extension CategoryEditViewController {
                 )
             })
             .disposed(by: disposeBag)
-
-        viewDidLoadSubject.onNext(())
     }
 }
 
@@ -164,21 +165,24 @@ private extension CategoryEditViewController {
 private extension CategoryEditViewController {
 
     /// 데이터소스 설정
-    private func configureDataSource() -> UICollectionViewDiffableDataSource< Section,CategoryEditItem > {
+    private func configureDataSource() -> UICollectionViewDiffableDataSource<
+        Section,
+        CategoryEditItem
+    > {
         let cellRegistration = UICollectionView.CellRegistration<
-            CategorySelectionItemCell, CategoryEditItem > { cell, _, item in
+            CategorySelectionItemCell,
+            CategoryEditItem
+        > { [weak self] cell, _, item in
             cell.updateUI(
                 title: item.title,
                 image: item.image,
                 isSelect: false,
                 showsDeleteButton: item.userId != nil
             )
-            
-            cell.deleteButtonTap
-                .bind(onNext: { [weak self] in
-                    self?.deleteItem(item)
-                })
-                .disposed(by: cell.reuseDisposeBag)
+
+            cell.bindDeleteButtonTap {
+                self?.deleteItem(item)
+            }
         }
 
         let headerRegistration = UICollectionView.SupplementaryRegistration<
@@ -273,7 +277,6 @@ private extension CategoryEditViewController {
     
     /// 삭제 아이템 전달
     func deleteItem(_ item: CategoryEditItem) {
-        
         //TODO: 삭제 알림 화면 추가 필요
         let snapshot = dataSource.snapshot()
         guard
@@ -288,7 +291,6 @@ private extension CategoryEditViewController {
 
 //MARK: - Compositional Layout
 private extension CategoryEditViewController {
-    
     /// 컬렉션 뷰 레이아웃 생성
     func createLayout() -> UICollectionViewLayout {
         let item = NSCollectionLayoutItem(

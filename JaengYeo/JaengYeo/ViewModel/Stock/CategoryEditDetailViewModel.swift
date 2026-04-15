@@ -12,11 +12,15 @@ import RxSwift
 final class CategoryEditDetailViewModel: ViewModelProtocol {
 
     //MARK: - Properties
+    /// 메모리 해제 가방
     private let disposeBag = DisposeBag()
+    /// 편집 모드
     private let mode: CategoryEditMode
+    /// CoreData 매니저
     private let coreDataManager: CoreDataManagerProtocol
 
     //MARK: - React Binding
+    /// 입력
     struct Input {
         /// 이름 입력값
         let nameText: Observable<String?>
@@ -28,16 +32,18 @@ final class CategoryEditDetailViewModel: ViewModelProtocol {
         let deleteTapped: Observable<Void>
     }
 
+    /// 출력
     struct Output {
         /// 작업 완료 이벤트
         let completed: Observable<Void>
     }
 
+    /// 입력값 변환
     func transform(_ input: Input) -> Output {
         let completedRelay = PublishRelay<Void>()
         let nameTextRelay = BehaviorRelay<String>(value: "")
         let iconNameRelay = BehaviorRelay<String>(
-            value: mode.selectedIconName ?? ""
+            value: mode.selectedIconName ?? "categoryIcon"
         )
 
         input.nameText
