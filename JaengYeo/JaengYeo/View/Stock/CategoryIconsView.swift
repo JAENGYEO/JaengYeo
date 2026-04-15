@@ -53,15 +53,48 @@ final class CategoryIconsView: UIView {
     }
 }
 
+//MARK: - Icon Update
+extension CategoryIconsView {
+    /// 아이콘 목록 설정
+    func updateIcons(
+        iconNames: [String],
+        selectedIconName: String? = nil
+    ) {
+        self.iconNames = iconNames
+        applySnapshot(selectedIconName: selectedIconName)
+    }
+    
+    /// 아이콘 이름 조회
+    func iconName(at indexPath: IndexPath) -> String? {
+        dataSource.itemIdentifier(for: indexPath)
+    }
+}
+
 //MARK: - DataSource
 private extension CategoryIconsView {
 
     /// 스냅샷 적용
-    func applySnapshot() {
+    func applySnapshot(selectedIconName: String? = nil) {
         var snapshot = NSDiffableDataSourceSnapshot<Section, String>()
         snapshot.appendSections([.main])
         snapshot.appendItems(iconNames, toSection: .main)
-        dataSource.apply(snapshot, animatingDifferences: false)
+        dataSource.apply(snapshot, animatingDifferences: false) { [weak self] in
+            self?.selectIcon(named: selectedIconName)
+        }
+    }
+    
+    /// 아이콘 선택
+    func selectIcon(named iconName: String?) {
+        guard
+            let iconName,
+            let index = iconNames.firstIndex(of: iconName)
+        else { return }
+        
+        collectionView.selectItem(
+            at: IndexPath(item: index, section: 0),
+            animated: false,
+            scrollPosition: []
+        )
     }
     
     /// 데이터소스 설정
