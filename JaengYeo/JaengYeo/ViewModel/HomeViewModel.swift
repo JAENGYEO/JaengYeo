@@ -19,6 +19,16 @@ final class HomeViewModel: ViewModelProtocol {
         let subCategoryCount: Int
     }
     
+    enum AlertType { case expiry, lowStock}
+    
+    // 상태 알림에서 사용할 데이터 모델 구조체
+    struct StatusSummary: Hashable {
+        let type: AlertType
+        let imminentCount: Int
+        let totalCount: Int
+        var ratio: Float { totalCount == 0 ? 0 : Float(imminentCount) / Float(totalCount) }
+    }
+    
     private let disposeBag = DisposeBag()
     private let coreDataManager: CoreDataManagerProtocol
     
@@ -38,6 +48,7 @@ final class HomeViewModel: ViewModelProtocol {
     struct Output {
         let unclassifiedCount: Observable<Int>
         let categorySummaries: Observable<[CategorySummary]>
+        let statusAlerts: Observable<[StatusSummary]>
     }
     
     func transform(_ input: Input) -> Output {
@@ -73,7 +84,24 @@ final class HomeViewModel: ViewModelProtocol {
                             midCategoryCount: Set(household.compactMap { $0.midCategoryId }).count,
                             subCategoryCount: Set(household.compactMap { $0.subCategoryId }).count
                         )
-                    ]
+                    ].filter { $0.totalCount > 0 }
+                } catch {
+                    return []
+                }
+            }
+        
+        let statusAlerts = trigger
+            .map { [weak self] _ -> [StatusSummary] in
+                guard let self else { return [] }
+                do {
+                    let expiryImminent = try self.coreDataManager.fetchExpiryImminent(day: 1)
+                    let expiryTotal = try self.coreDataManager.fetchWithExpiryDate()
+                    let lowStockImminent = try self.coreDataManager.fetchLowStock()
+                    let lowStockTotal = try self.coreDataManager.fetchLowStockEnabled()
+                    return [
+                        StatusSummary(type: .expiry, imminentCount: expiryImminent.count, totalCount: expiryTotal.count),
+                        StatusSummary(type: .lowStock,imminentCount: lowStockImminent.count, totalCount: lowStockTotal.count)
+                    ].filter { $0.totalCount > 0 }
                 } catch {
                     return []
                 }
@@ -89,7 +117,8 @@ final class HomeViewModel: ViewModelProtocol {
         
         return Output(
             unclassifiedCount: unclassifiedCount,
-            categorySummaries: categorySummaries
+            categorySummaries: categorySummaries,
+            statusAlerts: statusAlerts
         )
     }
 }
