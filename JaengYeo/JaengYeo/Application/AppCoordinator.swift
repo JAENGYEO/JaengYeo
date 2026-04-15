@@ -10,6 +10,12 @@ import Supabase
 import RxSwift
 import RxCocoa
 
+private enum Tab: Int {
+    case home = 0
+    case register = 1
+    case stock = 2
+}
+
 final class AppCoordinator {
     private let window: UIWindow
     private var syncManager: SyncManagerProtocol?
@@ -88,7 +94,7 @@ final class AppCoordinator {
         homeCoordinator.navigateToCategory
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak mainController, weak stockCoordinator] category in
-                mainController?.selectedIndex = 2
+                mainController?.selectedIndex = Tab.stock.rawValue
                 stockCoordinator?.selectMainCategory(name: category)
             })
             .disposed(by: disposeBag)
@@ -96,7 +102,7 @@ final class AppCoordinator {
         registerCoordinator.navigateToStock
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak mainController] in
-                mainController?.selectedIndex = 2
+                mainController?.selectedIndex = Tab.stock.rawValue
             })
             .disposed(by: disposeBag)
         
