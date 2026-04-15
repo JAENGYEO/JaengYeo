@@ -33,7 +33,11 @@ final class HomeViewModel: ViewModelProtocol {
         let unclassifiedCount = input.viewWillAppear
             .map { [weak self] _ -> Int in
                 guard let self else { return 0 }
-                return (try? self.coreDataManager.fetchUnclassified())?.count ?? 0
+                do {
+                    return try self.coreDataManager.fetchUnclassified().count
+                } catch {
+                    return 0
+                }
             }
         
         input.unclassifiedTapped
