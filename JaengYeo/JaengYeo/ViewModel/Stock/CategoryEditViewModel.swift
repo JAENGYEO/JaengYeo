@@ -20,6 +20,8 @@ struct CategoryEditItem: Hashable {
     let title: String
     /// 아이템 이미지
     let image: UIImage?
+    /// 아이콘 이름
+    let iconName: String
     /// 사용자 ID
     let userId: String?
 }
@@ -135,13 +137,16 @@ extension CategoryEditViewModel: NSFetchedResultsControllerDelegate {
     
     /// 중분류 아이템 변환 및 반영
     private func updateMidCategories() {
-        let categories = midCategoryFetchResultController?.fetchedObjects?
-            .map {
-                CategoryEditItem(
-                    id: $0.id.uuidString,
-                    title: $0.name,
-                    image: UIImage(named: $0.iconName ?? "categoryIcon"),
-                    userId: $0.userId
+        let categories: [CategoryEditItem] = midCategoryFetchResultController?.fetchedObjects?
+            .filter { $0.syncStatus != SyncStatus.pendingDelete.rawValue }
+            .map { category -> CategoryEditItem in
+                let iconName = category.iconName ?? "categoryIcon"
+                return CategoryEditItem(
+                    id: category.id.uuidString,
+                    title: category.name,
+                    image: UIImage(named: iconName),
+                    iconName: iconName,
+                    userId: category.userId
                 )
             } ?? []
 
@@ -150,13 +155,16 @@ extension CategoryEditViewModel: NSFetchedResultsControllerDelegate {
     
     /// 소분류 아이템 변환 및 반영
     private func updateSubCategories() {
-        let categories = subCategoryFetchResultController?.fetchedObjects?
-            .map {
-                CategoryEditItem(
-                    id: $0.id.uuidString,
-                    title: $0.name,
-                    image: UIImage(named: $0.iconName ?? "categoryIcon"),
-                    userId: $0.userId
+        let categories: [CategoryEditItem] = subCategoryFetchResultController?.fetchedObjects?
+            .filter { $0.syncStatus != SyncStatus.pendingDelete.rawValue }
+            .map { category -> CategoryEditItem in
+                let iconName = category.iconName ?? "categoryIcon"
+                return CategoryEditItem(
+                    id: category.id.uuidString,
+                    title: category.name,
+                    image: UIImage(named: iconName),
+                    iconName: iconName,
+                    userId: category.userId
                 )
             } ?? []
 

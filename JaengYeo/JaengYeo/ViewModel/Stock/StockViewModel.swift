@@ -394,6 +394,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     /// 중분류 아이템 변환 및 반영
     private func updateMidCategories() {
         let categories = midCategoryFetchResultController?.fetchedObjects?
+            .filter { $0.syncStatus != SyncStatus.pendingDelete.rawValue }
             .map {
                 CategorySelectionItem(
                     id: $0.id.uuidString,
@@ -409,6 +410,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     /// 소분류 아이템 변환 및 반영
     private func updateSubCategories() {
         let categories = subCategoryFetchResultController?.fetchedObjects?
+            .filter { $0.syncStatus != SyncStatus.pendingDelete.rawValue }
             .map {
                 CategorySelectionItem(
                     id: $0.id.uuidString,
