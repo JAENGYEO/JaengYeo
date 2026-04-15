@@ -99,6 +99,13 @@ final class AppCoordinator {
             })
             .disposed(by: disposeBag)
         
+        homeCoordinator.navigateToRegister
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak mainController] in
+                mainController?.selectedIndex = Tab.register.rawValue
+            })
+            .disposed(by: disposeBag)
+        
         registerCoordinator.navigateToStock
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak mainController] in
