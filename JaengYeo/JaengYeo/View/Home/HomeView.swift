@@ -50,6 +50,8 @@ final class HomeView: UIView {
         $0.register(HomeSectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HomeSectionHeaderView.id)
     }
     
+    let emptyStateView = EmptyStateView()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .white
@@ -64,9 +66,13 @@ final class HomeView: UIView {
 extension HomeView {
     private func setLayout() {
         addSubview(collectionView)
+        addSubview(emptyStateView)
         collectionView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
             $0.leading.trailing.bottom.equalToSuperview()
+        }
+        emptyStateView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
     }
 }
