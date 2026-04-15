@@ -59,7 +59,7 @@ final class RegisterItemListViewModel: ViewModelProtocol {
         return Output(
             items: itemsSubject.asObservable(),
             error: errorSubject.asObservable(),
-            isSaveEnabled: itemsSubject.map { !$0.isEmpty }
+            isSaveEnabled: itemsSubject.map { !$0.isEmpty }.distinctUntilChanged()
         )
     }
 }
