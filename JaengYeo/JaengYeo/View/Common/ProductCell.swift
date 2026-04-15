@@ -132,6 +132,11 @@ final class ProductCell: UICollectionViewListCell{
         productImageView.image = UIImage(named: "imageSelectIcon")
         productImageView.backgroundColor = .clear
         
+        var config = backgroundConfiguration ?? UIBackgroundConfiguration.clear()
+        config.strokeWidth = 0
+        config.strokeColor = .clear
+        backgroundConfiguration = config
+        
         updateDescriptionStack(
             stackView: productDescriptionStack,
             freshness: nil,
