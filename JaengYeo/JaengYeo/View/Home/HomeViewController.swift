@@ -65,10 +65,10 @@ extension HomeViewController {
         )
         let output = viewModel.transform(input)
         
-        Observable.combineLatest(output.unclassifiedCount, output.categorySummaries)
+        Observable.combineLatest(output.unclassifiedCount, output.categorySummaries, output.statusAlerts)
             .observe(on: MainScheduler.instance)
-            .bind(onNext: { [weak self] count, summaries in
-                self?.setSnapshot(unclassifiedCount: count, categorySummaries: summaries)
+            .bind(onNext: { [weak self] count, summaries, alerts in
+                self?.setSnapshot(unclassifiedCount: count, categorySummaries: summaries, statusAlerts: alerts)
             })
             .disposed(by: disposeBag)
     }
@@ -86,6 +86,17 @@ extension HomeViewController {
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategorySummaryCell.id, for: indexPath) as? CategorySummaryCell else { return UICollectionViewCell() }
                 cell.config(name: summary.name, totalCount: summary.totalCount, midCount: summary.midCategoryCount, subCount: summary.subCategoryCount)
                 return cell
+            case .statusAlert(let summary):
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: StatusAlertCell.id, for: indexPath) as? StatusAlertCell else { return UICollectionViewCell() }
+                let isExpiry = summary.type == .expiry
+                cell.config(
+                    title: isExpiry ? "유통기한 임박" : "재고 부족",
+                    count: summary.imminentCount,
+                    ratio: summary.ratio,
+                    color: isExpiry ? .primaryRed : .primaryOrange,
+                    icon: isExpiry ? "timeIcon" : "bagIcon"
+                )
+                return cell
             }
         }
         dataSource?.supplementaryViewProvider = { collectionView, kind, indexPath in
@@ -98,7 +109,7 @@ extension HomeViewController {
 }
 
 extension HomeViewController {
-    private func setSnapshot(unclassifiedCount: Int, categorySummaries: [HomeViewModel.CategorySummary]) {
+    private func setSnapshot(unclassifiedCount: Int, categorySummaries: [HomeViewModel.CategorySummary], statusAlerts: [HomeViewModel.StatusSummary]) {
         var snapshot = NSDiffableDataSourceSnapshot<HomeSection, HomeItem>()
         if unclassifiedCount > 0 {
             snapshot.appendSections([.unclassified])
@@ -107,6 +118,11 @@ extension HomeViewController {
         if !categorySummaries.isEmpty {
             snapshot.appendSections([.categorySummary])
             snapshot.appendItems(categorySummaries.map { .categorySummary($0) }, toSection: .categorySummary)
+        }
+        
+        if !statusAlerts.isEmpty {
+            snapshot.appendSections([.statusAlert])
+            snapshot.appendItems(statusAlerts.map { .statusAlert($0)}, toSection: .statusAlert)
         }
         dataSource?.apply(snapshot, animatingDifferences: false)
     }
