@@ -62,6 +62,8 @@ final class RegisterViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.navigationBar.isHidden = true
+        currentMode = .barcode
+        mainView.updateModeSelection(cameraMode: currentMode)
         if captureSession.isRunning == false {
             DispatchQueue.global(qos: .background).async {
                 self.captureSession.startRunning()
