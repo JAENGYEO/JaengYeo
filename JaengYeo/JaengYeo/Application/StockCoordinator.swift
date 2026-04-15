@@ -55,6 +55,9 @@ extension StockCoordinator: CategoryEditViewControllerDelegate {
             )
         )
         navigationController.pushViewController(viewController, animated: true)
+    }
+}
+
 extension StockCoordinator {
     func selectMainCategory(name: String) {
         stockViewController.selectMainCategory(name: name)
