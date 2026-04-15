@@ -113,7 +113,7 @@ final class CategoryEditDetailViewController: UIViewController {
     /// 아이콘 선택값 전달
     private let iconNameSelectedRelay = PublishRelay<String>()
     /// 현재 선택된 아이콘 이름
-    private var selectedIconName: String = "categoryIcon"
+    private var selectedIconName: String?
 
     //MARK: - Components
     /// 입력 영역 뷰
@@ -249,7 +249,7 @@ private extension CategoryEditDetailViewController {
     /// 데이터 설정
     func configureData() {
         guard let item = mode.item else {
-            selectedIconName = mode.selectedIconName ?? "categoryIcon"
+            selectedIconName = nil
             deleteButton.isEnabled = false
             return
         }

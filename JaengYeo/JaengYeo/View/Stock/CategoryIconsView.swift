@@ -85,6 +85,10 @@ private extension CategoryIconsView {
     
     /// 아이콘 선택
     func selectIcon(named iconName: String?) {
+        collectionView.indexPathsForSelectedItems?.forEach {
+            collectionView.deselectItem(at: $0, animated: false)
+        }
+        
         guard
             let iconName,
             let index = iconNames.firstIndex(of: iconName)
