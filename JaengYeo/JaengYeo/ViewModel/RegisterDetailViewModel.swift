@@ -122,8 +122,16 @@ final class RegisterDetailViewModel: ViewModelProtocol {
             ) { item, state in (item, state.0, state.1, state.2, state.3, state.4, state.5) }
             .bind(onNext: { item, category, fields, stock, image, midCategory, subCategory in
                 let mainCategory = category == .food ? "식재료" : category == .household ? "생활용품" : nil
-                guard item.name?.isEmpty == false, mainCategory != nil else {
-                    confirmErrorSubject.onNext(("이름과 카테고리를 입력해주세요."))
+                guard item.name?.isEmpty == false else {
+                    confirmErrorSubject.onNext(("이름을 입력해주세요."))
+                    return
+                }
+                guard item.quantity != nil else {
+                    confirmErrorSubject.onNext(("수량을 입력해주세요."))
+                    return
+                }
+                guard mainCategory != nil else {
+                    confirmErrorSubject.onNext(("메인 카테고리를 선택해주세요."))
                     return
                 }
                 var result = item
