@@ -217,7 +217,7 @@ extension RegisterDetailViewController {
                     self?.mainView.photoButton.layer.cornerRadius = 8
                 } else {
                     self?.mainView.photoButton.setImage(UIImage(named: "imageSelectIcon"), for: .normal)
-                    self?.mainView.photoButton.imageView?.contentMode = .scaleAspectFit
+                    self?.mainView.photoButton.imageView?.contentMode = .scaleAspectFill
                     self?.mainView.photoButton.clipsToBounds = false
                     self?.mainView.photoButton.layer.cornerRadius = 0
                 }
