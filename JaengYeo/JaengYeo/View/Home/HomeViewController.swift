@@ -22,6 +22,7 @@ final class HomeViewController: UIViewController {
     init(viewModel: HomeViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        overrideUserInterfaceStyle = .light
     }
     
     required init?(coder: NSCoder) {
