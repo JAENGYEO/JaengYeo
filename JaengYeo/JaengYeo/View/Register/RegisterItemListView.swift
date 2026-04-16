@@ -8,6 +8,8 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 final class RegisterItemListView: UIView {
     
@@ -26,6 +28,8 @@ final class RegisterItemListView: UIView {
     private let bottomView = UIView().then {
         $0.backgroundColor = .gray50
     }
+    
+    let swipeDeleteRelay = PublishRelay<IndexPath>()
     
     let saveButton = UIButton().then {
         $0.setTitle("저장", for: .normal)
@@ -51,6 +55,14 @@ extension RegisterItemListView {
             var config = UICollectionLayoutListConfiguration(appearance: .plain)
             config.showsSeparators = false
             config.backgroundColor = .clear
+            config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
+                let deleteAction = UIContextualAction(style: .destructive, title: nil) { [weak self] _, _, completion in
+                    self?.swipeDeleteRelay.accept(indexPath)
+                    completion(true)
+                }
+                deleteAction.image = UIImage(systemName: "trash")
+                return UISwipeActionsConfiguration(actions: [deleteAction])
+            }
             let section = NSCollectionLayoutSection.list(using: config, layoutEnvironment: environment )
             section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16)
             section.interGroupSpacing = 8
