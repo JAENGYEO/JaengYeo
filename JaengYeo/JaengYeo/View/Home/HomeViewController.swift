@@ -71,8 +71,15 @@ extension HomeViewController {
         Observable.combineLatest(output.unclassifiedCount, output.categorySummaries, output.statusAlerts, output.recentItems)
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] count, summaries, alerts, recents in
+                let isEmpty = count == 0 && summaries.isEmpty && alerts.isEmpty && recents.isEmpty
+                self?.mainView.emptyStateView.isHidden = !isEmpty
+                self?.mainView.collectionView.isHidden = isEmpty
                 self?.setSnapshot(unclassifiedCount: count, categorySummaries: summaries, statusAlerts: alerts, recentItems: recents)
             })
+            .disposed(by: disposeBag)
+        
+        mainView.emptyStateView.actionButton.rx.tap
+            .bind(to: viewModel.navigateToRegister)
             .disposed(by: disposeBag)
     }
 }

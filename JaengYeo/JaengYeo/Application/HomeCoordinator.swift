@@ -19,6 +19,7 @@ final class HomeCoordinator {
     private let coreDataManager: CoreDataManagerProtocol
     
     let navigateToCategory = PublishSubject<String>()
+    let navigateToRegister = PublishSubject<Void>()
     
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol) {
         self.productManager = productManager
@@ -43,5 +44,10 @@ final class HomeCoordinator {
         viewModel.navigateToCategory
             .bind(to: navigateToCategory)
             .disposed(by: disposeBag)
+        
+        viewModel.navigateToRegister
+            .bind(to: navigateToRegister)
+            .disposed(by: disposeBag)
+        
     }
 }

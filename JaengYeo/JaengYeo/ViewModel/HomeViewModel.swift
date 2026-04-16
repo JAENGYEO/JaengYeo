@@ -44,6 +44,7 @@ final class HomeViewModel: ViewModelProtocol {
     
     let navigateToUnclassified = PublishSubject<Void>()
     let navigateToCategory = PublishSubject<String>()
+    let navigateToRegister = PublishSubject<Void>()
     
     init(coreDataManager: CoreDataManagerProtocol) {
         self.coreDataManager = coreDataManager
