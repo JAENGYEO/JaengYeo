@@ -14,6 +14,7 @@ import UIKit
 
 protocol StockViewControllerDelegate: AnyObject {
     func didTapCategoryEditButton()
+    func didTapSearchButton()
 }
 
 final class StockViewController: UIViewController {
@@ -40,6 +41,7 @@ final class StockViewController: UIViewController {
         $0.setTitleTextAttributes(selectAttributes, for: .selected)
 
         $0.selectedSegmentTintColor = .white
+        $0.backgroundColor = .gray50
     }
 
     private let categoryFilterView = CategoryFilterView()
@@ -177,6 +179,7 @@ private extension StockViewController {
 private extension StockViewController {
     @objc
     private func didTapSearchButton() {
+        delegate?.didTapSearchButton()
     }
     
     /// 카테고리 선택 모달 표시
@@ -233,7 +236,7 @@ private extension StockViewController {
             $0.top.equalTo(mainCategorySegment.snp.bottom).offset(8)
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalToSuperview().inset(16)
-            $0.height.equalTo(46)
+            $0.height.equalTo(40)
         }
         productCollectionView.snp.makeConstraints {
             $0.top.equalTo(categoryFilterView.snp.bottom).offset(8)

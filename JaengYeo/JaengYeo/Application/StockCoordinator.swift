@@ -40,6 +40,13 @@ extension StockCoordinator: StockViewControllerDelegate {
         categoryEditViewController.delegate = self
         navigationController.pushViewController(categoryEditViewController, animated: true)
     }
+    
+    func didTapSearchButton() {
+        let viewController = StockSearchViewController(
+            viewModel: StockSearchViewModel(coreDataManager: coreDataManager)
+        )
+        navigationController.pushViewController(viewController, animated: true)
+    }
 }
 
 extension StockCoordinator: CategoryEditViewControllerDelegate {
