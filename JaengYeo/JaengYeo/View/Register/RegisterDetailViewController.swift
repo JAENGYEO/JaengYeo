@@ -67,6 +67,7 @@ final class RegisterDetailViewController: UIViewController {
         super.viewDidLoad()
         configNavigationBar()
         restoreFields()
+        configPhotoButton()
         bind()
         
         let tap = UITapGestureRecognizer(target: view, action: #selector(UIView.endEditing))
@@ -240,12 +241,6 @@ extension RegisterDetailViewController {
                 self?.presentExtraField()
             })
             .disposed(by: disposeBag)
-        
-        mainView.photoButton.rx.tap
-            .bind(onNext: { [weak self] in
-                self?.presentImagePicker()
-            })
-            .disposed(by: disposeBag)
 
         let purchaseDateTap = UITapGestureRecognizer()
         mainView.purchaseDateGroupView.isUserInteractionEnabled = true
@@ -361,6 +356,19 @@ extension RegisterDetailViewController {
 }
 
 extension RegisterDetailViewController {
+    private func configPhotoButton() {
+        mainView.photoButton.overrideUserInterfaceStyle = .light
+        let cameraAction = UIAction(title: "사진 찍기", image: UIImage(systemName: "camera")) { [weak self] _ in
+            self?.presentPhotoCamera()
+        }
+        let albumAction = UIAction(title: "앨범에서 선택", image: UIImage(systemName: "photo.on.rectangle")) { [weak self] _ in
+            self?.presentImagePicker()
+        }
+        mainView.photoButton.menu = UIMenu(children: [cameraAction, albumAction])
+        mainView.photoButton.showsMenuAsPrimaryAction = true
+            
+    }
+    
     private func presentImagePicker() {
         var config = PHPickerConfiguration()
         config.selectionLimit = 1
@@ -368,6 +376,15 @@ extension RegisterDetailViewController {
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = self
         present(picker, animated: true)
+    }
+    
+    private func presentPhotoCamera() {
+        let viewController = PhotoCameraViewController()
+        viewController.photoCaptured
+            .bind(to: imagePickedSubject)
+            .disposed(by: disposeBag)
+        viewController.modalPresentationStyle = .fullScreen
+        present(viewController, animated: true)
     }
 }
 
