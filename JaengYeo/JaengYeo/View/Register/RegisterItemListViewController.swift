@@ -15,14 +15,14 @@ final class RegisterItemListViewController: UIViewController {
     private let mainView = RegisterItemListView()
     private let viewModel: RegisterItemListViewModel
     private let pageTitle: String
-    private let showInfoLabel: Bool
+    private let infoLabel: String
     
     private let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil)
     
-    init(viewModel: RegisterItemListViewModel, pageTitle: String, showInfoLabel: Bool) {
+    init(viewModel: RegisterItemListViewModel, pageTitle: String, infoLabel: String) {
         self.viewModel = viewModel
         self.pageTitle = pageTitle
-        self.showInfoLabel = showInfoLabel
+        self.infoLabel = infoLabel
         super.init(nibName: nil, bundle: nil)
         hidesBottomBarWhenPushed = true
     }
@@ -57,7 +57,7 @@ final class RegisterItemListViewController: UIViewController {
         mainView.collectionView.register(ProductCell.self, forCellWithReuseIdentifier: ProductCell.id)
         configNavigationBar()
         bind()
-        mainView.infoLabel.isHidden = !showInfoLabel
+        mainView.infoLabel.text = infoLabel
     }
 }
 
