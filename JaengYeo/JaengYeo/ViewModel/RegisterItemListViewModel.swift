@@ -153,7 +153,7 @@ extension RegisterItemListViewModel {
 }
 
 extension RegisterItemListViewModel {
-    func deleteItem(id: UUID) {
+    private func deleteItem(id: UUID) {
         guard var current = try? itemsSubject.value() else { return }
         current.removeAll() { $0.id == id }
         itemsSubject.onNext(current)
