@@ -46,6 +46,8 @@ final class RegisterView: UIView {
         $0.isHidden = true
     }
     
+    private let scanImageRatio: CGFloat = 52.0 / 375.0
+    
     // 하단 Container
     let bottomControlView = UIView().then {
         $0.backgroundColor = .black
@@ -134,7 +136,7 @@ extension RegisterView {
         scanLineView.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview()
             $0.top.equalToSuperview()
-            $0.height.equalTo(scanLineView.snp.width).multipliedBy(55.0 / 375.0)
+            $0.height.equalTo(scanLineView.snp.width).multipliedBy(scanImageRatio)
         }
         
         bottomControlView.snp.makeConstraints {
@@ -251,7 +253,7 @@ extension RegisterView {
     
     private func animateScanDown() {
         guard !scanLineView.isHidden else { return }
-        let imageHeight = scanContainer.bounds.width * (55.0 / 375.0)
+        let imageHeight = scanContainer.bounds.width * (scanImageRatio)
         let cameraHeight = previewView.bounds.height
         scanLineView.transform = CGAffineTransform(translationX: 0, y: -imageHeight)
         
