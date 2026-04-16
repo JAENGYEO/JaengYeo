@@ -11,8 +11,6 @@ import RxCocoa
 
 final class RegisterItemListViewController: UIViewController {
     
-    typealias SectionID = UUID
-    
     private let disposeBag = DisposeBag()
     private let mainView = RegisterItemListView()
     private let viewModel: RegisterItemListViewModel
@@ -33,8 +31,8 @@ final class RegisterItemListViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private lazy var dataSource: UICollectionViewDiffableDataSource<SectionID, RegisterFormData> = {
-        return UICollectionViewDiffableDataSource<SectionID, RegisterFormData>(collectionView: mainView.collectionView) { collectionView, indexPath, itemIdentifier in
+    private lazy var dataSource: UICollectionViewDiffableDataSource<Int, RegisterFormData> = {
+        return UICollectionViewDiffableDataSource<Int, RegisterFormData>(collectionView: mainView.collectionView) { collectionView, indexPath, itemIdentifier in
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProductCell.id, for: indexPath) as? ProductCell else { return UICollectionViewCell() }
             cell.updateUI(
                 type: ProductCellType.registType,
@@ -123,12 +121,9 @@ extension RegisterItemListViewController {
     private func setSnapshot(items: [RegisterFormData]) {
         let currentItemIds = Set(dataSource.snapshot().itemIdentifiers.map { $0.id })
         
-        var snapshot = NSDiffableDataSourceSnapshot<SectionID, RegisterFormData>()
-        items.forEach { item in
-            snapshot.appendSections([item.id])
-            snapshot.appendItems([item], toSection: item.id)
-            
-        }
+        var snapshot = NSDiffableDataSourceSnapshot<Int, RegisterFormData>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(items, toSection: 0)
         let itemsToReconfig = items.filter { currentItemIds.contains($0.id) }
         if !itemsToReconfig.isEmpty {
             snapshot.reconfigureItems(itemsToReconfig)

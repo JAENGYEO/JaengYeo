@@ -54,6 +54,7 @@ extension RegisterItemListView {
             config.backgroundColor = .clear
             let section = NSCollectionLayoutSection.list(using: config, layoutEnvironment: environment )
             section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16)
+            section.interGroupSpacing = 8
             return section
         }
         collectionView.setCollectionViewLayout(layout, animated: false)
