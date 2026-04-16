@@ -189,7 +189,7 @@ private extension StockViewController {
     ) {
         let viewController = CategorySelectionViewController(items: items)
         viewController.onApply = onApply
-        present(viewController, animated: true)
+        present(viewController, animated: false)
     }
 }
 

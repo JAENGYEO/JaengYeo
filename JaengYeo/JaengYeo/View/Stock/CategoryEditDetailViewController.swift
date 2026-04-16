@@ -229,12 +229,12 @@ private extension CategoryEditDetailViewController {
         
         viewController.onApply = { [weak self] iconName in
             guard let self else { return }
-            self.selectedIconName = iconName
+            self.selectedIconName = iconName 
             self.categoryImageView.image = UIImage(named: iconName)
             self.iconNameSelectedRelay.accept(iconName)
         }
         
-        present(viewController, animated: true)
+        present(viewController, animated: false)
     }
 }
 

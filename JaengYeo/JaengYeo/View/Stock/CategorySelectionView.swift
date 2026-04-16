@@ -15,6 +15,26 @@ final class CategorySelectionView: UIView {
     /// 페이지 영역 뷰
     private let pageContainerView = UIView()
 
+    /// 바텀 시트 시 뒷 배경
+    let dimmingView = UIView().then {
+        $0.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        $0.alpha = 0
+    }
+
+    /// 콘텐츠 컨테이너
+    let contentView = UIView().then {
+        $0.backgroundColor = .white
+        $0.layer.cornerRadius = 20
+        $0.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        $0.clipsToBounds = true
+    }
+
+    /// 상단 핸들 뷰
+    let handleView = UIView().then {
+        $0.backgroundColor = .gray300
+        $0.layer.cornerRadius = 2.5
+    }
+    
     /// 카테고리 컬렉션 뷰
     lazy var collectionView = UICollectionView(
         frame: .zero,
@@ -134,50 +154,65 @@ private extension CategorySelectionView {
     /// UI 설정
     func configureUI() {
         overrideUserInterfaceStyle = .light
-        backgroundColor = .white
+        backgroundColor = .clear
         pageContainerView.backgroundColor = .white
         collectionView.backgroundColor = .white
-        layer.cornerRadius = 16
-        layer.maskedCorners = [
-            .layerMinXMinYCorner,
-            .layerMaxXMinYCorner
-        ]
-        clipsToBounds = true
-
-        addSubview(pageContainerView)
-        addSubview(pageControl)
-        addSubview(resetButton)
-        addSubview(applyButton)
-
+        
+        addSubview(dimmingView)
+        addSubview(contentView)
+        
+        contentView.addSubview(handleView)
+        contentView.addSubview(pageContainerView)
+        contentView.addSubview(pageControl)
+        contentView.addSubview(resetButton)
+        contentView.addSubview(applyButton)
+        
         pageContainerView.addSubview(collectionView)
-
+        
+        dimmingView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
+        contentView.snp.makeConstraints {
+            $0.leading.trailing.bottom.equalToSuperview()
+            $0.top.greaterThanOrEqualToSuperview()
+        }
+        
+        handleView.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(8)
+            $0.centerX.equalToSuperview()
+            $0.width.equalTo(40)
+            $0.height.equalTo(5)
+        }
+        
         pageContainerView.snp.makeConstraints {
-            $0.top.equalToSuperview().offset(20)
+            $0.top.equalTo(handleView.snp.bottom).offset(16)
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(244)
         }
-
+        
         pageControl.snp.makeConstraints {
             $0.top.equalTo(pageContainerView.snp.bottom).offset(4)
             $0.centerX.equalToSuperview()
             $0.height.equalTo(20)
         }
-
+        
         collectionView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-
+        
         resetButton.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.centerY.equalTo(applyButton)
             $0.width.equalTo(63)
             $0.height.equalTo(20)
         }
-
+        
         applyButton.snp.makeConstraints {
+            $0.top.equalTo(pageControl.snp.bottom).offset(16)
             $0.leading.greaterThanOrEqualTo(resetButton.snp.trailing).offset(42)
             $0.trailing.equalToSuperview().inset(16)
-            $0.bottom.equalTo(safeAreaLayoutGuide).inset(16)
+            $0.bottom.equalTo(contentView.safeAreaLayoutGuide).inset(16)
             $0.width.greaterThanOrEqualTo(238)
             $0.height.equalTo(44)
         }
