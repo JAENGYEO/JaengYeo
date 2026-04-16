@@ -73,10 +73,16 @@ extension RegisterItemListViewController {
             }
             .asObservable()
         
+        let cellDeleted = mainView.swipeDeleteRelay
+            .compactMap { [weak self] indexPath in
+                self?.dataSource.itemIdentifier(for: indexPath)?.id
+            }
+        
         let input = RegisterItemListViewModel.Input(
             saveButtonTapped: mainView.saveButton.rx.tap.asObservable(),
             addButtonTapped: addButton.rx.tap.asObservable(),
-            cellTapped: cellTapped
+            cellTapped: cellTapped,
+            cellDeleted: cellDeleted
         )
         
         let output = viewModel.transform(input)
