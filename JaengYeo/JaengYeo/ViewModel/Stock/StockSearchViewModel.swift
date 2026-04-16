@@ -205,6 +205,10 @@ extension StockSearchViewModel: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(
         _ controller: NSFetchedResultsController<NSFetchRequestResult>
     ) {
+        /// 카테고리 캐시 갱신
+        self.midCategoryNames = fetchMidCategoryNames()
+        self.subCategoryNames = fetchSubCategoryNames()
+
         /// 마지막 검색어 기준으로 다시 필터링
         updateProduct(keyword: latestKeywordRelay.value)
     }
