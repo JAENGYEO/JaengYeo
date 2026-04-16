@@ -34,13 +34,30 @@ final class RegisterView: UIView {
         $0.clipsToBounds = true
     }
     
-    let scanLineView = UIView().then {
+    private let scanContainer = UIView().then {
+        $0.clipsToBounds = true
+        $0.backgroundColor = .clear
+        $0.isUserInteractionEnabled = false
+    }
+    
+    let scanLineView = UIImageView().then {
+        $0.image = .scan
+        $0.contentMode = .scaleAspectFill
         $0.isHidden = true
     }
+    
+    private let scanImageRatio: CGFloat = 52.0 / 375.0
     
     // 하단 Container
     let bottomControlView = UIView().then {
         $0.backgroundColor = .black
+    }
+    
+    let quickRegisterButton = UIButton().then {
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        $0.setImage(UIImage(systemName: "bolt", withConfiguration: symbolConfig), for: .normal)
+        $0.setImage(UIImage(systemName: "bolt.fill", withConfiguration: symbolConfig), for: .selected)
+        $0.tintColor = .white
     }
     
     private var gradientRingLayer: CAGradientLayer?
@@ -86,11 +103,11 @@ extension RegisterView {
     private func setLayout() {
         backgroundColor = .black
         
-        [modeContainerView, previewView, bottomControlView].forEach { addSubview($0) }
+        [modeContainerView, previewView, scanContainer, bottomControlView].forEach { addSubview($0) }
         modeContainerView.addSubview(modeStackView)
-        previewView.addSubview(scanLineView)
+        scanContainer.addSubview(scanLineView)
         [barcodeButton, receiptButton, aiVisionButton, manualButton].forEach { modeStackView.addArrangedSubview($0) }
-        [captureRingView, flipButton].forEach { bottomControlView.addSubview($0) }
+        [captureRingView, flipButton, quickRegisterButton].forEach { bottomControlView.addSubview($0) }
         captureRingView.addSubview(captureButton)
         
         modeContainerView.snp.makeConstraints {
@@ -110,10 +127,16 @@ extension RegisterView {
             $0.bottom.equalTo(bottomControlView.snp.top)
         }
         
+        scanContainer.snp.makeConstraints {
+            $0.top.equalTo(modeContainerView.snp.bottom).offset(24)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(bottomControlView.snp.bottom)
+        }
+        
         scanLineView.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview()
             $0.top.equalToSuperview()
-            $0.height.equalTo(2)
+            $0.height.equalTo(scanLineView.snp.width).multipliedBy(scanImageRatio)
         }
         
         bottomControlView.snp.makeConstraints {
@@ -121,6 +144,7 @@ extension RegisterView {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
         }
+        
         captureRingView.snp.makeConstraints {
             $0.size.equalTo(76)
             $0.centerX.equalToSuperview()
@@ -134,6 +158,11 @@ extension RegisterView {
         
         flipButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-32)
+            $0.centerY.equalTo(captureRingView)
+        }
+        
+        quickRegisterButton.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(32)
             $0.centerY.equalTo(captureRingView)
         }
     }
@@ -209,38 +238,44 @@ extension RegisterView {
     }
 }
 
-//TODO: 영수증, AI인식 시 사용할 애니메이션 (몇회 반복, 속도 정해지지 않음. 그라데이션 적용 안됨)
 extension RegisterView {
     func startScanAnimation() {
         scanLineView.isHidden = false
-        previewView.bringSubviewToFront(scanLineView)
-        
-        let gradient = CAGradientLayer()
-        gradient.frame = CGRect(x: 0, y:0, width: UIScreen.main.bounds.width, height: 2)
-        gradient.colors = [
-            UIColor.clear.cgColor,
-            UIColor(named: "Primary300")?.cgColor ?? UIColor.systemBlue.cgColor,
-            UIColor.clear.cgColor
-        ]
-        gradient.startPoint = CGPoint(x: 0, y: 0.5)
-        gradient.endPoint = CGPoint(x: 1, y: 0.5)
-        scanLineView.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
-        scanLineView.layer.addSublayer(gradient)
-        
-        UIView.animate(
-            withDuration: 1.8, delay: 0,
-            options: [.repeat, .autoreverse, .curveEaseInOut],
-            animations: {
-                self.scanLineView.transform = CGAffineTransform(
-                    translationX: 0, y: self.previewView.bounds.height
-                )
-            }
-        )
+        scanLineView.transform = .identity
+        animateScanDown()
     }
     
     func stopScanAnimation() {
         scanLineView.isHidden = true
         scanLineView.layer.removeAllAnimations()
         scanLineView.transform = .identity
+    }
+    
+    private func animateScanDown() {
+        guard !scanLineView.isHidden else { return }
+        let imageHeight = scanContainer.bounds.width * (scanImageRatio)
+        let cameraHeight = previewView.bounds.height
+        scanLineView.transform = CGAffineTransform(translationX: 0, y: -imageHeight)
+        
+        UIView.animate(withDuration: 2.0, delay: 0, options: .curveEaseInOut) {
+            self.scanLineView.transform = CGAffineTransform(translationX: 0, y: cameraHeight)
+        } completion: { finished in
+            guard finished else { return }
+            self.scanLineView.transform = CGAffineTransform(scaleX: 1, y: -1)
+                .concatenating(CGAffineTransform(translationX: 0, y: cameraHeight))
+            self.animateScanUp(imageHeight: imageHeight, cameraHeight: cameraHeight)
+        }
+    }
+
+    private func animateScanUp(imageHeight: CGFloat, cameraHeight: CGFloat) {
+        guard !scanLineView.isHidden else { return }
+
+        UIView.animate(withDuration: 2.0, delay: 0, options: .curveEaseInOut) {
+            self.scanLineView.transform = CGAffineTransform(scaleX: 1, y: -1)
+                .concatenating(CGAffineTransform(translationX: 0, y: -imageHeight))
+        } completion: { finished in
+            guard finished else { return }
+            self.animateScanDown()
+        }
     }
 }

@@ -81,6 +81,50 @@ extension RegisterCoordinator: RegisterViewControllerDelegate {
         
         navigationController.pushViewController(viewController, animated: true)
     }
+    
+    func quickSave(items: [RegisterFormData]) -> Single<Int> {
+        
+        Single.create { [weak self] single in
+            guard let self else { return Disposables.create() }
+            let now = Date()
+            let payloads: [ProductPayload] = items.compactMap { item in
+                guard let name = item.name, let mainCategory = item.mainCategory else { return nil }
+                return ProductPayload(
+                    id: item.id,
+                    userId: Constants.Dev.userId,
+                    name: name,
+                    quantity: Int32(item.quantity ?? 1),
+                    quantityUnit: item.quantityUnit,
+                    mainCategory: mainCategory,
+                    midCategoryId: nil,
+                    subCategoryId: nil,
+                    purchaseDate: nil,
+                    expiryDate: nil,
+                    price: 0,
+                    locationMemo: nil,
+                    memo: nil,
+                    imageUrl: nil,
+                    isClassified: false,
+                    lowStockThreshold: 1,
+                    isFavorite: false,
+                    createdAt: now,
+                    updatedAt: now,
+                    syncStatus: SyncStatus.pendingUpload.rawValue,
+                    isLowStockNotificationEnabled: false,
+                    caution: nil,
+                    brand: nil
+                )
+            }
+            do {
+                try coreDataManager.createProducts(payloads: payloads)
+                syncManager.syncIfConnected()
+                single(.success(payloads.count))
+            } catch {
+                single(.failure(error))
+            }
+            return Disposables.create()
+        }
+    }
 }
 
 extension RegisterCoordinator {
