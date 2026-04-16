@@ -91,9 +91,9 @@ extension HomeCoordinator: RegisterDetailViewControllerDelegate {
         let imageUrl: String?
         if let newImage = item.image {
             let fileName = "\(original.id.uuidString).jpg"
-            let url = FileManager.default
-                .urls(for: .documentDirectory, in: .userDomainMask)[0]
-                .appendingPathComponent(fileName)
+            guard let baseUrl = FileManager.default
+                .urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+                let url = baseUrl.appendingPathComponent(fileName)
             if let data = newImage.jpegData(compressionQuality: 0.8) {
                 try? data.write(to: url)
             }
@@ -101,8 +101,11 @@ extension HomeCoordinator: RegisterDetailViewControllerDelegate {
         } else {
             imageUrl = item.imageUrl ?? original.imageUrl
         }
-
-        try? coreDataManager.updateProduct(original.updated(with: item, imageUrl: imageUrl))
+        do {
+            try coreDataManager.updateProduct(original.updated(with: item, imageUrl: imageUrl))
+        } catch {
+            //TODO: 에러처리 필요
+        }
     }
     
     func didTapMidCategory(midCategory: UUID?) {
