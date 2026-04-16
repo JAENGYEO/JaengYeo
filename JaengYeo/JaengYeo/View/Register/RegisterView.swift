@@ -51,6 +51,13 @@ final class RegisterView: UIView {
         $0.backgroundColor = .black
     }
     
+    let quickRegisterButton = UIButton().then {
+        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        $0.setImage(UIImage(systemName: "bolt", withConfiguration: symbolConfig), for: .normal)
+        $0.setImage(UIImage(systemName: "bolt.fill", withConfiguration: symbolConfig), for: .selected)
+        $0.tintColor = .white
+    }
+    
     private var gradientRingLayer: CAGradientLayer?
     
     // 촬영버튼 View -> Ring용
@@ -98,7 +105,7 @@ extension RegisterView {
         modeContainerView.addSubview(modeStackView)
         scanContainer.addSubview(scanLineView)
         [barcodeButton, receiptButton, aiVisionButton, manualButton].forEach { modeStackView.addArrangedSubview($0) }
-        [captureRingView, flipButton].forEach { bottomControlView.addSubview($0) }
+        [captureRingView, flipButton, quickRegisterButton].forEach { bottomControlView.addSubview($0) }
         captureRingView.addSubview(captureButton)
         
         modeContainerView.snp.makeConstraints {
@@ -135,6 +142,7 @@ extension RegisterView {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
         }
+        
         captureRingView.snp.makeConstraints {
             $0.size.equalTo(76)
             $0.centerX.equalToSuperview()
@@ -148,6 +156,11 @@ extension RegisterView {
         
         flipButton.snp.makeConstraints {
             $0.trailing.equalToSuperview().offset(-32)
+            $0.centerY.equalTo(captureRingView)
+        }
+        
+        quickRegisterButton.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(32)
             $0.centerY.equalTo(captureRingView)
         }
     }
