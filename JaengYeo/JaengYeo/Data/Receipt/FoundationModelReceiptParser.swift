@@ -34,7 +34,8 @@ final class FoundationModelReceiptParser: ReceiptProtocol {
     func parseReceipt(text: String) async throws -> [RegisterFormData] {
         let session = LanguageModelSession()
         let prompt = """
-            아래 영수증 텍스트에서 구매한 상품 목록을 추출해줘.
+            아래 텍스트가 영수증이 아니거나 상품 목록을 추출할 수 없으면 빈 배열을 반환해줘.
+            영수증인 경우에만 구매한 상품 목록을 추출해줘.
             
             \(text)
             """
