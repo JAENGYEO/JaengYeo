@@ -28,6 +28,7 @@ final class RegisterViewModel: ViewModelProtocol {
     
     struct Output {
         let aiResponseData: Observable<[RegisterFormData]>
+        let receiptResponseData: Observable<[RegisterFormData]>
         let isLoading: Observable<Bool>
         let error: Observable<String>
     }
@@ -36,7 +37,7 @@ final class RegisterViewModel: ViewModelProtocol {
         let isLoadingSubject = PublishSubject<Bool>()
         let errorSubject = PublishSubject<String>()
         
-        let aiStream = input.aiCaptured
+        let aiResponseData = input.aiCaptured
             .do(onNext: { _ in isLoadingSubject.onNext(true) })
             .flatMapLatest { [weak self] data -> Observable<[RegisterFormData]> in
                 guard let self else { return .empty() }
@@ -59,7 +60,7 @@ final class RegisterViewModel: ViewModelProtocol {
                 }
             }
         
-        let receiptStream = input.receiptCaptured
+        let receiptResponseData = input.receiptCaptured
             .do(onNext: { _ in isLoadingSubject.onNext(true) })
             .flatMapLatest { [weak self] image -> Observable<[RegisterFormData]> in
                 guard let self else { return .empty() }
@@ -82,10 +83,10 @@ final class RegisterViewModel: ViewModelProtocol {
                 }
             }
         
-        let aiResponseData = Observable.merge(aiStream, receiptStream)
         
         return Output(
             aiResponseData: aiResponseData,
+            receiptResponseData: receiptResponseData,
             isLoading: isLoadingSubject.asObservable(),
             error: errorSubject.asObservable()
         )
