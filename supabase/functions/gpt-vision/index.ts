@@ -8,11 +8,12 @@ const VISION_PROMPT = `이 사진에서 보이는 물건을 분석해줘.
 사진에 아무것도 없을 경우에만 빈 배열 []을 반환.`;
 
 const RECEIPT_PROMPT = (ocrText: string) =>
-  `아래는 영수증에서 추출한 텍스트야. 구매한 상품 목록을 분석해서 JSON 배열로 반환해줘.
+  `아래는 영수증에서 추출한 텍스트야.
+텍스트가 영수증이 아니거나 상품 목록을 추출할 수 없으면 빈 배열 []만 반환해.
+영수증인 경우에만 구매한 상품 목록을 분석해서 JSON 배열로 반환해줘.
 설명 텍스트 없이 JSON만 반환해.
 [{ "name": "상품명", "estimatedCategory": "카테고리", "estimatedQuantity": 수량, "purchaseDate": "YYYY-MM-DD 또는 null", "storeName": "매장명 또는 null" }]
 카테고리 규칙: 음식/식품/재료이면 "식재료", 그 외 모든 물건은 "생활용품".
-상품이 없으면 빈 배열 []을 반환.
 
 영수증 텍스트:
 ${ocrText}`;
