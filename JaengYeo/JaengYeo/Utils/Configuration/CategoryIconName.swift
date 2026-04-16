@@ -27,6 +27,19 @@ enum HouseholdSubCategoryIcon: String, CaseIterable {
     case defaultIcon = "categoryIcon"
 }
 
+enum ProductInfoIcon: String, CaseIterable {
+    case nameIcon = "nameIcon"
+    case purchaseDateIcon = "calendarIcon"
+    case mainCategoryIcon = "categoryIcon"
+    case midCategoryIcon = "locationIcon"
+    case subCategoryIcon = "filterIcon"
+    case expiryDateIcon = "timeIcon"
+    case cautionIcon = "warningIcon"
+    case brandIcon = "bagIcon"
+    case lowStockThresholdIcon = "alarmIcon"
+    case memoIcon = "imageIcon"
+}
+
 //MARK: - Method
 extension CaseIterable where Self: RawRepresentable, RawValue == String {
     /// 아이콘 이름 목록
