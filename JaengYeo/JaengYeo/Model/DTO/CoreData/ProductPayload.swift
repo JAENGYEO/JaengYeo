@@ -85,7 +85,7 @@ extension ProductPayload {
             locationMemo: locationMemo,
             memo: item.memo,
             imageUrl: imageUrl,
-            isClassified: item.mainCategory != nil,
+            isClassified: item.midCategory != nil,
             lowStockThreshold: Int32(item.lowStockThreshold ?? Int(lowStockThreshold)),
             isFavorite: isFavorite,
             createdAt: createdAt,
