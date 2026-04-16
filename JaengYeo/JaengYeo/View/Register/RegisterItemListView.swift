@@ -16,7 +16,6 @@ final class RegisterItemListView: UIView {
     }
     let infoLabel = UILabel().then {
         $0.font = LabelConfiguration.body12.font
-        $0.text = "AI가 부정확할 수 있으니 다시 한 번 확인해주세요"
         $0.textColor = .gray300
         $0.backgroundColor = .clear
         $0.textAlignment = .center
@@ -54,6 +53,7 @@ extension RegisterItemListView {
             config.backgroundColor = .clear
             let section = NSCollectionLayoutSection.list(using: config, layoutEnvironment: environment )
             section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16)
+            section.interGroupSpacing = 8
             return section
         }
         collectionView.setCollectionViewLayout(layout, animated: false)

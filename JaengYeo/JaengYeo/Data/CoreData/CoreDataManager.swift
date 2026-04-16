@@ -473,6 +473,10 @@ extension CoreDataManager {
         entity.brand = payload.brand
         
         do {
+            if payload.quantity == 0 {
+                entity.syncStatus = SyncStatus.pendingDelete.rawValue
+                entity.updatedAt = Date()
+            }
             try context.save()
         } catch {
             throw CoreDataError.saveFailed

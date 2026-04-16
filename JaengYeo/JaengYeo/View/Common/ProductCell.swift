@@ -20,6 +20,8 @@ enum ProductCellType {
     case registType
     /// 홈디자인
     case homeType
+    /// 미분류 상품 디자인
+    case unclassifiedType
 }
 
 /// 공용 상품 셀
@@ -50,6 +52,10 @@ final class ProductCell: UICollectionViewListCell{
                 config.strokeColor = UIColor.gray100
                 config.strokeWidth = 1
                 backgroundConfiguration = config
+            
+            case .unclassifiedType:
+                productSubDescriptionStack.isHidden = true
+                productCountView.isHidden = true
             }
         }
     }
@@ -127,6 +133,7 @@ final class ProductCell: UICollectionViewListCell{
         super.prepareForReuse()
         
         cellType = .defaultType
+        accessories = []
         productTitleLabel.text = nil
         productCountLabel.text = "0"
         productImageView.image = UIImage(named: "imageSelectIcon")

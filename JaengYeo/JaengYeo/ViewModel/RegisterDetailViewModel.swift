@@ -130,6 +130,10 @@ final class RegisterDetailViewModel: ViewModelProtocol {
                     confirmErrorSubject.onNext(("수량을 입력해주세요."))
                     return
                 }
+                guard item.quantity != 0 else {
+                    confirmErrorSubject.onNext(("수량은 최소 1개 이상이어야 합니다."))
+                    return
+                }
                 guard mainCategory != nil else {
                     confirmErrorSubject.onNext(("메인 카테고리를 선택해주세요."))
                     return

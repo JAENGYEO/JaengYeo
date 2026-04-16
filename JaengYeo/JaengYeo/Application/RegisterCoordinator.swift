@@ -55,9 +55,9 @@ final class RegisterCoordinator {
 }
 
 extension RegisterCoordinator: RegisterViewControllerDelegate {
-    func pushItemListView(items: [RegisterFormData], pageTitle: String, showInfoLabel: Bool = true) {
+    func pushItemListView(items: [RegisterFormData], pageTitle: String, infoLabel: String) {
         let viewModel = RegisterItemListViewModel(items: items, coreDataManager: coreDataManager, syncManager: syncManager)
-        let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: pageTitle, showInfoLabel: showInfoLabel)
+        let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: pageTitle, infoLabel: infoLabel)
         listViewModel = viewModel
         viewModel.navigateToAdd
             .bind(onNext: { [weak self] in

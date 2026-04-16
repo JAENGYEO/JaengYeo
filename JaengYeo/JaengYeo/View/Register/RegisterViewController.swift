@@ -11,7 +11,7 @@ import RxSwift
 import RxCocoa
 
 protocol RegisterViewControllerDelegate: AnyObject {
-    func pushItemListView(items: [RegisterFormData], pageTitle: String, showInfoLabel: Bool)
+    func pushItemListView(items: [RegisterFormData], pageTitle: String, infoLabel: String)
 }
 
 final class RegisterViewController: UIViewController {
@@ -101,7 +101,7 @@ extension RegisterViewController {
         mainView.manualButton.rx.tap
             .bind(onNext: { [weak self] in
                 self?.switchMode(mode: .manual)
-                self?.delegate?.pushItemListView(items: [], pageTitle: "직접 입력", showInfoLabel: false)
+                self?.delegate?.pushItemListView(items: [], pageTitle: "직접 입력", infoLabel: "제품을 등록하고 쟁여를 시작해요!")
             })
             .disposed(by: disposeBag)
         mainView.flipButton.rx.tap
@@ -131,7 +131,20 @@ extension RegisterViewController {
                 case 0:
                     self.showErrorAlert(title: "인식 실패", message: "인식된 항목이 없습니다.")
                 default:
-                    self.delegate?.pushItemListView(items: items, pageTitle: "AI 인식 결과", showInfoLabel: true)
+                    self.delegate?.pushItemListView(items: items, pageTitle: "AI 인식 결과", infoLabel: "AI가 부정확할 수 있으니 다시 한 번 확인해주세요")
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        output.receiptResponseData
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] items in
+                guard let self else { return }
+                switch items.count {
+                case 0:
+                    self.showErrorAlert(title: "인식 실패", message: "인식된 항목이 없습니다.")
+                default:
+                    self.delegate?.pushItemListView(items: items, pageTitle: "영수증 인식 결과", infoLabel: "AI가 부정확할 수 있으니 다시 한 번 확인해주세요")
                 }
             })
             .disposed(by: disposeBag)
