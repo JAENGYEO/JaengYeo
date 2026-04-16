@@ -12,6 +12,7 @@ import RxCocoa
 
 protocol RegisterViewControllerDelegate: AnyObject {
     func pushItemListView(items: [RegisterFormData], pageTitle: String, infoLabel: String)
+    func quickSave(items: [RegisterFormData]) -> Single<Int>
 }
 
 final class RegisterViewController: UIViewController {
@@ -116,6 +117,12 @@ extension RegisterViewController {
             })
             .disposed(by: disposeBag)
         
+        mainView.quickRegisterButton.rx.tap
+            .bind(onNext: { [weak self] in
+                self?.mainView.quickRegisterButton.isSelected.toggle()
+            })
+            .disposed(by: disposeBag)
+        
         //TODO: AI Response 로직 구현 필요 -> RegisterFormView 생성 이후 작업
         let input = RegisterViewModel.Input(
             aiCaptured: aiCapturedSubject,
@@ -127,10 +134,19 @@ extension RegisterViewController {
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] items in
                 guard let self else { return }
-                switch items.count {
-                case 0:
+                if items.isEmpty {
                     self.showErrorAlert(title: "인식 실패", message: "인식된 항목이 없습니다.")
-                default:
+                } else if mainView.quickRegisterButton.isSelected {
+                    guard let saveResult = delegate?.quickSave(items: items) else { return }
+                    saveResult
+                        .observe(on: MainScheduler.instance)
+                        .subscribe(onSuccess: { [weak self] count in
+                            self?.showQuickRegisterAlert(title: "빠른 저장 성공", message: "\(count)개의 제품이 등록되었습니다.")
+                        },onFailure: { [weak self] _ in
+                            self?.showErrorAlert(title: "빠른 저장 실패", message: "저장 중 오류가 발생했습니다.")
+                        })
+                        .disposed(by: disposeBag)
+                } else {
                     self.delegate?.pushItemListView(items: items, pageTitle: "AI 인식 결과", infoLabel: "AI가 부정확할 수 있으니 다시 한 번 확인해주세요")
                 }
             })
@@ -140,10 +156,20 @@ extension RegisterViewController {
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] items in
                 guard let self else { return }
-                switch items.count {
-                case 0:
+                if items.isEmpty {
                     self.showErrorAlert(title: "인식 실패", message: "인식된 항목이 없습니다.")
-                default:
+                } else if mainView.quickRegisterButton.isSelected {
+                    guard let saveResult = delegate?.quickSave(items: items) else { return }
+                    saveResult
+                        .observe(on: MainScheduler.instance)
+                        .subscribe(onSuccess: { [weak self] count in
+                            self?.showQuickRegisterAlert(title: "빠른 저장 성공", message: "\(count)개의 제품이 등록되었습니다.")
+                        },
+                        onFailure: { [weak self] _ in
+                            self?.showErrorAlert(title: "빠른 저장 실패", message: "저장 중 오류가 발생했습니다.")
+                        })
+                        .disposed(by: disposeBag)
+                } else {
                     self.delegate?.pushItemListView(items: items, pageTitle: "영수증 인식 결과", infoLabel: "AI가 부정확할 수 있으니 다시 한 번 확인해주세요")
                 }
             })
@@ -293,6 +319,12 @@ extension RegisterViewController: AVCapturePhotoCaptureDelegate {
 
 extension RegisterViewController {
     private func showErrorAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        present(alert, animated: true)
+    }
+    
+    private func showQuickRegisterAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "확인", style: .default))
         present(alert, animated: true)
