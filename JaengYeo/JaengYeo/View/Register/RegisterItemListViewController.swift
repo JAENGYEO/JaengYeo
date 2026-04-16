@@ -73,10 +73,19 @@ extension RegisterItemListViewController {
             }
             .asObservable()
         
+        let cellDeleted = mainView.swipeDeleteRelay
+            .flatMapLatest { [weak self] indexPath -> Observable<UUID> in
+                guard let self,
+                      let id = self.dataSource.itemIdentifier(for: indexPath)?.id else { return .empty() }
+                return self.showDeleteAlert(id: id)
+            }
+            .asObservable()
+        
         let input = RegisterItemListViewModel.Input(
             saveButtonTapped: mainView.saveButton.rx.tap.asObservable(),
             addButtonTapped: addButton.rx.tap.asObservable(),
-            cellTapped: cellTapped
+            cellTapped: cellTapped,
+            cellDeleted: cellDeleted
         )
         
         let output = viewModel.transform(input)
@@ -138,5 +147,21 @@ extension RegisterItemListViewController {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "확인", style: .default))
         present(alert, animated: true)
+    }
+}
+
+extension RegisterItemListViewController {
+    private func showDeleteAlert(id: UUID) -> Observable<UUID> {
+        return Observable.create { [weak self] observer in
+            guard let self else { return Disposables.create() }
+            let alert = UIAlertController(title: "삭제", message: "해당 항목을 삭제하시겠습니까?", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "취소", style: .cancel))
+            alert.addAction(UIAlertAction(title: "삭제", style: .destructive) { _ in
+                observer.onNext(id)
+                observer.onCompleted()
+            })
+            self.present(alert, animated: true)
+            return Disposables.create { alert.dismiss(animated: true) }
+        }
     }
 }

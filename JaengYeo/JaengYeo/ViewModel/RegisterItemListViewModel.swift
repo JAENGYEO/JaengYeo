@@ -31,6 +31,7 @@ final class RegisterItemListViewModel: ViewModelProtocol {
         let saveButtonTapped: Observable<Void>
         let addButtonTapped: Observable<Void>
         let cellTapped: Observable<RegisterFormData>
+        let cellDeleted: Observable<UUID>
     }
     
     struct Output {
@@ -54,6 +55,12 @@ final class RegisterItemListViewModel: ViewModelProtocol {
         
         input.addButtonTapped
             .bind(to: navigateToAdd)
+            .disposed(by: disposeBag)
+        
+        input.cellDeleted
+            .bind(onNext: { [weak self] id in
+                self?.deleteItem(id: id)
+            })
             .disposed(by: disposeBag)
         
         return Output(
@@ -145,3 +152,10 @@ extension RegisterItemListViewModel {
     }
 }
 
+extension RegisterItemListViewModel {
+    private func deleteItem(id: UUID) {
+        guard var current = try? itemsSubject.value() else { return }
+        current.removeAll() { $0.id == id }
+        itemsSubject.onNext(current)
+    }
+}
