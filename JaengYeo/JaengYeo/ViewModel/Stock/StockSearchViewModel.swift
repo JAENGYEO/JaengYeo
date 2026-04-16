@@ -196,7 +196,7 @@ extension StockSearchViewModel: NSFetchedResultsControllerDelegate {
         do {
             try productFetchResultController?.performFetch()
         } catch {
-            print("StockSearchViewModel performFetch error: \(error)")
+
         }
     }
 
