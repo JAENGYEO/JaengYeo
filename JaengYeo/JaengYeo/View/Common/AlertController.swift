@@ -169,7 +169,7 @@ private class AlertTransitioningDelegate: NSObject, UIViewControllerTransitionin
   }
 
   func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-    return DismissalAniamtor()
+    return DismissalAnimator()
   }
 
   func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
