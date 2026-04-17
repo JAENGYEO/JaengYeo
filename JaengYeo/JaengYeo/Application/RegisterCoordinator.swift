@@ -150,7 +150,7 @@ extension RegisterCoordinator: RegisterDetailViewControllerDelegate {
         guard let mainCategory = detailViewController?.currentMainCategory else { return }
         let items = (try? coreDataManager.fetchAllMidCategories(mainCategory: mainCategory)) ?? []
         let selectionItem = items.map {
-            CategorySelectionItem(id: $0.id.uuidString, title: $0.name, image: nil, isSelect: $0.id == midCategory)
+            CategorySelectionItem(id: $0.id.uuidString, title: $0.name, image: UIImage(named: $0.iconName ?? ""), isSelect: $0.id == midCategory)
         }
         let viewController = RegisterCategoryViewController(items: selectionItem, selectedID: midCategory?.uuidString)
         viewController.onSelect = { [weak self] selectedID in
@@ -164,7 +164,7 @@ extension RegisterCoordinator: RegisterDetailViewControllerDelegate {
         guard let mainCategory = detailViewController?.currentMainCategory else { return }
         let items = (try? coreDataManager.fetchAllSubCategories(mainCategory: mainCategory)) ?? []
         let selectionItem = items.map {
-            CategorySelectionItem(id: $0.id.uuidString, title: $0.name, image: nil, isSelect: $0.id == subCategory)
+            CategorySelectionItem(id: $0.id.uuidString, title: $0.name, image: UIImage(named: $0.iconName ?? ""), isSelect: $0.id == subCategory)
         }
         let viewController = RegisterCategoryViewController(items: selectionItem, selectedID: subCategory?.uuidString)
         viewController.onSelect = { [weak self] selectedID in
