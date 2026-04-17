@@ -74,6 +74,7 @@ final class RegisterViewController: UIViewController {
                 self.captureSession.startRunning()
             }
         }
+        tabBarController?.tabBar.tintColor = .white
     }
     
     // 네비게이션 바 hidden: false
@@ -83,6 +84,8 @@ final class RegisterViewController: UIViewController {
         DispatchQueue.global(qos: .background).async {
             self.captureSession.stopRunning()
         }
+        
+        tabBarController?.tabBar.tintColor = .gray800
     }
 }
 
