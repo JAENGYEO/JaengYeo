@@ -47,10 +47,11 @@ final class NotificationManager {
         }.resume()
     }
     
-    func handleNotificationTapped(title: String) {
-        if title.contains("유통기한") {
+    func handleNotificationTapped(userInfo: [AnyHashable: Any]) {
+        guard let type = userInfo["type"] as? String else { return }
+        if type == "expiryImminent" {
             notificationTapped.onNext(.expiryImminent(day: 1))
-        } else {
+        } else if type == "lowStock" {
             notificationTapped.onNext(.lowStock)
         }
     }
