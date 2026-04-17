@@ -15,6 +15,7 @@ import UIKit
 protocol StockViewControllerDelegate: AnyObject {
     func didTapCategoryEditButton()
     func didTapSearchButton()
+    func didSelectProduct(productID: UUID)
 }
 
 final class StockViewController: UIViewController {
@@ -80,6 +81,12 @@ private extension StockViewController {
         productCollectionView.configureSortMenu { sortOption in
             sortOptionSelectedRelay.accept(sortOption)
         }
+        
+        productCollectionView.itemSelected
+            .bind(onNext: { [weak self] item in
+                self?.delegate?.didSelectProduct(productID: item.product.id)
+            })
+            .disposed(by: disposeBag)
         
         /// ViewModel 입력값
         let input = StockViewModel.Input(

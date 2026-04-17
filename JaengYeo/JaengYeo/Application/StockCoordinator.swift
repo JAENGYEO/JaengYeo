@@ -47,6 +47,16 @@ extension StockCoordinator: StockViewControllerDelegate {
         )
         navigationController.pushViewController(viewController, animated: true)
     }
+    
+    func didSelectProduct(productID: UUID) {
+        let viewController = ProductDetailViewController(
+            viewModel: ProductDetailViewModel(
+                productID: productID,
+                coreDataManager: coreDataManager
+            )
+        )
+        navigationController.pushViewController(viewController, animated: true)
+    }
 }
 
 extension StockCoordinator: CategoryEditViewControllerDelegate {

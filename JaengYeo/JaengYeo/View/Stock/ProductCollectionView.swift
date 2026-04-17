@@ -8,10 +8,14 @@
 import SnapKit
 import Then
 import UIKit
+import RxCocoa
+import RxSwift
 
 final class ProductCollectionView: UIView {
 
     //MARK: - Properties
+    private let disposeBag = DisposeBag()
+    private let itemSelectedRelay = PublishRelay<ProductCellItem>()
     private lazy var dataSource = configureDataSource()
 
     //MARK: - Components
@@ -55,6 +59,7 @@ final class ProductCollectionView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         configureUI()
+        bind()
     }
 
     required init?(coder: NSCoder) {
@@ -86,6 +91,11 @@ extension ProductCollectionView {
         config.attributedTitle = attributedTitle
 
         sortedButton.configuration = config
+    }
+    
+    /// 상품 셀 선택 이벤트
+    var itemSelected: Observable<ProductCellItem> {
+        itemSelectedRelay.asObservable()
     }
 
     func applySnapshot(with productDatas: [ProductCellItem]) {
@@ -210,5 +220,23 @@ extension ProductCollectionView {
             $0.centerY.equalToSuperview()
             $0.trailing.equalToSuperview().inset(16)
         }
+    }
+}
+
+//MARK: - Binding
+private extension ProductCollectionView {
+    func bind() {
+        collectionView.rx.itemSelected
+            .do(onNext: { [weak self] indexPath in
+                self?.collectionView.deselectItem(
+                    at: indexPath,
+                    animated: false
+                )
+            })
+            .compactMap { [weak self] indexPath in
+                self?.dataSource.itemIdentifier(for: indexPath)
+            }
+            .bind(to: itemSelectedRelay)
+            .disposed(by: disposeBag)
     }
 }
