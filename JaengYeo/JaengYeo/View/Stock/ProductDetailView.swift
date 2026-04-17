@@ -10,22 +10,7 @@ import Then
 import SnapKit
 import RxSwift
 
-/// 상세화면 전용 구조체
-// TODO: 추후 ViewModel로 이관예정
-struct ProductDetailDisplayModel {
-    let headerImage: UIImage?
-    let productName: String
-    let productCount: String
 
-    let mainInfos: [ProductDetailInfoItem]
-    let subInfos: [ProductDetailInfoItem]
-}
-
-struct ProductDetailInfoItem {
-    let icon: UIImage?
-    let title: String
-    let detail: String
-}
 
 
 final class ProductDetailView: UIView {
