@@ -47,7 +47,7 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
     private let productRelay = BehaviorRelay<Product?>(value: nil)
     private let midCategoryRelay = BehaviorRelay<MidCategory?>(value: nil)
     private let subCategoryRelay = BehaviorRelay<SubCategory?>(value: nil)
-    private let displayModelRelay = PublishRelay<ProductDetailDisplayModel>()
+    private let displayModelRelay = BehaviorRelay<ProductDetailDisplayModel?>(value: nil)
 
     
     struct Input {
@@ -69,7 +69,9 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
             .disposed(by: disposeBag)
         
         return Output(
-            viewUpdate: displayModelRelay.asObservable()
+            viewUpdate: displayModelRelay
+                .compactMap { $0 }
+                .asObservable()
         )
     }
     
@@ -81,18 +83,28 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
 }
 
 
-extension ProductDetailViewModel: NSFetchedResultsControllerDelegate  {
-    private func configureProductFetchResultController(id: UUID){
-        let request = ProductEntity.fetchRequest()
-        request.fetchLimit = 1
-        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+    extension ProductDetailViewModel: NSFetchedResultsControllerDelegate  {
+        private func configureProductFetchResultController(id: UUID){
+            let request = ProductEntity.fetchRequest()
+            request.sortDescriptors = [
+                NSSortDescriptor(
+                    key: ProductEntity.Keys.createdAt,
+                    ascending: false
+                )
+            ]
+            request.fetchLimit = 1
+            request.predicate = NSPredicate(
+                format: "%K == %@",
+                ProductEntity.Keys.id,
+                id as CVarArg
+            )
 
-        let controller = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: coreDataManager.context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
+            let controller = NSFetchedResultsController(
+                fetchRequest: request,
+                managedObjectContext: coreDataManager.context,
+                sectionNameKeyPath: nil,
+                cacheName: nil
+            )
 
         controller.delegate = self
         productFetchResultController = controller
@@ -106,6 +118,7 @@ extension ProductDetailViewModel: NSFetchedResultsControllerDelegate  {
             productRelay.accept(nil)
             midCategoryRelay.accept(nil)
             subCategoryRelay.accept(nil)
+            displayModelRelay.accept(makeNotFoundDisplayModel())
         }
     }
     
@@ -114,6 +127,7 @@ extension ProductDetailViewModel: NSFetchedResultsControllerDelegate  {
             productRelay.accept(nil)
             midCategoryRelay.accept(nil)
             subCategoryRelay.accept(nil)
+            displayModelRelay.accept(makeNotFoundDisplayModel())
             return
         }
 
@@ -171,6 +185,16 @@ extension ProductDetailViewModel: NSFetchedResultsControllerDelegate  {
 }
 
 private extension ProductDetailViewModel {
+    func makeNotFoundDisplayModel() -> ProductDetailDisplayModel {
+        ProductDetailDisplayModel(
+            headerImage: UIImage(named: "iconSelectIcon"),
+            productName: "상품을 불러오지 못했어요",
+            productCount: "-",
+            mainInfos: [],
+            subInfos: []
+        )
+    }
+
     func makeDisplayModel(
         product: Product,
         midCategory: MidCategory?,
@@ -191,17 +215,17 @@ private extension ProductDetailViewModel {
 
         let mainInfos: [ProductDetailInfoItem] = [
             ProductDetailInfoItem(
-                icon: UIImage(systemName: "square.grid.2x2"),
+                icon: UIImage(named: ProductInfoIcon.mainCategoryIcon.rawValue),
                 title: "대분류",
                 detail: product.mainCategory
             ),
             ProductDetailInfoItem(
-                icon: UIImage(systemName: "folder"),
+                icon: UIImage(named: ProductInfoIcon.midCategoryIcon.rawValue),
                 title: "중분류",
                 detail: midCategory?.name ?? "-"
             ),
             ProductDetailInfoItem(
-                icon: UIImage(systemName: "calendar"),
+                icon: UIImage(named: ProductInfoIcon.purchaseDateIcon.rawValue),
                 title: "등록일",
                 detail: formatDate(product.createdAt)
             )
@@ -212,8 +236,8 @@ private extension ProductDetailViewModel {
         if let subCategory {
             subInfos.append(
                 ProductDetailInfoItem(
-                    icon: UIImage(systemName: "tag"),
-                    title: "소분류",
+                    icon: UIImage(named: ProductInfoIcon.subCategoryIcon.rawValue),
+                    title: "소분류 (종류)",
                     detail: subCategory.name
                 )
             )
@@ -222,28 +246,19 @@ private extension ProductDetailViewModel {
         if let expiryDate = product.expiryDate {
             subInfos.append(
                 ProductDetailInfoItem(
-                    icon: UIImage(systemName: "clock"),
+                    icon: UIImage(named: ProductInfoIcon.expiryDateIcon.rawValue),
                     title: "소비기한",
                     detail: formatDate(expiryDate)
                 )
             )
         }
 
-        if let memo = product.memo, !memo.isEmpty {
-            subInfos.append(
-                ProductDetailInfoItem(
-                    icon: UIImage(systemName: "note.text"),
-                    title: "메모",
-                    detail: memo
-                )
-            )
-        }
 
         if let caution = product.caution, !caution.isEmpty {
             subInfos.append(
                 ProductDetailInfoItem(
-                    icon: UIImage(systemName: "exclamationmark.triangle"),
-                    title: "주의사항",
+                    icon: UIImage(named: ProductInfoIcon.cautionIcon.rawValue),
+                    title: "유의사항/취급 주의사항",
                     detail: caution
                 )
             )
@@ -252,23 +267,34 @@ private extension ProductDetailViewModel {
         if let brand = product.brand, !brand.isEmpty {
             subInfos.append(
                 ProductDetailInfoItem(
-                    icon: UIImage(systemName: "shippingbox"),
+                    icon: UIImage(named: ProductInfoIcon.brandIcon.rawValue),
                     title: "브랜드",
                     detail: brand
                 )
             )
         }
 
-        if product.lowStockThreshold > 0 {
+        if product.isLowStockNotificationEnabled,
+           product.lowStockThreshold > 0 {
             subInfos.append(
                 ProductDetailInfoItem(
-                    icon: UIImage(systemName: "bell"),
-                    title: "재고 부족 기준",
+                    icon: UIImage(named: ProductInfoIcon.lowStockThresholdIcon.rawValue),
+                    title: "알림 재고 수량",
                     detail: "\(product.lowStockThreshold)"
                 )
             )
         }
 
+        if let memo = product.memo, !memo.isEmpty {
+            subInfos.append(
+                ProductDetailInfoItem(
+                    icon: UIImage(named: ProductInfoIcon.memoIcon.rawValue),
+                    title: "메모",
+                    detail: memo
+                )
+            )
+        }
+         
         return ProductDetailDisplayModel(
             headerImage: headerImage,
             productName: product.name,
