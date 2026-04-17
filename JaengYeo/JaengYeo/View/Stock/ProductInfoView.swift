@@ -15,13 +15,19 @@ final class ProductInfoView: UIView {
     //MARK: - Components
     private let iconImageView = UIImageView().then {
         $0.backgroundColor = .clear
+        $0.contentMode = .scaleAspectFit
+        // Force consistent icon color (some assets are template images).
+        $0.tintColor = .gray500
     }
     
     private let titleLabel = StyledLabel(
         config: LabelConfiguration.body12.updatingColor(color: .gray300)
     )
     
-    private let detailLabel = StyledLabel(config: .titleSemi16)
+    private let detailLabel = StyledLabel(config: .titleSemi16).then {
+        $0.numberOfLines = 0
+        $0.lineBreakMode = .byWordWrapping
+    }
    
     private let modifyButton = StyledButton(
         title: "수정하기",
@@ -43,7 +49,7 @@ final class ProductInfoView: UIView {
 
 extension ProductInfoView {
     func updateUI(image: UIImage, title: String, detail: String) {
-        iconImageView.image = image
+        iconImageView.image = image.withRenderingMode(.alwaysTemplate)
         titleLabel.text = title
         detailLabel.text = detail
     }
@@ -52,9 +58,15 @@ extension ProductInfoView {
 extension ProductInfoView {
     private func configureUI() {
          
+        // Default row height is 37, but memo/caution can be multi-line.
+        snp.makeConstraints {
+            $0.height.greaterThanOrEqualTo(37)
+        }
+
         addSubview(iconImageView)
         addSubview(titleLabel)
         addSubview(detailLabel)
+        
         
         iconImageView.snp.makeConstraints {
             $0.centerY.equalToSuperview()
@@ -69,7 +81,7 @@ extension ProductInfoView {
         }
             
         detailLabel.snp.makeConstraints {
-            $0.top.equalTo(titleLabel).offset(4)
+            $0.top.equalTo(titleLabel.snp.bottom).offset(4)
             $0.leading.equalTo(iconImageView.snp.trailing).offset(16)
             $0.trailing.bottom.equalToSuperview()
         }
