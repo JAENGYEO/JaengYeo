@@ -14,7 +14,7 @@ protocol DatePickerBottomSheetViewControllerDelegate: AnyObject {
     func datePickerBottomSheet(_ vc: DatePickerBottomSheetViewController, didSelect date: Date)
 }
 
-final class DatePickerBottomSheetViewController: UIViewController {
+final class DatePickerBottomSheetViewController: BaseViewController {
 
     enum DatePickerType { case purchaseDate, expiryDate }
     

@@ -101,7 +101,7 @@ enum CategoryEditMode {
     }
 }
 
-final class CategoryEditDetailViewController: UIViewController {
+final class CategoryEditDetailViewController: BaseViewController {
 
     //MARK: - Properties
     /// 편집 모드

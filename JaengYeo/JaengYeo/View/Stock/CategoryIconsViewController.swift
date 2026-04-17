@@ -10,7 +10,7 @@ import RxSwift
 import SnapKit
 import UIKit
 
-final class CategoryIconsViewController: UIViewController {
+final class CategoryIconsViewController: BaseViewController {
 
     //MARK: - Properties
     private let iconNames: [String]

@@ -9,7 +9,7 @@ import UIKit
 import RxSwift
 import RxCocoa
 
-final class HomeViewController: UIViewController {
+final class HomeViewController: BaseViewController {
 
     private let disposeBag = DisposeBag()
     private let viewModel: HomeViewModel
@@ -22,7 +22,6 @@ final class HomeViewController: UIViewController {
     init(viewModel: HomeViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
-        overrideUserInterfaceStyle = .light
     }
     
     required init?(coder: NSCoder) {

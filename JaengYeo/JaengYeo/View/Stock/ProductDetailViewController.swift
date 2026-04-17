@@ -12,7 +12,7 @@ import RxSwift
 import RxCocoa
 
 
-final class ProductDetailViewController: UIViewController {
+final class ProductDetailViewController: BaseViewController {
     
 
     let viewModel: ProductDetailViewModel
