@@ -26,8 +26,8 @@ final class StockCoordinator {
         viewController.delegate = self
         navigationController.tabBarItem = UITabBarItem(
             title: "재고",
-            image: UIImage(systemName: "bag"),
-            selectedImage: UIImage(systemName: "bag.fill")
+            image: UIImage(named: "bagIcon"),
+            selectedImage: UIImage(named: "bagFillIcon")
         )
     }
 }
