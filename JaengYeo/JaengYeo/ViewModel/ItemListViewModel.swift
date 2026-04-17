@@ -102,7 +102,9 @@ final class ItemListViewModel: ViewModelProtocol {
                         }
                         let expiryDaysLeft: Int?
                         if case .expiryImminent = self.listType, let expiryDate = payload.expiryDate {
-                            expiryDaysLeft = Calendar.current.dateComponents([.day], from: Date(), to: expiryDate).day
+                            let today = Calendar.current.startOfDay(for: Date())
+                            let expiryDay = Calendar.current.startOfDay(for: expiryDate)
+                            expiryDaysLeft = Calendar.current.dateComponents([.day], from: today, to: expiryDay).day
                         } else {
                             expiryDaysLeft = nil
                         }
