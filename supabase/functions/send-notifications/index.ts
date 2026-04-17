@@ -72,13 +72,15 @@ async function sendApns(
   token: string,
   title: string,
   body: string,
-  jwt: string
+  jwt: string,
+  type: string
 ): Promise<"success" | "failed" | "invalid_token"> {
   // 개발 빌드(Xcode)는 샌드박스 환경 사용
   const apnsHost = "api.sandbox.push.apple.com";
   const url = `https://${apnsHost}/3/device/${token}`;
   const payload = JSON.stringify({
     aps: { alert: { title, body }, sound: "default" },
+    type,
   });
 
   try {
@@ -139,9 +141,10 @@ async function sendGroupedAndLog(
 
   if (!tokens || tokens.length === 0) return;
 
+  const clientType = type === "low_stock" ? "lowStock" : "expiryImminent";
   let apnsStatus: "success" | "failed" | "invalid_token" = "failed";
   for (const { device_token } of tokens) {
-    apnsStatus = await sendApns(device_token, title, body, jwt);
+    apnsStatus = await sendApns(device_token, title, body, jwt, clientType);
 
     if (apnsStatus === "invalid_token") {
       await supabase

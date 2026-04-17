@@ -7,11 +7,16 @@
 
 import Foundation
 import os
+import RxSwift
+import RxCocoa
 
 final class NotificationManager {
     static let shared = NotificationManager()
     private init() {}
 
+    private let disposeBag = DisposeBag()
+    let notificationTapped = PublishSubject<ItemListType>()
+    
     func syncDeviceToken(tokenData: Data) {
         let token = tokenData.map { String(format: "%02x", $0) }.joined()
 
@@ -40,5 +45,14 @@ final class NotificationManager {
                 Logger().info("NotificationManager: 응답 코드 - \(httpResponse.statusCode)")
             }
         }.resume()
+    }
+    
+    func handleNotificationTapped(userInfo: [AnyHashable: Any]) {
+        guard let type = userInfo["type"] as? String else { return }
+        if type == "expiryImminent" {
+            notificationTapped.onNext(.expiryImminent(day: 1))
+        } else if type == "lowStock" {
+            notificationTapped.onNext(.lowStock)
+        }
     }
 }

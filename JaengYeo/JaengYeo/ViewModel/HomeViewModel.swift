@@ -45,6 +45,8 @@ final class HomeViewModel: ViewModelProtocol {
     let navigateToUnclassified = PublishSubject<Void>()
     let navigateToCategory = PublishSubject<String>()
     let navigateToRegister = PublishSubject<Void>()
+    let navigateToExpiryImminent = PublishSubject<Void>()
+    let navigateToLowStock = PublishSubject<Void>()
     
     init(coreDataManager: CoreDataManagerProtocol) {
         self.coreDataManager = coreDataManager
@@ -54,6 +56,7 @@ final class HomeViewModel: ViewModelProtocol {
         let viewWillAppear: Observable<Void>
         let unclassifiedTapped: Observable<Void>
         let categoryCardTapped: Observable<String>
+        let statusAlertTapped: Observable<AlertType>
     }
     
     struct Output {
@@ -164,6 +167,17 @@ final class HomeViewModel: ViewModelProtocol {
         
         input.categoryCardTapped
             .bind(to: navigateToCategory)
+            .disposed(by: disposeBag)
+        
+        input.statusAlertTapped
+            .bind(onNext: { [weak self] type in
+                switch type {
+                case .expiry:
+                    self?.navigateToExpiryImminent.onNext(())
+                case .lowStock:
+                    self?.navigateToLowStock.onNext(())
+                }
+            })
             .disposed(by: disposeBag)
         
         return Output(

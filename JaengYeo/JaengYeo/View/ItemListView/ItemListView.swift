@@ -9,14 +9,13 @@ import UIKit
 import SnapKit
 import Then
 
-final class UnclassifiedView: UIView {
+final class ItemListView: UIView {
     
     let infoView = UIView().then {
         $0.backgroundColor = .gray50
     }
     
     let infoLabel = UILabel().then {
-        $0.text = "분류가 덜 된 상품들의 세부내용을 입력해주세요"
         $0.font = LabelConfiguration.body12.font
         $0.textColor = .gray300
         $0.textAlignment = .center
@@ -39,7 +38,7 @@ final class UnclassifiedView: UIView {
     }
 }
 
-extension UnclassifiedView {
+extension ItemListView {
     private func setLayout() {
         backgroundColor = .white
         infoView.addSubview(infoLabel)
@@ -60,7 +59,7 @@ extension UnclassifiedView {
     }
 }
 
-extension UnclassifiedView {
+extension ItemListView {
     private func configCollectionViewLayout() {
         let layout = UICollectionViewCompositionalLayout { sectionIndex, environment in
             var config = UICollectionLayoutListConfiguration(appearance: .plain)

@@ -57,6 +57,16 @@ extension HomeViewController {
             }
             .asObservable()
         
+        let statusAlertTapped = mainView.collectionView.rx.itemSelected
+            .filter { [weak self] indexPath in
+                self?.dataSource?.sectionIdentifier(for: indexPath.section) == .statusAlert
+            }
+            .compactMap { [weak self] indexPath -> HomeViewModel.AlertType? in
+                guard case .statusAlert(let summary) = self?.dataSource?.itemIdentifier(for: indexPath) else { return nil }
+                return summary.type
+            }
+            .asObservable()
+        
         let input = HomeViewModel.Input(
             viewWillAppear: viewWillAppearRelay.asObservable(),
             unclassifiedTapped: mainView.collectionView.rx.itemSelected
@@ -64,7 +74,8 @@ extension HomeViewController {
                     self?.dataSource?.sectionIdentifier(for: indexPath.section) == .unclassified
                 }
                 .map { _ in },
-            categoryCardTapped: categoryCardTapped
+            categoryCardTapped: categoryCardTapped,
+            statusAlertTapped: statusAlertTapped
         )
         let output = viewModel.transform(input)
         
