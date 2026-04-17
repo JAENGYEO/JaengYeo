@@ -739,11 +739,12 @@ extension CoreDataManager {
     
     // 유통기한 임박 상품 fetch
     func fetchExpiryImminent(day: Int) throws -> [ProductPayload] {
-        let deadLine = Calendar.current.date(byAdding: .day, value: day, to: Date()) ?? Date()
+        let startOfToday = Calendar.current.startOfDay(for: Date())
+        let deadLine = Calendar.current.date(byAdding: .day, value: day + 1, to: startOfToday) ?? Date()
         let request = ProductEntity.fetchRequest()
         request.predicate = NSPredicate(
-            format: "expiryDate <= %@ AND expiryDate > %@ AND syncStatus != %@",
-            deadLine as NSDate, Date() as NSDate, SyncStatus.pendingDelete.rawValue
+            format: "expiryDate >= %@ AND expiryDate < %@ AND syncStatus != %@",
+            startOfToday as NSDate, deadLine as NSDate, SyncStatus.pendingDelete.rawValue
         )
         request.sortDescriptors = [NSSortDescriptor(key: "expiryDate", ascending: true)]
         do {
