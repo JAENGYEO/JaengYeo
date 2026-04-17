@@ -144,24 +144,30 @@ extension RegisterItemListViewController {
 
 extension RegisterItemListViewController {
     private func showErrorAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        let alert = AlertController(
+            image: .warningIcon,
+            title: title,
+            message: message,
+            actions: [.default("확인")]
+        )
         present(alert, animated: true)
     }
 }
 
 extension RegisterItemListViewController {
     private func showDeleteAlert(id: UUID) -> Observable<UUID> {
-        return Observable.create { [weak self] observer in
-            guard let self else { return Disposables.create() }
-            let alert = UIAlertController(title: "삭제", message: "해당 항목을 삭제하시겠습니까?", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-            alert.addAction(UIAlertAction(title: "삭제", style: .destructive) { _ in
-                observer.onNext(id)
-                observer.onCompleted()
-            })
-            self.present(alert, animated: true)
-            return Disposables.create { alert.dismiss(animated: true) }
-        }
+        return Reactive<AlertController>.alert(
+            on: self,
+            image: UIImage(systemName: "trash.fill")!,
+            title: "삭제",
+            message: "해당 항목을 삭제하시겠습니까?",
+            actions: [
+                .cancel("취소"),
+                .destructive("삭제")
+            ]
+        )
+        .filter { $0.style == .destructive }
+        .map { _ in id }
+        .asObservable()
     }
 }
