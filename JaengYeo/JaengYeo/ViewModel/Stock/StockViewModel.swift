@@ -320,7 +320,13 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     private func makeProductPredicate(
         mainCategoryPredicate: NSPredicate?
     ) -> NSPredicate? {
-        var predicates = [NSPredicate]()
+        var predicates = [
+            NSPredicate(
+                format: "%K != %@",
+                ProductEntity.Keys.syncStatus,
+                SyncStatus.pendingDelete.rawValue
+            )
+        ]
         
         if let mainCategoryPredicate {
             predicates.append(mainCategoryPredicate)
@@ -336,7 +342,6 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
             predicates.append(NSPredicate(format: "subCategoryId IN %@", subCategoryIDs))
         }
         
-        guard !predicates.isEmpty else { return nil }
         return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
     }
     

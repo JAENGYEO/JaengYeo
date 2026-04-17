@@ -10,6 +10,8 @@ import UIKit
 final class StockCoordinator {
     let navigationController: UINavigationController
     private let stockViewController: StockViewController
+    private weak var registerDetailViewController: RegisterDetailViewController?
+    private var currentProductPayload: ProductPayload?
     
     private let productManager: ProductManagerProtocol
     private let categoryManager: CategoryManagerProtocol
@@ -49,12 +51,29 @@ extension StockCoordinator: StockViewControllerDelegate {
     }
     
     func didSelectProduct(productID: UUID) {
+        currentProductPayload = try? coreDataManager.fetchProduct(of: productID)
+        
         let viewController = ProductDetailViewController(
             viewModel: ProductDetailViewModel(
                 productID: productID,
                 coreDataManager: coreDataManager
             )
         )
+        viewController.delegate = self
+        navigationController.pushViewController(viewController, animated: true)
+    }
+}
+
+extension StockCoordinator: ProductDetailViewControllerDelegate {
+    func productDetailViewController(
+        _ viewController: ProductDetailViewController,
+        didTapModify formData: RegisterFormData
+    ) {
+        let viewController = RegisterDetailViewController(
+            viewModel: RegisterDetailViewModel(item: formData)
+        )
+        viewController.delegate = self
+        registerDetailViewController = viewController
         navigationController.pushViewController(viewController, animated: true)
     }
 }
@@ -72,6 +91,89 @@ extension StockCoordinator: CategoryEditViewControllerDelegate {
             )
         )
         navigationController.pushViewController(viewController, animated: true)
+    }
+}
+
+extension StockCoordinator: RegisterDetailViewControllerDelegate {
+    func didTapConfirmButton(item: RegisterFormData) {
+        guard let original = currentProductPayload else { return }
+
+        let imageUrl: String?
+        if let newImage = item.image {
+            let fileName = "\(original.id.uuidString).jpg"
+            guard let baseUrl = FileManager.default
+                .urls(for: .documentDirectory, in: .userDomainMask).first
+            else { return }
+
+            let url = baseUrl.appendingPathComponent(fileName)
+            if let data = newImage.jpegData(compressionQuality: 0.8) {
+                try? data.write(to: url)
+            }
+            imageUrl = fileName
+        } else {
+            imageUrl = item.imageUrl ?? original.imageUrl
+        }
+
+        do {
+            try coreDataManager.updateProduct(
+                original.updated(with: item, imageUrl: imageUrl)
+            )
+        } catch {
+            //TODO: 상품 수정 실패 알럿 추가 필요
+        }
+    }
+
+    func didTapMidCategory(midCategory: UUID?) {
+        guard let mainCategory = registerDetailViewController?.currentMainCategory else { return }
+        let items = (try? coreDataManager.fetchAllMidCategories(mainCategory: mainCategory)) ?? []
+        let selectionItems = items.map {
+            CategorySelectionItem(
+                id: $0.id.uuidString,
+                title: $0.name,
+                image: UIImage(named: $0.iconName ?? ""),
+                isSelect: $0.id == midCategory
+            )
+        }
+
+        let viewController = RegisterCategoryViewController(
+            items: selectionItems,
+            selectedID: midCategory?.uuidString
+        )
+        viewController.onSelect = { [weak self] selectedID in
+            let selected = items.first { $0.id.uuidString == selectedID }
+            self?.registerDetailViewController?.didSelectMidCategory(
+                id: selected?.id,
+                name: selected?.name
+            )
+        }
+        navigationController.present(viewController, animated: false)
+    }
+
+    func didTapSubCategory(subCategory: UUID?) {
+        guard let mainCategory = registerDetailViewController?.currentMainCategory else { return }
+        let items = (try? coreDataManager.fetchAllSubCategories(mainCategory: mainCategory)) ?? []
+        let selectionItems = items.map {
+            CategorySelectionItem(
+                id: $0.id.uuidString,
+                title: $0.name,
+                image: UIImage(named: $0.iconName ?? ""),
+                isSelect: $0.id == subCategory
+            )
+        }
+
+        let viewController = RegisterCategoryViewController(
+            items: selectionItems,
+            selectedID: subCategory?.uuidString
+        )
+        viewController.onSelect = { [weak self] selectedID in
+            let selected = items.first { $0.id.uuidString == selectedID }
+            self?.registerDetailViewController?.didSelectSubCategory(
+                id: selected?.id,
+                name: selected?.name,
+                iconName: selected?.iconName
+            )
+        }
+        navigationController.present(viewController, animated: false)
     }
 }
 
