@@ -40,7 +40,7 @@ final class HomeCoordinator {
         
         viewModel.navigateToUnclassified
             .bind(onNext: { [weak self] _ in
-                self?.pushUnclassified()
+                self?.pushItemList(type: .unclassified)
             })
             .disposed(by: disposeBag)
         
@@ -52,19 +52,39 @@ final class HomeCoordinator {
             .bind(to: navigateToRegister)
             .disposed(by: disposeBag)
         
+        viewModel.navigateToExpiryImminent
+            .bind(onNext: { [weak self] _ in
+                self?.pushItemList(type: .expiryImminent(day: 1))
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.navigateToLowStock
+            .bind(onNext: { [weak self] _ in
+                self?.pushItemList(type: .lowStock)
+            })
+            .disposed(by: disposeBag)
+        
+        NotificationManager.shared.notificationTapped
+            .bind(onNext: { [weak self] type in
+                self?.pushItemList(type: type)
+            })
+            .disposed(by: disposeBag)
+        
     }
 }
 
 extension HomeCoordinator {
-    private func pushUnclassified() {
-        let viewModel = UnclassifiedViewModel(coreDateManger: coreDataManager)
-        let viewController = UnclassifiedViewController(viewModel: viewModel)
+    private func pushItemList(type: ItemListType) {
+        let viewModel = ItemListViewModel(coreDataManager: coreDataManager, listType: type)
+        let viewController = ItemListViewController(viewModel: viewModel)
         
-        viewModel.navigateToDetail
-            .bind(onNext: { [weak self] id in
-                self?.pushUnclassifiedDetail(id: id)
-            })
-            .disposed(by: disposeBag)
+        if case .unclassified = type {
+            viewModel.navigateToDetail
+                .bind(onNext: { [weak self] id in
+                    self?.pushUnclassifiedDetail(id: id)
+                })
+                .disposed(by: disposeBag)
+        }
         navigationController.pushViewController(viewController, animated: true)
     }
     
