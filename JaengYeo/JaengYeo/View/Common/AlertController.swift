@@ -214,7 +214,7 @@ private class AlertTransitioningDelegate: NSObject, UIViewControllerTransitionin
     }
   }
 
-  private class DismissalAniamtor: NSObject, UIViewControllerAnimatedTransitioning {
+  private class DismissalAnimator: NSObject, UIViewControllerAnimatedTransitioning {
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
       return 0.3
     }
