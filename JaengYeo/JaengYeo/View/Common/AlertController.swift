@@ -146,12 +146,12 @@ extension AlertController {
       }
       addSubview(buttonStackView)
         
-        buttons.forEach {
-            $0.snp.makeConstraints {
-                $0.width.equalTo(70)
-                $0.height.equalTo(30)
-            }
-        }
+    buttons.forEach {
+      $0.snp.makeConstraints {
+        $0.width.equalTo(70)
+        $0.height.greaterThanOrEqualTo(44)
+      }
+    }
       buttonStackView.snp.makeConstraints {
         $0.top.equalTo(messageLabel.snp.bottom).offset(16)
         $0.bottom.equalTo(contentLayoutGuide)
