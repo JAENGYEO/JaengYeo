@@ -106,8 +106,8 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        let title = response.notification.request.content.title
-        NotificationManager.shared.handleNotificationTapped(title: title)
+        let userInfo = response.notification.request.content.userInfo
+        NotificationManager.shared.handleNotificationTapped(userInfo: userInfo)
         completionHandler()
     }
 }
