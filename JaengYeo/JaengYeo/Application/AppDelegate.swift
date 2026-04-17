@@ -104,5 +104,11 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
             completionHandler([.banner, .sound, .badge])
     }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let title = response.notification.request.content.title
+        NotificationManager.shared.handleNotificationTapped(title: title)
+        completionHandler()
+    }
 }
 
