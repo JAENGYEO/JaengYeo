@@ -11,7 +11,7 @@ import Then
 import RxSwift
 import RxCocoa
 
-final class RegisterCategoryViewController: UIViewController {
+final class RegisterCategoryViewController: BaseViewController {
     
     // MARK: Properties
     private enum Section { case main }

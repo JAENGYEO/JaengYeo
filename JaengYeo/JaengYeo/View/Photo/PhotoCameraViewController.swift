@@ -10,7 +10,7 @@ import AVFoundation
 import RxSwift
 import RxCocoa
 
-final class PhotoCameraViewController: UIViewController {
+final class PhotoCameraViewController: BaseViewController {
     
     let photoCaptured = PublishRelay<UIImage>()
     

@@ -11,7 +11,7 @@ import SnapKit
 import Then
 import UIKit
 
-final class StockSearchViewController: UIViewController {
+final class StockSearchViewController: BaseViewController {
 
     //MARK: - Enum
     private enum Section {

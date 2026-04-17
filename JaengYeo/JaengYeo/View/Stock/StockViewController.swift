@@ -18,7 +18,7 @@ protocol StockViewControllerDelegate: AnyObject {
     func didSelectProduct(productID: UUID)
 }
 
-final class StockViewController: UIViewController {
+final class StockViewController: BaseViewController {
 
     //MARK: - ViewModel
     private let viewModel: StockViewModel

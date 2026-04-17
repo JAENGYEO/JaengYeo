@@ -12,7 +12,7 @@ import SnapKit
 import Then
 import UIKit
 
-final class CategorySelectionViewController: UIViewController {
+final class CategorySelectionViewController: BaseViewController {
 
     //MARK: - Enum
     private enum Section {

@@ -9,7 +9,7 @@ import UIKit
 import RxSwift
 import RxCocoa
 
-final class RegisterItemListViewController: UIViewController {
+final class RegisterItemListViewController: BaseViewController {
     
     private let disposeBag = DisposeBag()
     private let mainView = RegisterItemListView()

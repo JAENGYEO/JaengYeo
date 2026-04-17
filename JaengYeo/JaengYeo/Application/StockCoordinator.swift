@@ -22,12 +22,12 @@ final class StockCoordinator {
         
         let viewController = StockViewController(viewModel: StockViewModel(coreDataManager: coreDataManager))
         self.stockViewController = viewController
-        navigationController = UINavigationController(rootViewController: viewController)
+        navigationController = BaseNavigationController(rootViewController: viewController)
         viewController.delegate = self
         navigationController.tabBarItem = UITabBarItem(
             title: "재고",
-            image: UIImage(systemName: "bag"),
-            selectedImage: UIImage(systemName: "bag.fill")
+            image: UIImage(named: "bagIcon"),
+            selectedImage: UIImage(named: "bagFillIcon")
         )
     }
 }

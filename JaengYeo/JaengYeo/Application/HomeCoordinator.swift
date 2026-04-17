@@ -31,11 +31,11 @@ final class HomeCoordinator {
         
         let viewModel = HomeViewModel(coreDataManager: coreDataManager)
         let viewController = HomeViewController(viewModel: viewModel)
-        navigationController = UINavigationController(rootViewController: viewController)
+        navigationController = BaseNavigationController(rootViewController: viewController)
         navigationController.tabBarItem = UITabBarItem(
             title: "홈",
-            image: UIImage(systemName: "house"),
-            selectedImage: UIImage(systemName: "house.fill")
+            image: UIImage(named: "homeIcon"),
+            selectedImage: UIImage(named: "homeFillIcon")
         )
         
         viewModel.navigateToUnclassified

@@ -44,11 +44,11 @@ final class RegisterCoordinator {
         
         let viewModel = RegisterViewModel(client: client, receiptAnalyzer: receiptAnalyzer)
         let viewController = RegisterViewController(viewModel: viewModel)
-        navigationController = UINavigationController(rootViewController: viewController)
+        navigationController = BaseNavigationController(rootViewController: viewController)
         navigationController.tabBarItem = UITabBarItem(
             title: "등록",
-            image: UIImage(systemName: "camera"),
-            selectedImage: UIImage(systemName: "camera.fill")
+            image: UIImage(named: "cameraIcon"),
+            selectedImage: UIImage(named: "cameraFillIcon")
         )
         viewController.delegate = self
     }

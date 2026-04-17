@@ -9,7 +9,7 @@ import UIKit
 import RxSwift
 import RxCocoa
 
-final class ItemListViewController: UIViewController {
+final class ItemListViewController: BaseViewController {
     private let disposeBag = DisposeBag()
     private let viewModel: ItemListViewModel
     private let mainView = ItemListView()

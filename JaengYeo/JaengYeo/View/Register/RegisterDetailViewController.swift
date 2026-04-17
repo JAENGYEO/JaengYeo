@@ -16,7 +16,7 @@ protocol RegisterDetailViewControllerDelegate: AnyObject {
     func didTapSubCategory(subCategory: UUID?)
 }
 
-final class RegisterDetailViewController: UIViewController {
+final class RegisterDetailViewController: BaseViewController {
     
     weak var delegate: RegisterDetailViewControllerDelegate?
     
