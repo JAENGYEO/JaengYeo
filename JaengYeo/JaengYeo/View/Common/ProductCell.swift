@@ -213,11 +213,11 @@ private extension ProductCell {
                 config: .body12.updatingColor(color: .primaryRed)
             ).then {
                 if freshness > 0 {
-                    "\(freshness)일 남음"
+                    $0.text =  "\(freshness)일 남음"
                 } else if freshness == 0 {
-                    "오늘 만료"
+                    $0.text =  "오늘 만료"
                 } else {
-                    "유통기한 만료"
+                    $0.text =  "유통기한 만료"
                 }
                 $0.numberOfLines = 1
             }
