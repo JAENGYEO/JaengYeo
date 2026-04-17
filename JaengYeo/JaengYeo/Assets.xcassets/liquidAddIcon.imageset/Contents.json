@@ -1,12 +1,15 @@
 {
-  "images": [
+  "images" : [
     {
-      "filename": "LiquidAdd.png",
-      "idiom": "universal"
+      "filename" : "liquidAddIcon.svg",
+      "idiom" : "universal"
     }
   ],
-  "info": {
-    "author": "xcode",
-    "version": 1
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "preserves-vector-representation" : true
   }
 }
