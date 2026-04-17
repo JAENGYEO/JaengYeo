@@ -33,3 +33,20 @@ extension SubCategoryEntity {
 extension SubCategoryEntity : Identifiable {
 
 }
+
+extension SubCategoryEntity {
+    var toDomain: SubCategory {
+        SubCategory(
+            id: id,
+            userId: userId.flatMap { UUID(uuidString: $0) },
+            mainCategory: mainCategory,
+            name: name,
+            iconName: iconName,
+            thumbnailKey: thumbnailKey,
+            sortOrder: Int(sortOrder),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            syncStatus: syncStatus
+        )
+    }
+}

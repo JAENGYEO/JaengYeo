@@ -33,3 +33,19 @@ extension MidCategoryEntity {
 extension MidCategoryEntity : Identifiable {
 
 }
+
+extension MidCategoryEntity {
+    var toDomain: MidCategory {
+        MidCategory(
+            id: id,
+            userId: userId.flatMap { UUID(uuidString: $0) },
+            mainCategory: mainCategory,
+            name: name,
+            iconName: iconName,
+            sortOrder: Int(sortOrder),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            syncStatus: syncStatus
+        )
+    }
+}

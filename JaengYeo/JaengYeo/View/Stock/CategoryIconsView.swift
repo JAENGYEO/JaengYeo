@@ -24,6 +24,25 @@ final class CategoryIconsView: UIView {
     private lazy var dataSource = configureDataSource()
 
     //MARK: - Components
+    /// 바텀 시트 시 뒷 배경
+    let dimmingView = UIView().then {
+        $0.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        $0.alpha = 0
+    }
+    
+    /// 상단 핸들 뷰
+    let handleView = UIView().then {
+        $0.backgroundColor = .gray300
+        $0.layer.cornerRadius = 2.5
+    }
+    
+    let contentView = UIView().then {
+        $0.backgroundColor = .white
+        $0.layer.cornerRadius = 20
+        $0.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        $0.clipsToBounds = true
+    }
+    
     /// 카테고리 컬렉션 뷰
     lazy var collectionView = UICollectionView(
         frame: .zero,
@@ -160,27 +179,42 @@ private extension CategoryIconsView {
 private extension CategoryIconsView {
     /// UI 설정
     private func configureUI() {
-        backgroundColor = .white
-        layer.cornerRadius = 8
-        layer.maskedCorners = [
-            .layerMinXMinYCorner,
-            .layerMaxXMinYCorner
-        ]
-        clipsToBounds = true
+        backgroundColor = .clear
 
-        addSubview(collectionView)
-        addSubview(applyButton)
+        addSubview(dimmingView)
+        addSubview(contentView)
+
+        contentView.addSubview(handleView)
+        contentView.addSubview(collectionView)
+        contentView.addSubview(applyButton)
+
+        dimmingView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+
+        contentView.snp.makeConstraints {
+            $0.leading.trailing.bottom.equalToSuperview()
+            $0.top.greaterThanOrEqualToSuperview()
+        }
+
+        handleView.snp.makeConstraints {
+            $0.top.equalToSuperview().offset(8)
+            $0.centerX.equalToSuperview()
+            $0.width.equalTo(40)
+            $0.height.equalTo(5)
+        }
 
         collectionView.snp.makeConstraints {
-            $0.top.equalToSuperview()
+            $0.top.equalTo(handleView.snp.bottom).offset(16)
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(applyButton.snp.top).offset(-16)
+            $0.height.equalTo(280)
         }
 
         applyButton.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)
             $0.trailing.equalToSuperview().inset(16)
-            $0.bottom.equalTo(safeAreaLayoutGuide).inset(16)
+            $0.bottom.equalTo(contentView.safeAreaLayoutGuide).inset(16)
             $0.height.equalTo(44)
         }
     }
