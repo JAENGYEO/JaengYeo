@@ -45,8 +45,8 @@ final class StockSearchViewController: UIViewController {
         
         let textField = $0.searchTextField
         textField.backgroundColor = .gray50
-        textField.font = LabelConfiguration.bodyMedium12.font
-        textField.layer.cornerRadius = 22
+        textField.font = LabelConfiguration.bodyMedium14.font
+        textField.layer.cornerRadius = 20
         textField.layer.masksToBounds = true
         textField.borderStyle = .none
     }
@@ -229,7 +229,7 @@ private extension StockSearchViewController {
             $0.centerY.equalTo(backButton.snp.centerY)
             $0.leading.equalTo(backButton.snp.trailing).offset(8)
             $0.trailing.equalToSuperview().inset(16)
-            $0.height.equalTo(44)
+            $0.height.equalTo(40)
         }
 
         collectionView.snp.makeConstraints {

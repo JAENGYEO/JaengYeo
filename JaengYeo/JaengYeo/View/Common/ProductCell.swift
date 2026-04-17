@@ -212,7 +212,13 @@ private extension ProductCell {
             let freshnessLabel = StyledLabel(
                 config: .body12.updatingColor(color: .primaryRed)
             ).then {
-                $0.text = freshness > 0 ? "\(freshness)일 남음" : "소비기한 만료"
+                if freshness > 0 {
+                    "\(freshness)일 남음"
+                } else if freshness == 0 {
+                    "오늘 만료"
+                } else {
+                    "유통기한 만료"
+                }
                 $0.numberOfLines = 1
             }
             labels.append(freshnessLabel)
