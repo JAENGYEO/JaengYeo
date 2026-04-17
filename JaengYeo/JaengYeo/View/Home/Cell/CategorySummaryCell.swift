@@ -28,13 +28,6 @@ final class CategorySummaryCell: UICollectionViewCell {
         $0.textColor = .gray500
     }
     
-    private let chevronImageView = UIImageView().then {
-        $0.image = .arrowIcon
-        $0.tintColor = .gray300
-        $0.contentMode = .scaleAspectFit
-        $0.transform = CGAffineTransform(scaleX: -1, y: 1)
-    }
-    
     private let midCategoryView = CategorySubCard(title: "중분류", iconName: "locationIcon")
     private let subCategoryView = CategorySubCard(title: "소분류", iconName: "filterIcon")
     
@@ -61,7 +54,7 @@ final class CategorySummaryCell: UICollectionViewCell {
 
 extension CategorySummaryCell {
     private func setLayout() {
-        [titleLabel, countLabel, countUnitLabel, chevronImageView, midCategoryView, subCategoryView].forEach { contentView.addSubview($0) }
+        [titleLabel, countLabel, countUnitLabel, midCategoryView, subCategoryView].forEach { contentView.addSubview($0) }
         titleLabel.snp.makeConstraints {
             $0.top.leading.equalToSuperview().offset(12)
         }
@@ -73,11 +66,7 @@ extension CategorySummaryCell {
             $0.leading.equalTo(countLabel.snp.trailing)
             $0.bottom.equalTo(countLabel.snp.bottom).offset(-4)
         }
-        chevronImageView.snp.makeConstraints {
-            $0.trailing.equalToSuperview().offset(-8)
-            $0.top.equalToSuperview().offset(35)
-            $0.size.equalTo(24)
-        }
+
         midCategoryView.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(8)
             $0.bottom.equalToSuperview().offset(-8)
