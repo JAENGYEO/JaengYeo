@@ -11,7 +11,10 @@ import RxCocoa
 import PhotosUI
 
 protocol RegisterDetailViewControllerDelegate: AnyObject {
-    func didTapConfirmButton(item: RegisterFormData)
+    func didTapConfirmButton(
+        _ viewController: RegisterDetailViewController,
+        item: RegisterFormData
+    )
     func didTapMidCategory(midCategory: UUID?)
     func didTapSubCategory(subCategory: UUID?)
 }
@@ -189,8 +192,9 @@ extension RegisterDetailViewController {
         output.didConfirm
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] item in
-                self?.delegate?.didTapConfirmButton(item: item)
-                self?.navigationController?.popViewController(animated: true)
+                guard let self else { return }
+                self.delegate?.didTapConfirmButton(self, item: item)
+                self.navigationController?.popViewController(animated: true)
             })
             .disposed(by: disposeBag)
         
