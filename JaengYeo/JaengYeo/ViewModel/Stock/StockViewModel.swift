@@ -111,6 +111,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         let subCategoryApplied: Observable<[String]>
         /// 상품 정렬 선택 이벤트
         let sortOptionSelected: Observable<ProductSortOption>
+        /// 상품 재고 차감 이벤트
+        let productQuantityDecreased: Observable<ProductCellItem>
         /// 상품 삭제 이벤트
         let productDeleted: Observable<[UUID]>
     }
@@ -199,6 +201,14 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
                 guard let self else { return }
                 self.selectedSortOptionRelay.accept(sortOption)
                 self.updateProducts()
+            })
+            .disposed(by: disposeBag)
+        
+        /// 상품 재고 차감
+        input.productQuantityDecreased
+            .subscribe(onNext: { [weak self] item in
+                guard let self else { return }
+                self.decreaseProductQuantity(item.product)
             })
             .disposed(by: disposeBag)
         
@@ -595,8 +605,24 @@ private extension StockViewModel {
     }
 }
 
+
 //MARK: - Delete
 private extension StockViewModel {
+    /// 상품 재고 1개 차감
+    func decreaseProductQuantity(_ product: Product) {
+        guard product.quantity > 0 else { return }
+        
+        do {
+            try coreDataManager.updateProduct(
+                product
+                    .decreasedQuantity()
+                    .toPayload()
+            )
+            performFetch()
+        } catch {
+        }
+    }
+
     /// 상품 삭제
     func deleteProducts(_ productIDs: [UUID]) {
         productIDs.forEach {

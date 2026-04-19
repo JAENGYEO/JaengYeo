@@ -77,6 +77,8 @@ private extension StockViewController {
         let subCategoryAppliedRelay = PublishRelay<[String]>()
         /// 상품 정렬 선택
         let sortOptionSelectedRelay = PublishRelay<ProductSortOption>()
+        /// 상품 재고 차감 선택
+        let productQuantityDecreasedRelay = PublishRelay<ProductCellItem>()
         /// 상품 삭제 선택
         let productDeletedRelay = PublishRelay<[UUID]>()
         
@@ -88,6 +90,10 @@ private extension StockViewController {
             .bind(onNext: { [weak self] item in
                 self?.selectProduct(item)
             })
+            .disposed(by: disposeBag)
+        
+        productCollectionView.itemQuantityDecreased
+            .bind(to: productQuantityDecreasedRelay)
             .disposed(by: disposeBag)
         
         productCollectionView.itemDeleted
@@ -109,6 +115,7 @@ private extension StockViewController {
             midCategoryApplied: midCategoryAppliedRelay.asObservable(),
             subCategoryApplied: subCategoryAppliedRelay.asObservable(),
             sortOptionSelected: sortOptionSelectedRelay.asObservable(),
+            productQuantityDecreased: productQuantityDecreasedRelay.asObservable(),
             productDeleted: productDeletedRelay.asObservable()
         )
         
