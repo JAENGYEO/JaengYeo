@@ -112,7 +112,7 @@ extension ItemListViewController {
                     image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(systemName: $0) }
                 )
                 cell.accessories = [.disclosureIndicator(options: .init(tintColor: .gray300)) ]
-            case .expiryImminent(let day):
+            case .expiryImminent:
                 cell.updateUI(
                     type: .unclassifiedType,
                     title: itemIdentifier.name,
