@@ -59,17 +59,17 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
     struct Output {
         let viewUpdate: Observable<ProductDetailDisplayModel>
         let deleteSuccess: Observable<Bool>
-        let modify: Observable<RegisterFormData>
+        let modify: Observable<(formData: RegisterFormData, originalPayload: ProductPayload)>
     }
     
     func transform(_ input: Input) -> Output {
-        let formData = Observable.combineLatest(
+        let modifyData = Observable.combineLatest(
             productRelay.compactMap { $0 },
             midCategoryRelay.asObservable(),
             subCategoryRelay.asObservable()
         )
         .map { [weak self] product, midCategory, subCategory in
-            self?.makeRegisterFormData(
+            self?.makeModifyData(
                 product: product,
                 midCategory: midCategory,
                 subCategory: subCategory
@@ -100,7 +100,7 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
                 .skip(1)
                 .asObservable(),
             modify: input.modifyTapped
-                .withLatestFrom(formData)
+                .withLatestFrom(modifyData)
         )
     }
     
@@ -216,17 +216,21 @@ extension ProductDetailViewModel: NSFetchedResultsControllerDelegate  {
 
 //MARK: - Action
 private extension ProductDetailViewModel {
-    private func makeRegisterFormData(
+    private func makeModifyData(
         product: Product,
         midCategory: MidCategory?,
         subCategory: SubCategory?
-    ) -> RegisterFormData {
-        product
-            .toPayload()
-            .toRegisterFormData(
-                midCategoryName: midCategory?.name,
-                subCategoryData: subCategory?.toPayload()
-            )
+    ) -> (formData: RegisterFormData, originalPayload: ProductPayload) {
+        let payload = product.toPayload()
+        let formData = payload.toRegisterFormData(
+            midCategoryName: midCategory?.name,
+            subCategoryData: subCategory?.toPayload()
+        )
+
+        return (
+            formData: formData,
+            originalPayload: payload
+        )
     }
 }
 

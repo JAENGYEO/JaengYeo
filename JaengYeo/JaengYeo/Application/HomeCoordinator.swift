@@ -105,7 +105,10 @@ extension HomeCoordinator {
 }
 
 extension HomeCoordinator: RegisterDetailViewControllerDelegate {
-    func didTapConfirmButton(item: RegisterFormData) {
+    func didTapConfirmButton(
+        _ viewController: RegisterDetailViewController,
+        item: RegisterFormData
+    ) {
         guard let original = currentProductPayload else { return }
 
         let imageUrl: String?

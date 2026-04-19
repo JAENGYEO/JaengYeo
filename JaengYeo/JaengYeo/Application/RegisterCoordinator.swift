@@ -138,7 +138,10 @@ extension RegisterCoordinator {
 }
 
 extension RegisterCoordinator: RegisterDetailViewControllerDelegate {
-    func didTapConfirmButton(item: RegisterFormData) {
+    func didTapConfirmButton(
+        _ viewController: RegisterDetailViewController,
+        item: RegisterFormData
+    ) {
         if listViewModel?.hasItem(id: item.id) == true {
             listViewModel?.updateItem(item: item)
         } else {

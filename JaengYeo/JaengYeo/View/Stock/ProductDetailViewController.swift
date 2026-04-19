@@ -14,7 +14,8 @@ import UIKit
 protocol ProductDetailViewControllerDelegate: AnyObject {
     func productDetailViewController(
         _ viewController: ProductDetailViewController,
-        didTapModify formData: RegisterFormData
+        didTapModify formData: RegisterFormData,
+        originalPayload: ProductPayload
     )
 }
 
@@ -102,11 +103,12 @@ extension ProductDetailViewController {
 
         output.modify
             .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] formData in
+            .subscribe(onNext: { [weak self] formData, originalPayload in
                 guard let self else { return }
                 delegate?.productDetailViewController(
                     self,
-                    didTapModify: formData
+                    didTapModify: formData,
+                    originalPayload: originalPayload
                 )
             })
             .disposed(by: disposeBag)

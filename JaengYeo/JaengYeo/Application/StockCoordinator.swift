@@ -11,7 +11,7 @@ final class StockCoordinator {
     let navigationController: UINavigationController
     private let stockViewController: StockViewController
     private weak var registerDetailViewController: RegisterDetailViewController?
-    private var currentProductPayload: ProductPayload?
+    private var editingProductPayloads: [ObjectIdentifier: ProductPayload] = [:]
     
     private let productManager: ProductManagerProtocol
     private let categoryManager: CategoryManagerProtocol
@@ -51,8 +51,6 @@ extension StockCoordinator: StockViewControllerDelegate {
     }
     
     func didSelectProduct(productID: UUID) {
-        currentProductPayload = try? coreDataManager.fetchProduct(of: productID)
-        
         let viewController = ProductDetailViewController(
             viewModel: ProductDetailViewModel(
                 productID: productID,
@@ -67,13 +65,15 @@ extension StockCoordinator: StockViewControllerDelegate {
 extension StockCoordinator: ProductDetailViewControllerDelegate {
     func productDetailViewController(
         _ viewController: ProductDetailViewController,
-        didTapModify formData: RegisterFormData
+        didTapModify formData: RegisterFormData,
+        originalPayload: ProductPayload
     ) {
         let viewController = RegisterDetailViewController(
             viewModel: RegisterDetailViewModel(item: formData)
         )
         viewController.delegate = self
         registerDetailViewController = viewController
+        editingProductPayloads[ObjectIdentifier(viewController)] = originalPayload
         navigationController.pushViewController(viewController, animated: true)
     }
 }
@@ -95,8 +95,13 @@ extension StockCoordinator: CategoryEditViewControllerDelegate {
 }
 
 extension StockCoordinator: RegisterDetailViewControllerDelegate {
-    func didTapConfirmButton(item: RegisterFormData) {
-        guard let original = currentProductPayload else { return }
+    func didTapConfirmButton(
+        _ viewController: RegisterDetailViewController,
+        item: RegisterFormData
+    ) {
+        let identifier = ObjectIdentifier(viewController)
+        guard let original = editingProductPayloads[identifier] else { return }
+        editingProductPayloads[identifier] = nil
 
         let imageUrl: String?
         if let newImage = item.image {
