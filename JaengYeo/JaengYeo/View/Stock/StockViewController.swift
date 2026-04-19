@@ -77,6 +77,10 @@ private extension StockViewController {
         let subCategoryAppliedRelay = PublishRelay<[String]>()
         /// 상품 정렬 선택
         let sortOptionSelectedRelay = PublishRelay<ProductSortOption>()
+        /// 상품 재고 차감 선택
+        let productQuantityDecreasedRelay = PublishRelay<ProductCellItem>()
+        /// 상품 삭제 선택
+        let productDeletedRelay = PublishRelay<[UUID]>()
         
         productCollectionView.configureSortMenu { sortOption in
             sortOptionSelectedRelay.accept(sortOption)
@@ -86,6 +90,18 @@ private extension StockViewController {
             .bind(onNext: { [weak self] item in
                 self?.selectProduct(item)
             })
+            .disposed(by: disposeBag)
+        
+        productCollectionView.itemQuantityDecreased
+            .bind(to: productQuantityDecreasedRelay)
+            .disposed(by: disposeBag)
+        
+        productCollectionView.itemDeleted
+            .flatMapLatest { [weak self] item -> Observable<[UUID]> in
+                guard let self else { return .empty() }
+                return self.showDeleteAlert(item: item)
+            }
+            .bind(to: productDeletedRelay)
             .disposed(by: disposeBag)
         
         /// ViewModel 입력값
@@ -98,7 +114,9 @@ private extension StockViewController {
             subCategoryTapped: categoryFilterView.subCategoryButton.rx.tap.asObservable(),
             midCategoryApplied: midCategoryAppliedRelay.asObservable(),
             subCategoryApplied: subCategoryAppliedRelay.asObservable(),
-            sortOptionSelected: sortOptionSelectedRelay.asObservable()
+            sortOptionSelected: sortOptionSelectedRelay.asObservable(),
+            productQuantityDecreased: productQuantityDecreasedRelay.asObservable(),
+            productDeleted: productDeletedRelay.asObservable()
         )
         
         /// 카테고리 편집 버튼 바인딩
@@ -220,6 +238,39 @@ private extension StockViewController {
         }
         
         present(viewController, animated: false)
+    }
+    
+    /// 상품 삭제 알럿 표시
+    func showDeleteAlert(item: ProductCellItem) -> Observable<[UUID]> {
+        let productIDs = item.deleteTargetProductIDs
+        
+        return AlertController.rx.alert(
+            on: self,
+            image: UIImage(named: "alartRed") ?? UIImage(),
+            title: "상품 삭제",
+            message:  item.isGrouped
+            ? "같은 이름의 상품 \(item.groupedCount)건을 삭제하시겠습니까?"
+            : "해당 상품을 삭제하시겠습니까?",
+            actions: [
+                .cancel("취소"),
+                .destructive("삭제")
+            ]
+        )
+        .filter { $0.title == "삭제" }
+        .map { _ in productIDs }
+        .asObservable()
+    }
+}
+
+//MARK: - ProductCellItem
+private extension ProductCellItem {
+    /// 삭제 대상 상품 ID 목록
+    var deleteTargetProductIDs: [UUID] {
+        if isGrouped {
+            return groupedItems.map { $0.product.id }
+        }
+        
+        return [product.id]
     }
 }
 

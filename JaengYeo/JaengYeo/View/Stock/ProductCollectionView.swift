@@ -16,6 +16,10 @@ final class ProductCollectionView: UIView {
     //MARK: - Properties
     private let disposeBag = DisposeBag()
     private let itemSelectedRelay = PublishRelay<ProductCellItem>()
+    private let swipeDecreaseRelay = PublishRelay<IndexPath>()
+    private let swipeDeleteRelay = PublishRelay<IndexPath>()
+    private let itemQuantityDecreasedRelay = PublishRelay<ProductCellItem>()
+    private let itemDeletedRelay = PublishRelay<ProductCellItem>()
     private lazy var dataSource = configureDataSource()
 
     //MARK: - Components
@@ -99,6 +103,16 @@ extension ProductCollectionView {
     var itemSelected: Observable<ProductCellItem> {
         itemSelectedRelay.asObservable()
     }
+    
+    /// 상품 재고 차감 이벤트
+    var itemQuantityDecreased: Observable<ProductCellItem> {
+        itemQuantityDecreasedRelay.asObservable()
+    }
+    
+    /// 상품 셀 삭제 이벤트
+    var itemDeleted: Observable<ProductCellItem> {
+        itemDeletedRelay.asObservable()
+    }
 
     /// 스냅샷 적용
     func applySnapshot(with productDatas: [ProductCellItem]) {
@@ -178,31 +192,46 @@ private extension ProductCollectionView {
 private extension ProductCollectionView {
     /// 컬렉션 뷰 레이아웃 생성
     func createLayout() -> UICollectionViewLayout {
-        let item = NSCollectionLayoutItem(
-            layoutSize: .init(
-                widthDimension: .fractionalWidth(1.0),
-                heightDimension: .absolute(88)
+        UICollectionViewCompositionalLayout { _, environment in
+            var configuration = UICollectionLayoutListConfiguration(
+                appearance: .plain
             )
-        )
+            configuration.showsSeparators = false
+            configuration.backgroundColor = .clear
+            configuration.trailingSwipeActionsConfigurationProvider = {
+                [weak self] indexPath in
+                let deleteAction = UIContextualAction(
+                    style: .destructive,
+                    title: nil
+                ) { [weak self] _, _, completion in
+                    self?.swipeDeleteRelay.accept(indexPath)
+                    completion(true)
+                }
+                deleteAction.image = UIImage(systemName: "trash")
+                
+                let actions = self?.makeSwipeActions(
+                    indexPath: indexPath,
+                    deleteAction: deleteAction
+                ) ?? [deleteAction]
+                
+                let configuration = UISwipeActionsConfiguration(actions: actions)
+                configuration.performsFirstActionWithFullSwipe = false
+                return configuration
+            }
 
-        let group = NSCollectionLayoutGroup.vertical(
-            layoutSize: .init(
-                widthDimension: .fractionalWidth(1.0),
-                heightDimension: .absolute(88)
-            ),
-            subitems: [item]
-        )
-
-        let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 8
-        section.contentInsets = NSDirectionalEdgeInsets(
-            top: 0,
-            leading: 16,
-            bottom: 0,
-            trailing: 16
-        )
-
-        return UICollectionViewCompositionalLayout(section: section)
+            let section = NSCollectionLayoutSection.list(
+                using: configuration,
+                layoutEnvironment: environment
+            )
+            section.contentInsets = NSDirectionalEdgeInsets(
+                top: 0,
+                leading: 16,
+                bottom: 0,
+                trailing: 16
+            )
+            section.interGroupSpacing = 8
+            return section
+        }
     }
 }
 
@@ -244,6 +273,40 @@ private extension ProductCollectionView {
     }
 }
 
+//MARK: - Action State
+private extension ProductCollectionView {
+    /// 스와이프 액션 목록 생성
+    func makeSwipeActions(
+        indexPath: IndexPath,
+        deleteAction: UIContextualAction
+    ) -> [UIContextualAction] {
+        guard canDecreaseQuantity(at: indexPath) else {
+            return [deleteAction]
+        }
+        
+        let decreaseAction = UIContextualAction(
+            style: .normal,
+            title: ""
+        ) { [weak self] _, _, completion in
+            self?.swipeDecreaseRelay.accept(indexPath)
+            completion(false)
+        }
+        decreaseAction.image = UIImage(systemName: "minus")
+        decreaseAction.backgroundColor = .accent
+        
+        return [deleteAction, decreaseAction]
+    }
+    
+    /// 재고 차감 가능 여부
+    func canDecreaseQuantity(at indexPath: IndexPath) -> Bool {
+        guard let item = dataSource.itemIdentifier(for: indexPath) else {
+            return false
+        }
+        
+        return item.product.quantity > 0
+    }
+}
+
 //MARK: - Binding
 private extension ProductCollectionView {
     func bind() {
@@ -258,6 +321,20 @@ private extension ProductCollectionView {
                 self?.dataSource.itemIdentifier(for: indexPath)
             }
             .bind(to: itemSelectedRelay)
+            .disposed(by: disposeBag)
+        
+        swipeDecreaseRelay
+            .compactMap { [weak self] indexPath in
+                self?.dataSource.itemIdentifier(for: indexPath)
+            }
+            .bind(to: itemQuantityDecreasedRelay)
+            .disposed(by: disposeBag)
+        
+        swipeDeleteRelay
+            .compactMap { [weak self] indexPath in
+                self?.dataSource.itemIdentifier(for: indexPath)
+            }
+            .bind(to: itemDeletedRelay)
             .disposed(by: disposeBag)
     }
 }
