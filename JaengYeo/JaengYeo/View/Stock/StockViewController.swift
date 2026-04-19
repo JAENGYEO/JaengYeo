@@ -84,7 +84,7 @@ private extension StockViewController {
         
         productCollectionView.itemSelected
             .bind(onNext: { [weak self] item in
-                self?.delegate?.didSelectProduct(productID: item.product.id)
+                self?.selectProduct(item)
             })
             .disposed(by: disposeBag)
         
@@ -196,6 +196,29 @@ private extension StockViewController {
     ) {
         let viewController = CategorySelectionViewController(items: items)
         viewController.onApply = onApply
+        present(viewController, animated: false)
+    }
+    
+    /// 상품 선택
+    func selectProduct(_ item: ProductCellItem) {
+        guard item.isGrouped else {
+            delegate?.didSelectProduct(productID: item.product.id)
+            return
+        }
+        
+        presentProductGroupList(item)
+    }
+    
+    /// 그룹 상품 목록 모달 표시
+    func presentProductGroupList(_ item: ProductCellItem) {
+        let viewController = ProductGroupListViewController(
+            viewModel: ProductGroupListViewModel(items: item.groupedItems)
+        )
+        
+        viewController.onSelect = { [weak self] productID in
+            self?.delegate?.didSelectProduct(productID: productID)
+        }
+        
         present(viewController, animated: false)
     }
 }

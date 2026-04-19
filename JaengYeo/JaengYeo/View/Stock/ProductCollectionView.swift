@@ -5,9 +5,9 @@
 //  Created by Hanjuheon on 4/9/26.
 //
 
-import SnapKit
 import Then
 import UIKit
+import SnapKit
 import RxCocoa
 import RxSwift
 
@@ -67,8 +67,9 @@ final class ProductCollectionView: UIView {
     }
 }
 
-//MARK: - Configure CollectionView
+//MARK: - Public
 extension ProductCollectionView {
+    /// 정렬 메뉴 설정
     func configureSortMenu(
         onSelect: @escaping (ProductSortOption) -> Void
     ) {
@@ -82,6 +83,7 @@ extension ProductCollectionView {
         )
     }
 
+    /// 정렬 타이틀 변경
     func updateSortTitle(_ title: String) {
         var config = sortedButton.configuration ?? .plain()
 
@@ -98,6 +100,7 @@ extension ProductCollectionView {
         itemSelectedRelay.asObservable()
     }
 
+    /// 스냅샷 적용
     func applySnapshot(with productDatas: [ProductCellItem]) {
         let totalCount = productDatas.reduce(0) {
             $0 + $1.groupedCount
@@ -110,25 +113,24 @@ extension ProductCollectionView {
         snapshot.appendItems(productDatas, toSection: .defaultType)
         dataSource.apply(snapshot, animatingDifferences: true)
     }
+}
 
+//MARK: - DataSource
+private extension ProductCollectionView {
+    /// 데이터소스 설정
     func configureDataSource() -> UICollectionViewDiffableDataSource<
         ProductCellType, ProductCellItem
     > {
         let cellRegistration = UICollectionView.CellRegistration<
             ProductCell, ProductCellItem
-        > {
+        > { [weak self]
             cell,
             indexPath,
             item in
 
             var freshness: Int? = nil
             if let expiryDate = item.product.expiryDate {
-                freshness =
-                    Calendar.current.dateComponents(
-                        [.day],
-                        from: Date(),
-                        to: expiryDate
-                    ).day
+                freshness = self?.makeFreshness(expiryDate)
             }
 
             let descriptions = [
@@ -159,7 +161,22 @@ extension ProductCollectionView {
             )
         }
     }
+    
+    /// 소비기한 D-day 생성
+    func makeFreshness(_ expiryDate: Date) -> Int? {
+        let day = Calendar.current.dateComponents(
+            [.day],
+            from: Date(),
+            to: expiryDate
+        ).day
+        
+        return day.map { $0 + 1 }
+    }
+}
 
+//MARK: - Compositional Layout
+private extension ProductCollectionView {
+    /// 컬렉션 뷰 레이아웃 생성
     func createLayout() -> UICollectionViewLayout {
         let item = NSCollectionLayoutItem(
             layoutSize: .init(
@@ -189,8 +206,9 @@ extension ProductCollectionView {
     }
 }
 
-// MARK: - Configure UI
-extension ProductCollectionView {
+//MARK: - Configure UI
+private extension ProductCollectionView {
+    /// UI 설정
     func configureUI() {
         backgroundColor = .gray50
 

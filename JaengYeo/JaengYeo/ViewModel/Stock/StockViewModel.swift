@@ -33,23 +33,34 @@ struct ProductCellItem: Hashable {
     let subCategory: String?
     let groupedCount: Int
     let totalQuantity: Int
+    let groupedItems: [ProductCellItem]
     
     init(
         product: Product,
         midCategory: String?,
         subCategory: String?,
         groupedCount: Int = 1,
-        totalQuantity: Int? = nil
+        totalQuantity: Int? = nil,
+        groupedItems: [ProductCellItem] = []
     ) {
         self.product = product
         self.midCategory = midCategory
         self.subCategory = subCategory
         self.groupedCount = groupedCount
         self.totalQuantity = totalQuantity ?? product.quantity
+        self.groupedItems = groupedItems
     }
     
     var displayTitle: String {
-        "\(product.name) (\(groupedCount)건)"
+        if isGrouped {
+            return "\(product.name) (\(groupedCount)건)"
+        }
+        
+        return product.name
+    }
+    
+    var isGrouped: Bool {
+        groupedCount > 1
     }
 }
 
@@ -503,7 +514,9 @@ private extension StockViewModel {
         }
         
         return groupedProducts.values.map { items in
-            guard let representative = makeRepresentativeItem(from: items) else {
+            let sortedGroupItems = sortGroupItems(items)
+            
+            guard let representative = makeRepresentativeItem(from: sortedGroupItems) else {
                 return items[0]
             }
             
@@ -512,7 +525,8 @@ private extension StockViewModel {
                 midCategory: representative.midCategory,
                 subCategory: representative.subCategory,
                 groupedCount: items.count,
-                totalQuantity: items.reduce(0) { $0 + $1.product.quantity }
+                totalQuantity: items.reduce(0) { $0 + $1.product.quantity },
+                groupedItems: sortedGroupItems
             )
         }
     }
@@ -538,6 +552,17 @@ private extension StockViewModel {
         
         return items.max {
             $0.product.createdAt < $1.product.createdAt
+        }
+    }
+    
+    /// 그룹 내 상품 정렬
+    func sortGroupItems(_ items: [ProductCellItem]) -> [ProductCellItem] {
+        items.sorted {
+            compareOptionalDate(
+                $0.product.expiryDate,
+                $1.product.expiryDate,
+                ascending: true
+            )
         }
     }
     
