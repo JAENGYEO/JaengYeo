@@ -32,6 +32,12 @@ final class RegisterViewController: UIViewController {
     private var currentCameraPosition: AVCaptureDevice.Position = .back
     private let photoOutput = AVCapturePhotoOutput() // 출력 객체
     
+    private let metadataOutput = AVCaptureMetadataOutput()
+    private let barcodeCapturedSubject = PublishSubject<[String]>()
+    private var isBarcodeLocked = false
+    
+    private let sessionQueue = DispatchQueue(label: "com.jaengyeo.sessionQueue")
+    
     private var currentMode: CameraMode = .barcode
     
     init(viewModel: RegisterViewModel) {
@@ -69,10 +75,8 @@ final class RegisterViewController: UIViewController {
         navigationController?.navigationBar.isHidden = true
         currentMode = .barcode
         mainView.updateModeSelection(cameraMode: currentMode)
-        if captureSession.isRunning == false {
-            DispatchQueue.global(qos: .background).async {
-                self.captureSession.startRunning()
-            }
+        sessionQueue.async {
+            self.captureSession.startRunning()
         }
     }
     
@@ -80,7 +84,7 @@ final class RegisterViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.navigationBar.isHidden = false
-        DispatchQueue.global(qos: .background).async {
+        sessionQueue.async {
             self.captureSession.stopRunning()
         }
     }
@@ -130,7 +134,8 @@ extension RegisterViewController {
         //TODO: AI Response 로직 구현 필요 -> RegisterFormView 생성 이후 작업
         let input = RegisterViewModel.Input(
             aiCaptured: aiCapturedSubject,
-            receiptCaptured: receiptCapturedSubject
+            receiptCaptured: receiptCapturedSubject,
+            barcodeCaptured: barcodeCapturedSubject
         )
         let output = viewModel.transform(input)
         
@@ -179,9 +184,22 @@ extension RegisterViewController {
             })
             .disposed(by: disposeBag)
         
+        output.barcodeResponseData
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] items in
+                guard let self else { return }
+                self.delegate?.pushItemListView(
+                    items: items,
+                    pageTitle: "바코드 인식 결과",
+                    infoLabel: "정보를 확인해주세요" //TODO: 수정필요
+                )
+            })
+            .disposed(by: disposeBag)
+        
         output.isLoading
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] isLoading in
+                if !isLoading { self?.isBarcodeLocked = false }
                 isLoading ? self?.mainView.startScanAnimation() : self?.mainView.stopScanAnimation()
                 self?.mainView.captureButton.isEnabled = !isLoading
             })
@@ -241,10 +259,11 @@ extension RegisterViewController {
 extension RegisterViewController {
     
     private func setCaptureSession() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        sessionQueue.async { [weak self] in
             guard let self else { return }
             // 세션 설정 시작
             self.captureSession.beginConfiguration()
+            self.captureSession.sessionPreset = .hd1280x720
             
             guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: currentCameraPosition),
                   let input = try? AVCaptureDeviceInput(device: device) else {
@@ -258,6 +277,7 @@ extension RegisterViewController {
             if self.captureSession.canAddOutput(self.photoOutput) {
                 self.captureSession.addOutput(self.photoOutput)
             }
+            
             self.captureSession.commitConfiguration()
             self.captureSession.startRunning()
             
@@ -270,6 +290,21 @@ extension RegisterViewController {
                 self.mainView.previewView.layer.addSublayer(layer)
                 self.previewLayer = layer
             }
+            
+            sessionQueue.async { [weak self] in
+                guard let self else { return }
+                self.captureSession.beginConfiguration()
+                if self.captureSession.canAddOutput(self.metadataOutput) {
+                    self.captureSession.addOutput(self.metadataOutput)
+                    self.metadataOutput.metadataObjectTypes = [.ean8, .ean13, .upce, .code128]
+                }
+                self.captureSession.commitConfiguration()
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    self.metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
+                }
+            }
+            
         }
     }
     
@@ -277,7 +312,7 @@ extension RegisterViewController {
     private func flipCamera() {
         currentCameraPosition = currentCameraPosition == .back ? .front : .back
         
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        sessionQueue.async { [weak self] in
             guard let self else { return }
             captureSession.beginConfiguration()
             captureSession.inputs.forEach { self.captureSession.removeInput($0) }
@@ -340,5 +375,17 @@ extension RegisterViewController {
             actions: [.default("확인")]
         )
         present(alert, animated: true)
+    }
+}
+
+extension RegisterViewController: AVCaptureMetadataOutputObjectsDelegate {
+    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+        guard currentMode == .barcode, !isBarcodeLocked else { return }
+        let codes = metadataObjects
+            .compactMap { $0 as? AVMetadataMachineReadableCodeObject }
+            .compactMap { $0.stringValue }
+        guard !codes.isEmpty else { return }
+        isBarcodeLocked = true
+        barcodeCapturedSubject.onNext(codes)
     }
 }
