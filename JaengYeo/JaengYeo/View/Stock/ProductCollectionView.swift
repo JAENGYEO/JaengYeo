@@ -16,6 +16,8 @@ final class ProductCollectionView: UIView {
     //MARK: - Properties
     private let disposeBag = DisposeBag()
     private let itemSelectedRelay = PublishRelay<ProductCellItem>()
+    private let swipeDeleteRelay = PublishRelay<IndexPath>()
+    private let itemDeletedRelay = PublishRelay<ProductCellItem>()
     private lazy var dataSource = configureDataSource()
 
     //MARK: - Components
@@ -99,6 +101,11 @@ extension ProductCollectionView {
     var itemSelected: Observable<ProductCellItem> {
         itemSelectedRelay.asObservable()
     }
+    
+    /// 상품 셀 삭제 이벤트
+    var itemDeleted: Observable<ProductCellItem> {
+        itemDeletedRelay.asObservable()
+    }
 
     /// 스냅샷 적용
     func applySnapshot(with productDatas: [ProductCellItem]) {
@@ -178,31 +185,38 @@ private extension ProductCollectionView {
 private extension ProductCollectionView {
     /// 컬렉션 뷰 레이아웃 생성
     func createLayout() -> UICollectionViewLayout {
-        let item = NSCollectionLayoutItem(
-            layoutSize: .init(
-                widthDimension: .fractionalWidth(1.0),
-                heightDimension: .absolute(88)
+        UICollectionViewCompositionalLayout { _, environment in
+            var configuration = UICollectionLayoutListConfiguration(
+                appearance: .plain
             )
-        )
+            configuration.showsSeparators = false
+            configuration.backgroundColor = .clear
+            configuration.trailingSwipeActionsConfigurationProvider = {
+                [weak self] indexPath in
+                let deleteAction = UIContextualAction(
+                    style: .destructive,
+                    title: nil
+                ) { [weak self] _, _, completion in
+                    self?.swipeDeleteRelay.accept(indexPath)
+                    completion(true)
+                }
+                deleteAction.image = UIImage(systemName: "trash")
+                return UISwipeActionsConfiguration(actions: [deleteAction])
+            }
 
-        let group = NSCollectionLayoutGroup.vertical(
-            layoutSize: .init(
-                widthDimension: .fractionalWidth(1.0),
-                heightDimension: .absolute(88)
-            ),
-            subitems: [item]
-        )
-
-        let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 8
-        section.contentInsets = NSDirectionalEdgeInsets(
-            top: 0,
-            leading: 16,
-            bottom: 0,
-            trailing: 16
-        )
-
-        return UICollectionViewCompositionalLayout(section: section)
+            let section = NSCollectionLayoutSection.list(
+                using: configuration,
+                layoutEnvironment: environment
+            )
+            section.contentInsets = NSDirectionalEdgeInsets(
+                top: 0,
+                leading: 16,
+                bottom: 0,
+                trailing: 16
+            )
+            section.interGroupSpacing = 8
+            return section
+        }
     }
 }
 
@@ -258,6 +272,13 @@ private extension ProductCollectionView {
                 self?.dataSource.itemIdentifier(for: indexPath)
             }
             .bind(to: itemSelectedRelay)
+            .disposed(by: disposeBag)
+        
+        swipeDeleteRelay
+            .compactMap { [weak self] indexPath in
+                self?.dataSource.itemIdentifier(for: indexPath)
+            }
+            .bind(to: itemDeletedRelay)
             .disposed(by: disposeBag)
     }
 }
