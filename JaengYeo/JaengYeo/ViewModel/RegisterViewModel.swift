@@ -24,11 +24,13 @@ final class RegisterViewModel: ViewModelProtocol {
     struct Input {
         let aiCaptured: PublishSubject<Data>
         let receiptCaptured: PublishSubject<UIImage>
+        let barcodeCaptured: PublishSubject<[String]>
     }
     
     struct Output {
         let aiResponseData: Observable<[RegisterFormData]>
         let receiptResponseData: Observable<[RegisterFormData]>
+        let barcodeResponseData: Observable<[RegisterFormData]>
         let isLoading: Observable<Bool>
         let error: Observable<String>
     }
@@ -83,10 +85,38 @@ final class RegisterViewModel: ViewModelProtocol {
                 }
             }
         
+        let barcodeResponseData = input.barcodeCaptured
+            .do(onNext: { _ in isLoadingSubject.onNext(true) })
+            .flatMapLatest { [weak self] codes -> Observable<[RegisterFormData]> in
+                return Observable.create { observer in
+                    Task {
+                        let items = await withTaskGroup(of: RegisterFormData?.self) { group in
+                            for code in codes {
+                                group.addTask { try? await self?.lookupBarcode(code: code)}
+                            }
+                            var results: [RegisterFormData] = []
+                            for await item in group {
+                                if let item { results.append(item) }
+                            }
+                            return results
+                        }
+                        isLoadingSubject.onNext(false)
+                        if items.isEmpty {
+                            errorSubject.onNext("바코드 인식 실패")
+                        } else {
+                            observer.onNext(items)
+                        }
+                        observer.onCompleted()
+                    }
+                    return Disposables.create()
+                }
+            }
+        
         
         return Output(
             aiResponseData: aiResponseData,
             receiptResponseData: receiptResponseData,
+            barcodeResponseData: barcodeResponseData,
             isLoading: isLoadingSubject.asObservable(),
             error: errorSubject.asObservable()
         )
@@ -113,5 +143,28 @@ extension RegisterViewModel {
             form.quantity = item.estimatedQuantity
             return form
         }
+    }
+}
+
+extension RegisterViewModel {
+    private struct BarcodeResponse: Decodable {
+        let productName: String?
+        let manufacturer: String?
+        let barcode: String
+    }
+    
+    private func fetchBarcodeResponse(code: String) async throws -> BarcodeResponse {
+        let body: [String: AnyJSON] = ["barcode": AnyJSON(stringLiteral: code)]
+        return try await client.functions
+            .invoke("barcode-lookup", options: FunctionInvokeOptions(body: body))
+    }
+    
+    private func lookupBarcode(code: String) async throws -> RegisterFormData {
+        let response = try await fetchBarcodeResponse(code: code)
+        var form = RegisterFormData()
+        form.name = response.productName
+        form.brand = response.manufacturer
+        return form
+        
     }
 }
