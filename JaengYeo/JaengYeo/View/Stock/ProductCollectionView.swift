@@ -99,7 +99,10 @@ extension ProductCollectionView {
     }
 
     func applySnapshot(with productDatas: [ProductCellItem]) {
-        totalCountLabel.text = "총 \(productDatas.count)개"
+        let totalCount = productDatas.reduce(0) {
+            $0 + $1.groupedCount
+        }
+        totalCountLabel.text = "총 \(totalCount)개"
         var snapshot = NSDiffableDataSourceSnapshot<
             ProductCellType, ProductCellItem
         >()
@@ -135,11 +138,11 @@ extension ProductCollectionView {
 
             cell.updateUI(
                 type: .defaultType,
-                title: item.product.name,
+                title: item.displayTitle,
                 freshness: freshness,
                 descriptions: descriptions,
                 subdescriptions: nil,
-                count: item.product.quantity,
+                count: item.totalQuantity,
                 image: nil
             )
         }
