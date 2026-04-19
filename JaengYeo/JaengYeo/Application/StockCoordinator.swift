@@ -124,7 +124,13 @@ extension StockCoordinator: RegisterDetailViewControllerDelegate {
                 original.updated(with: item, imageUrl: imageUrl)
             )
         } catch {
-            //TODO: 상품 수정 실패 알럿 추가 필요
+            let alert = AlertController(
+                image: UIImage(named: "alartRed") ?? UIImage(),
+                title: "수정 실패",
+                message: "상품 정보를 업데이트하는 중 오류가 발생했습니다.",
+                actions: [.default("확인")]
+            )
+            navigationController.present(alert, animated: true)
         }
     }
 

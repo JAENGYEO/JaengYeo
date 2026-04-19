@@ -96,7 +96,21 @@ extension ProductDetailViewController {
                         nav.popViewController(animated: true)
                     }
                 } else {
-
+                    if isdeleted {
+                        if let nav = navigationController,
+                            nav.viewControllers.first != self
+                        {
+                            nav.popViewController(animated: true)
+                        }
+                    } else {
+                        AlertController.rx.alert(
+                            on: self,
+                            image: UIImage(named: "alartRed") ?? UIImage(),
+                            title: "삭제 실패",
+                            message: "상품을 삭제하는 중 오류가 발생했습니다.",
+                            actions: [.default("확인")]
+                        ).subscribe().disposed(by: disposeBag)
+                    }
                 }
             })
             .disposed(by: disposeBag)
