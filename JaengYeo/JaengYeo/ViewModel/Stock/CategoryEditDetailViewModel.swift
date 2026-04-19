@@ -9,6 +9,96 @@ import Foundation
 import RxRelay
 import RxSwift
 
+/// 편집 대상 분류
+enum CategoryEditTarget {
+    case midCategory
+    case subCategory
+
+    var title: String {
+        switch self {
+        case .midCategory:
+            return "중분류"
+        case .subCategory:
+            return "소분류"
+        }
+    }
+}
+
+/// 분류 편집 화면 모드
+enum CategoryEditMode {
+    case add(CategoryEditTarget, String)
+    case edit(CategoryEditTarget, CategoryEditItem, String)
+
+    /// 네비게이션 타이틀
+    var navigationTitle: String {
+        switch self {
+        case .add(let target, _):
+            return "\(target.title) 카테고리 추가"
+        case .edit(let target, _, _):
+            return "\(target.title) 카테고리 편집"
+        }
+    }
+
+    /// 완료 버튼 타이틀
+    var buttonTitle: String {
+        switch self {
+        case .add:
+            return "카테고리 생성"
+        case .edit:
+            return "카테고리 수정"
+        }
+    }
+
+    /// 편집 아이템
+    var item: CategoryEditItem? {
+        switch self {
+        case .add:
+            return nil
+        case .edit(_, let item, _):
+            return item
+        }
+    }
+
+    /// 선택 가능 아이콘 목록
+    var iconNames: [String] {
+        switch (target, mainCategory) {
+        case (.midCategory, MainCategory.foodstuff.rawValue):
+            return FoodMidCategoryIcon.iconNames
+        case (.subCategory, MainCategory.foodstuff.rawValue):
+            return FoodSubCategoryIcon.iconNames
+        case (.midCategory, MainCategory.household.rawValue):
+            return HouseholdMidCategoryIcon.iconNames
+        case (.subCategory, MainCategory.household.rawValue):
+            return HouseholdSubCategoryIcon.iconNames
+        default:
+            return ["categoryIcon"]
+        }
+    }
+
+    /// 현재 선택된 아이콘 이름
+    var selectedIconName: String? {
+        item?.iconName
+    }
+
+    private var target: CategoryEditTarget {
+        switch self {
+        case .add(let target, _):
+            return target
+        case .edit(let target, _, _):
+            return target
+        }
+    }
+    
+    private var mainCategory: String {
+        switch self {
+        case .add(_, let mainCategory):
+            return mainCategory
+        case .edit(_, _, let mainCategory):
+            return mainCategory
+        }
+    }
+}
+
 final class CategoryEditDetailViewModel: ViewModelProtocol {
 
     //MARK: - Properties

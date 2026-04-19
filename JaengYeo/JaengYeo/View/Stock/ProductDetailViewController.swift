@@ -49,10 +49,27 @@ final class ProductDetailViewController: UIViewController {
 extension ProductDetailViewController {
     private func bind() {
 
+        let deleteTap = productDetailView.deleteButton.rx.tap
+            .flatMapLatest { [weak self] _ in
+                AlertController.rx.alert(
+                    on: self,
+                    image: UIImage(named: "alartRed") ?? UIImage(),
+                    title: "상품 삭제",
+                    message: "해당 상품을 삭제하시겠습니까?",
+                    actions: [
+                        .cancel("취소"),
+                        .destructive("삭제")
+                    ]
+                )
+            }
+            .filter { $0.title == "삭제"}
+            .map { _ in }
+            .asObservable()
+        
         let input = ProductDetailViewModel.Input(
             viewDidLoad: Observable.just(()),
             modifyTapped: productDetailView.modifyButton.rx.tap.asObservable(),
-            deleteTapped: productDetailView.deleteButton.rx.tap.asObservable()
+            deleteTapped: deleteTap
         )
 
         let output = viewModel.transform(input)

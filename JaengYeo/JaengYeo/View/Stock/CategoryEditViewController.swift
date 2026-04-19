@@ -173,16 +173,33 @@ private extension CategoryEditViewController {
             CategorySelectionItemCell,
             CategoryEditItem
         > { [weak self] cell, _, item in
+            guard let self else { return }
             cell.updateUI(
                 title: item.title,
                 image: item.image,
                 isSelect: false,
                 showsDeleteButton: item.userId != nil
             )
+            
+            cell.bindDeleteButtonTap { [weak self] in
+                    guard let self else { return }
 
-            cell.bindDeleteButtonTap {
-                self?.deleteItem(item)
-            }
+                    AlertController.rx.alert(
+                        on: self,
+                        image: UIImage(named: "alartRed") ?? UIImage(),
+                        title: "분류 삭제",
+                        message: "\(item.title) 분류를 삭제하시겠습니까?",
+                        actions: [
+                            .cancel("취소"),
+                            .destructive("삭제")
+                        ]
+                    )
+                    .filter { $0.title == "삭제" }
+                    .subscribe(onNext: { [weak self] _ in
+                        self?.deleteItem(item)
+                    })
+                    .disposed(by: self.disposeBag)
+                }
         }
 
         let headerRegistration = UICollectionView.SupplementaryRegistration<

@@ -11,96 +11,6 @@ import UIKit
 import RxCocoa
 import RxSwift
 
-/// 편집 대상 분류
-enum CategoryEditTarget {
-    case midCategory
-    case subCategory
-
-    var title: String {
-        switch self {
-        case .midCategory:
-            return "중분류"
-        case .subCategory:
-            return "소분류"
-        }
-    }
-}
-
-/// 분류 편집 화면 모드
-enum CategoryEditMode {
-    case add(CategoryEditTarget, String)
-    case edit(CategoryEditTarget, CategoryEditItem, String)
-
-    /// 네비게이션 타이틀
-    var navigationTitle: String {
-        switch self {
-        case .add(let target, _):
-            return "\(target.title) 카테고리 추가"
-        case .edit(let target, _, _):
-            return "\(target.title) 카테고리 편집"
-        }
-    }
-
-    /// 완료 버튼 타이틀
-    var buttonTitle: String {
-        switch self {
-        case .add:
-            return "카테고리 생성"
-        case .edit:
-            return "카테고리 수정"
-        }
-    }
-
-    /// 편집 아이템
-    var item: CategoryEditItem? {
-        switch self {
-        case .add:
-            return nil
-        case .edit(_, let item, _):
-            return item
-        }
-    }
-
-    /// 선택 가능 아이콘 목록
-    var iconNames: [String] {
-        switch (target, mainCategory) {
-        case (.midCategory, MainCategory.foodstuff.rawValue):
-            return FoodMidCategoryIcon.iconNames
-        case (.subCategory, MainCategory.foodstuff.rawValue):
-            return FoodSubCategoryIcon.iconNames
-        case (.midCategory, MainCategory.household.rawValue):
-            return HouseholdMidCategoryIcon.iconNames
-        case (.subCategory, MainCategory.household.rawValue):
-            return HouseholdSubCategoryIcon.iconNames
-        default:
-            return ["categoryIcon"]
-        }
-    }
-
-    /// 현재 선택된 아이콘 이름
-    var selectedIconName: String? {
-        item?.iconName
-    }
-
-    private var target: CategoryEditTarget {
-        switch self {
-        case .add(let target, _):
-            return target
-        case .edit(let target, _, _):
-            return target
-        }
-    }
-    
-    private var mainCategory: String {
-        switch self {
-        case .add(_, let mainCategory):
-            return mainCategory
-        case .edit(_, _, let mainCategory):
-            return mainCategory
-        }
-    }
-}
-
 final class CategoryEditDetailViewController: UIViewController {
 
     //MARK: - Properties
@@ -173,6 +83,7 @@ final class CategoryEditDetailViewController: UIViewController {
         configureNavigationBar()
         configureUI()
         configureData()
+        configureKeyboardDismiss()
         bind()
     }
 }
@@ -180,12 +91,13 @@ final class CategoryEditDetailViewController: UIViewController {
 //MARK: - Bind
 private extension CategoryEditDetailViewController {
     func bind() {
+        let confirmRelay = PublishRelay<Void>()
         let deleteConfirmedRelay = PublishRelay<Void>()
 
         let input = CategoryEditDetailViewModel.Input(
             nameText: nameTextField.rx.text.asObservable(),
             iconNameSelected: iconNameSelectedRelay.asObservable(),
-            confirmTapped: confirmButton.rx.tap.asObservable(),
+            confirmTapped: confirmRelay.asObservable(),
             deleteTapped: deleteConfirmedRelay.asObservable()
         )
 
@@ -198,12 +110,46 @@ private extension CategoryEditDetailViewController {
             })
             .disposed(by: disposeBag)
 
-        /// 삭제 버튼 선택
-        deleteButton.rx.tap
-            .bind(onNext: {
-                //TODO: 삭제 알림 화면 추가 필요
-                deleteConfirmedRelay.accept(())
+        /// 생성/수정 버튼 선택
+        confirmButton.rx.tap
+            .bind(onNext: { [weak self] in
+                guard let self else { return }
+
+                let name = self.nameTextField.text?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+                guard !name.isEmpty else {
+                    self.presentEmptyNameAlert()
+                    return
+                }
+
+                confirmRelay.accept(())
             })
+            .disposed(by: disposeBag)
+
+        /// 삭제 버튼 선택
+        let deleteTapped = deleteButton.rx.tap
+            .flatMapLatest { [weak self] _ -> Observable<AlertController.Action> in
+                guard let self else { return .empty() }
+                
+                return AlertController.rx.alert(
+                    on: self,
+                    image: UIImage(named: "alartRed") ?? UIImage(),
+                    title: "분류 삭제",
+                    message: "분류를 삭제하시겠습니까?",
+                    actions: [
+                        .cancel("취소"),
+                        .destructive("삭제")
+                    ]
+                )
+                .asObservable()
+            }
+            .filter { $0.title == "삭제" }
+            .map { _ in }
+            .asObservable()
+        
+        deleteTapped
+            .bind(to: deleteConfirmedRelay)
             .disposed(by: disposeBag)
 
         /// 아이콘 선택 화면 표시
@@ -220,6 +166,20 @@ private extension CategoryEditDetailViewController {
 
 //MARK: - Present
 private extension CategoryEditDetailViewController {
+    /// 이름 미입력 경고 표시
+    func presentEmptyNameAlert() {
+        let viewController = AlertController(
+            image: UIImage(named: "alartRed") ?? UIImage(),
+            title: "분류 이름 입력",
+            message: "분류 이름을 입력해주세요.",
+            actions: [
+                .default("확인")
+            ]
+        )
+
+        present(viewController, animated: true)
+    }
+
     /// 아이콘 선택 화면 표시
     func presentCategoryIcons() {
         let viewController = CategoryIconsViewController(
@@ -240,6 +200,16 @@ private extension CategoryEditDetailViewController {
 
 //MARK: - Configure
 private extension CategoryEditDetailViewController {
+    /// 키보드 닫기 설정
+    func configureKeyboardDismiss() {
+        let tap = UITapGestureRecognizer(
+            target: view,
+            action: #selector(UIView.endEditing)
+        )
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+    }
+
     /// 네비게이션 바 설정
     func configureNavigationBar() {
         title = mode.navigationTitle
