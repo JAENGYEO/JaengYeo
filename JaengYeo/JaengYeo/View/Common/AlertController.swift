@@ -87,9 +87,9 @@ extension AlertController {
         case .default:
           (.defaultTitle, .defaultAppearance)
         case .destructive:
-          (.defaultTitle, .defaultAppearance)
+          (.defaultTitle, .deleteAppearance)
         case .cancel:
-          (.defaultTitle, .defaultAppearance)
+          (.textGrayTitle12, .textEdgeAppearance)
         }
         return StyledButton(
           title: $0.title,
@@ -145,6 +145,13 @@ extension AlertController {
         $0.spacing = 12
       }
       addSubview(buttonStackView)
+        
+    buttons.forEach {
+      $0.snp.makeConstraints {
+        $0.width.equalTo(70)
+        $0.height.greaterThanOrEqualTo(44)
+      }
+    }
       buttonStackView.snp.makeConstraints {
         $0.top.equalTo(messageLabel.snp.bottom).offset(16)
         $0.bottom.equalTo(contentLayoutGuide)

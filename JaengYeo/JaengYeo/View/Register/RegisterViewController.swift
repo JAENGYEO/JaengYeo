@@ -43,6 +43,10 @@ final class RegisterViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+
     override func loadView() {
         self.view = mainView
     }
@@ -70,6 +74,7 @@ final class RegisterViewController: UIViewController {
                 self.captureSession.startRunning()
             }
         }
+        tabBarController?.tabBar.tintColor = .white
     }
     
     // 네비게이션 바 hidden: false
@@ -79,6 +84,8 @@ final class RegisterViewController: UIViewController {
         DispatchQueue.global(qos: .background).async {
             self.captureSession.stopRunning()
         }
+        
+        tabBarController?.tabBar.tintColor = .gray800
     }
 }
 
@@ -319,14 +326,22 @@ extension RegisterViewController: AVCapturePhotoCaptureDelegate {
 
 extension RegisterViewController {
     private func showErrorAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        let alert = AlertController(
+            image: .warningIcon,
+            title: title,
+            message: message,
+            actions: [.default("확인")]
+        )
         present(alert, animated: true)
     }
     
     private func showQuickRegisterAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        let alert = AlertController(
+            image: .addIcon,
+            title: title,
+            message: message,
+            actions: [.default("확인")]
+        )
         present(alert, animated: true)
     }
 }

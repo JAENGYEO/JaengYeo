@@ -36,7 +36,6 @@ class MainController: UITabBarController {
 extension MainController {
     private func setupTabBar() {
         //TODO: TabBar 색상 및 스타일 설정 필요
-//        tabBar.tintColor =
-//        tabBar.unselectedItemTintColor =
+        tabBar.tintColor = .gray800
     }
 }

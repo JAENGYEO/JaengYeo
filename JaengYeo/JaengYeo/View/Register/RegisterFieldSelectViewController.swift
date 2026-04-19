@@ -13,7 +13,7 @@ protocol RegisterFieldSelectViewControllerDelegate: AnyObject {
     func didSelect(fields: Set<RegisterOptionField>)
 }
 
-final class RegisterFieldSelectViewController: UIViewController {
+final class RegisterFieldSelectViewController: BaseViewController {
 
     weak var delegate: RegisterFieldSelectViewControllerDelegate?
 

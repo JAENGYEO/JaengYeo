@@ -28,8 +28,8 @@ final class CategorySummaryCell: UICollectionViewCell {
         $0.textColor = .gray500
     }
     
-    private let midCategoryView = CategorySubCard(title: "중분류", iconName: "locationIcon")
-    private let subCategoryView = CategorySubCard(title: "소분류", iconName: "filterIcon")
+    private let midCategoryView = CategorySubCard(title: "중분류", iconName: "locationP200")
+    private let subCategoryView = CategorySubCard(title: "소분류", iconName: "filterP200")
     
     override init(frame: CGRect) {
         super.init(frame: frame)

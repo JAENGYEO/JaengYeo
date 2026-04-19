@@ -19,7 +19,7 @@ protocol CategoryEditViewControllerDelegate: AnyObject {
     )
 }
 
-final class CategoryEditViewController: UIViewController {
+final class CategoryEditViewController: BaseViewController {
 
     //MARK: - Enum
     private enum Section: CaseIterable {

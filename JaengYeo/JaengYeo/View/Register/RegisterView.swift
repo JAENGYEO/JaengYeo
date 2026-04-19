@@ -54,9 +54,8 @@ final class RegisterView: UIView {
     }
     
     let quickRegisterButton = UIButton().then {
-        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
-        $0.setImage(UIImage(systemName: "bolt", withConfiguration: symbolConfig), for: .normal)
-        $0.setImage(UIImage(systemName: "bolt.fill", withConfiguration: symbolConfig), for: .selected)
+        $0.setImage(UIImage(named: "multipleB"), for: .normal)
+        $0.setImage(UIImage(named: "multipleW"), for: .selected)
         $0.tintColor = .white
     }
     
@@ -75,17 +74,16 @@ final class RegisterView: UIView {
     
     // 전환버튼
     let flipButton = UIButton().then {
-        let symbolConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
-        $0.setImage(UIImage(systemName: "camera.rotate", withConfiguration: symbolConfig), for: .normal)
+        $0.setImage(UIImage(named: "reverseIcon"), for: .normal)
         $0.tintColor = .white
     }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        configModeButton(button: barcodeButton, symbol: "barcode.viewfinder", title: "바코드")
-        configModeButton(button: receiptButton, symbol: "doc.text.viewfinder", title: "영수증")
-        configModeButton(button: aiVisionButton, symbol: "sparkles", title: "AI인식")
-        configModeButton(button: manualButton, symbol: "square.and.pencil", title: "직접입력")
+        configModeButton(button: barcodeButton, image: "barcodeIcon", title: "바코드")
+        configModeButton(button: receiptButton, image: "receiptIcon", title: "영수증")
+        configModeButton(button: aiVisionButton, image: "aiIcon", title: "AI인식")
+        configModeButton(button: manualButton, image: "editIcon", title: "직접입력")
         setLayout()
     }
     
@@ -172,9 +170,9 @@ extension RegisterView {
 extension RegisterView {
     
     // 버튼 속성 정의 메서드
-    private func configModeButton(button: UIButton, symbol: String, title: String) {
+    private func configModeButton(button: UIButton, image: String, title: String) {
         var config = UIButton.Configuration.plain()
-        config.image = UIImage(systemName: symbol)
+        config.image = UIImage(named: image)
         config.title = title
         config.imagePlacement = .top
         config.imagePadding = 4

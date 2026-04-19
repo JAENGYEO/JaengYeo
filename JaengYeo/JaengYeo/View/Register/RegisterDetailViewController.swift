@@ -19,7 +19,7 @@ protocol RegisterDetailViewControllerDelegate: AnyObject {
     func didTapSubCategory(subCategory: UUID?)
 }
 
-final class RegisterDetailViewController: UIViewController {
+final class RegisterDetailViewController: BaseViewController {
     
     weak var delegate: RegisterDetailViewControllerDelegate?
     
@@ -353,8 +353,12 @@ extension RegisterDetailViewController: DatePickerBottomSheetViewControllerDeleg
 
 extension RegisterDetailViewController {
     private func showErrorAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "확인", style: .default))
+        let alert = AlertController(
+            image: .warningIcon,
+            title: title,
+            message: message,
+            actions: [.default("확인")]
+        )
         present(alert, animated: true)
     }
 }
