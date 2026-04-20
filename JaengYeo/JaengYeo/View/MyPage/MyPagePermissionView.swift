@@ -103,7 +103,7 @@ extension MyPagePermissionView {
 //MARK: - Compositional Layout
 extension MyPagePermissionView {
     /// 컬렉션 뷰 레이아웃 생성
-    func createLayout() -> UICollectionViewLayout {
+    private func createLayout() -> UICollectionViewLayout {
         let item = NSCollectionLayoutItem(
             layoutSize: .init(
                 widthDimension: .fractionalWidth(1.0),
