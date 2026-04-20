@@ -1,5 +1,9 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
 const VISION_PROMPT = `이 사진에서 보이는 물건을 분석해줘.
 결과는 반드시 아래 JSON 형식의 배열만 반환해. 설명 텍스트 없이 JSON만.
@@ -19,6 +23,26 @@ const RECEIPT_PROMPT = (ocrText: string) =>
 ${ocrText}`;
 
 Deno.serve(async (req: Request) => {
+  // JWT 유효성 검증
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: "missing_authorization" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   // 요청 파싱
   let mode: string;
   let imageBase64: string | undefined;
