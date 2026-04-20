@@ -11,26 +11,6 @@ import UIKit
 import RxCocoa
 import RxSwift
 
-/// 마이페이지 섹션
-struct MyPageSection: Hashable {
-    let title: String
-    let items: [MyPageItem]
-}
-
-/// 마이페이지 항목
-struct MyPageItem: Hashable {
-    let title: String
-    let showsArrow: Bool
-
-    init(
-        title: String,
-        showsArrow: Bool = true
-    ) {
-        self.title = title
-        self.showsArrow = showsArrow
-    }
-}
-
 final class MyPageView: UIView {
 
     //MARK: - Properties
@@ -81,9 +61,9 @@ extension MyPageView {
 }
 
 //MARK: - DataSource
-private extension MyPageView {
+extension MyPageView {
     /// 데이터소스 설정
-    func configureDataSource() -> UICollectionViewDiffableDataSource<
+    private func configureDataSource() -> UICollectionViewDiffableDataSource<
         MyPageSection,
         MyPageItem
     > {
@@ -142,7 +122,7 @@ private extension MyPageView {
 }
 
 //MARK: - Compositional Layout
-private extension MyPageView {
+extension MyPageView {
     /// 컬렉션 뷰 레이아웃 생성
     func createLayout() -> UICollectionViewLayout {
         UICollectionViewCompositionalLayout { _, _ in
@@ -185,7 +165,7 @@ private extension MyPageView {
 }
 
 //MARK: - Configure UI
-private extension MyPageView {
+extension MyPageView {
     /// UI 설정
     func configureUI() {
         backgroundColor = .white
@@ -199,7 +179,7 @@ private extension MyPageView {
 }
 
 //MARK: - Binding
-private extension MyPageView {
+extension MyPageView {
     func bind() {
         collectionView.rx.itemSelected
             .do(onNext: { [weak self] indexPath in
@@ -223,17 +203,17 @@ private extension MyPageView {
             MyPageSection(
                 title: "고객 지원",
                 items: [
-                    MyPageItem(title: "사용 설명서"),
-                    MyPageItem(title: "개인정보 처리 방침"),
-                    MyPageItem(title: "앱 사용 권한 확인"),
+                    MyPageItem(menu: .guide, title: "사용 설명서"),
+                    MyPageItem(menu: .privacyPolicy, title: "개인정보 처리 방침"),
+                    MyPageItem(menu: .appPermission, title: "앱 사용 권한 확인"),
                 ]
             ),
             MyPageSection(
                 title: "앱 정보",
                 items: [
-                    MyPageItem(title: "의견 보내기"),
-                    MyPageItem(title: "현재 버전 1.0"),
-                    MyPageItem(title: "아이콘 저작권 : icons8"),
+                    MyPageItem(menu: .feedback, title: "의견 보내기"),
+                    MyPageItem(menu: .appVersion, title: "현재 버전 1.0"),
+                    MyPageItem(menu: .iconCopyright, title: "아이콘 저작권 : icons8"),
                 ]
             ),
         ]
