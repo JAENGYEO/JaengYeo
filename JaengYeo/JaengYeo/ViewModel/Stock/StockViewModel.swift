@@ -31,6 +31,37 @@ struct ProductCellItem: Hashable {
     let product: Product
     let midCategory: String?
     let subCategory: String?
+    let groupedCount: Int
+    let totalQuantity: Int
+    let groupedItems: [ProductCellItem]
+    
+    init(
+        product: Product,
+        midCategory: String?,
+        subCategory: String?,
+        groupedCount: Int = 1,
+        totalQuantity: Int? = nil,
+        groupedItems: [ProductCellItem] = []
+    ) {
+        self.product = product
+        self.midCategory = midCategory
+        self.subCategory = subCategory
+        self.groupedCount = groupedCount
+        self.totalQuantity = totalQuantity ?? product.quantity
+        self.groupedItems = groupedItems
+    }
+    
+    var displayTitle: String {
+        if isGrouped {
+            return "\(product.name) (\(groupedCount)건)"
+        }
+        
+        return product.name
+    }
+    
+    var isGrouped: Bool {
+        groupedCount > 1
+    }
 }
 
 final class StockViewModel:  NSObject, ViewModelProtocol {
@@ -80,6 +111,10 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         let subCategoryApplied: Observable<[String]>
         /// 상품 정렬 선택 이벤트
         let sortOptionSelected: Observable<ProductSortOption>
+        /// 상품 재고 차감 이벤트
+        let productQuantityDecreased: Observable<ProductCellItem>
+        /// 상품 삭제 이벤트
+        let productDeleted: Observable<[UUID]>
     }
     
     struct Output {
@@ -166,6 +201,22 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
                 guard let self else { return }
                 self.selectedSortOptionRelay.accept(sortOption)
                 self.updateProducts()
+            })
+            .disposed(by: disposeBag)
+        
+        /// 상품 재고 차감
+        input.productQuantityDecreased
+            .subscribe(onNext: { [weak self] item in
+                guard let self else { return }
+                self.decreaseProductQuantity(item.product)
+            })
+            .disposed(by: disposeBag)
+        
+        /// 상품 삭제
+        input.productDeleted
+            .subscribe(onNext: { [weak self] productIDs in
+                guard let self else { return }
+                self.deleteProducts(productIDs)
             })
             .disposed(by: disposeBag)
         
@@ -320,7 +371,13 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     private func makeProductPredicate(
         mainCategoryPredicate: NSPredicate?
     ) -> NSPredicate? {
-        var predicates = [NSPredicate]()
+        var predicates = [
+            NSPredicate(
+                format: "%K != %@",
+                ProductEntity.Keys.syncStatus,
+                SyncStatus.pendingDelete.rawValue
+            )
+        ]
         
         if let mainCategoryPredicate {
             predicates.append(mainCategoryPredicate)
@@ -336,7 +393,6 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
             predicates.append(NSPredicate(format: "subCategoryId IN %@", subCategoryIDs))
         }
         
-        guard !predicates.isEmpty else { return nil }
         return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
     }
     
@@ -388,7 +444,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
                 )
             } ?? []
 
-        productsRelay.accept(sortProducts(products))
+        productsRelay.accept(sortProducts(groupProducts(products)))
     }
     
     /// 중분류 아이템 변환 및 반영
@@ -464,9 +520,69 @@ private extension StockViewModel {
                 )
             }
         case .quantityDesc:
-            return products.sorted { $0.product.quantity > $1.product.quantity }
+            return products.sorted { $0.totalQuantity > $1.totalQuantity }
         case .quantityAsc:
-            return products.sorted { $0.product.quantity < $1.product.quantity }
+            return products.sorted { $0.totalQuantity < $1.totalQuantity }
+        }
+    }
+    
+    /// 같은 이름 상품 묶기
+    func groupProducts(_ products: [ProductCellItem]) -> [ProductCellItem] {
+        let groupedProducts = Dictionary(grouping: products) {
+            $0.product.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                .lowercased()
+        }
+        
+        return groupedProducts.values.map { items in
+            let sortedGroupItems = sortGroupItems(items)
+            
+            guard let representative = makeRepresentativeItem(from: sortedGroupItems) else {
+                return items[0]
+            }
+            
+            return ProductCellItem(
+                product: representative.product,
+                midCategory: representative.midCategory,
+                subCategory: representative.subCategory,
+                groupedCount: items.count,
+                totalQuantity: items.reduce(0) { $0 + $1.product.quantity },
+                groupedItems: sortedGroupItems
+            )
+        }
+    }
+    
+    /// 그룹 대표 상품 선택
+    func makeRepresentativeItem(
+        from items: [ProductCellItem]
+    ) -> ProductCellItem? {
+        let itemsWithExpiryDate = items.filter {
+            $0.product.expiryDate != nil
+        }
+        
+        if !itemsWithExpiryDate.isEmpty {
+            return itemsWithExpiryDate.min {
+                guard
+                    let lhsDate = $0.product.expiryDate,
+                    let rhsDate = $1.product.expiryDate
+                else { return false }
+                
+                return lhsDate < rhsDate
+            }
+        }
+        
+        return items.max {
+            $0.product.createdAt < $1.product.createdAt
+        }
+    }
+    
+    /// 그룹 내 상품 정렬
+    func sortGroupItems(_ items: [ProductCellItem]) -> [ProductCellItem] {
+        items.sorted {
+            compareOptionalDate(
+                $0.product.expiryDate,
+                $1.product.expiryDate,
+                ascending: true
+            )
         }
     }
     
@@ -486,5 +602,32 @@ private extension StockViewModel {
         case (.none, .none):
             return false
         }
+    }
+}
+
+
+//MARK: - Delete
+private extension StockViewModel {
+    /// 상품 재고 1개 차감
+    func decreaseProductQuantity(_ product: Product) {
+        guard product.quantity > 0 else { return }
+        
+        do {
+            try coreDataManager.updateProduct(
+                product
+                    .decreasedQuantity()
+                    .toPayload()
+            )
+            performFetch()
+        } catch {
+        }
+    }
+
+    /// 상품 삭제
+    func deleteProducts(_ productIDs: [UUID]) {
+        productIDs.forEach {
+            try? coreDataManager.softDeleteProduct(id: $0)
+        }
+        performFetch()
     }
 }

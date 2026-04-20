@@ -13,7 +13,6 @@ import RxSwift
 import RxRelay
 
 /// 상세화면 전용 구조체
-// TODO: 추후 ViewModel로 이관예정
 struct ProductDetailDisplayModel {
     let headerImage: UIImage?
     let productName: String
@@ -48,17 +47,35 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
     private let midCategoryRelay = BehaviorRelay<MidCategory?>(value: nil)
     private let subCategoryRelay = BehaviorRelay<SubCategory?>(value: nil)
     private let displayModelRelay = BehaviorRelay<ProductDetailDisplayModel?>(value: nil)
+    private let deleteRelay = BehaviorRelay<Bool>(value: false)
 
     
     struct Input {
         let viewDidLoad: Observable<Void>
+        let modifyTapped: Observable<Void>
+        let deleteTapped: Observable<Void>
     }
     
     struct Output {
         let viewUpdate: Observable<ProductDetailDisplayModel>
+        let deleteSuccess: Observable<Bool>
+        let modify: Observable<(formData: RegisterFormData, originalPayload: ProductPayload)>
     }
     
     func transform(_ input: Input) -> Output {
+        let modifyData = Observable.combineLatest(
+            productRelay.compactMap { $0 },
+            midCategoryRelay.asObservable(),
+            subCategoryRelay.asObservable()
+        )
+        .map { [weak self] product, midCategory, subCategory in
+            self?.makeModifyData(
+                product: product,
+                midCategory: midCategory,
+                subCategory: subCategory
+            )
+        }
+        .compactMap { $0 }
         
         input.viewDidLoad
             .subscribe(onNext: { [weak self] in
@@ -68,10 +85,22 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
             })
             .disposed(by: disposeBag)
         
+        input.deleteTapped
+            .subscribe(onNext: { [weak self] _ in
+                guard let self else { return }
+                let ok = (try? self.coreDataManager.softDeleteProduct(id: self.productID)) != nil
+                self.deleteRelay.accept(ok)
+            })
+            .disposed(by: disposeBag)
+        
         return Output(
             viewUpdate: displayModelRelay
-                .compactMap { $0 }
-                .asObservable()
+                .compactMap { $0 },
+            deleteSuccess: deleteRelay
+                .skip(1)
+                .asObservable(),
+            modify: input.modifyTapped
+                .withLatestFrom(modifyData)
         )
     }
     
@@ -83,7 +112,8 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
 }
 
 
-    extension ProductDetailViewModel: NSFetchedResultsControllerDelegate  {
+// MARK: - FetchedResultsController
+extension ProductDetailViewModel: NSFetchedResultsControllerDelegate  {
         private func configureProductFetchResultController(id: UUID){
             let request = ProductEntity.fetchRequest()
             request.sortDescriptors = [
@@ -184,6 +214,28 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
     }
 }
 
+//MARK: - Action
+private extension ProductDetailViewModel {
+    private func makeModifyData(
+        product: Product,
+        midCategory: MidCategory?,
+        subCategory: SubCategory?
+    ) -> (formData: RegisterFormData, originalPayload: ProductPayload) {
+        let payload = product.toPayload()
+        let formData = payload.toRegisterFormData(
+            midCategoryName: midCategory?.name,
+            subCategoryData: subCategory?.toPayload()
+        )
+
+        return (
+            formData: formData,
+            originalPayload: payload
+        )
+    }
+}
+
+
+//MARK: - Create Display Model
 private extension ProductDetailViewModel {
     func makeNotFoundDisplayModel() -> ProductDetailDisplayModel {
         ProductDetailDisplayModel(
