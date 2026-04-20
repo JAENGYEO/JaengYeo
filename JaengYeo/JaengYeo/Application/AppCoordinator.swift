@@ -18,19 +18,54 @@ private enum Tab: Int {
 
 final class AppCoordinator {
     private let window: UIWindow
+    private let client: SupabaseClient
+    private let authManager: AuthManagerProtocol
     private var syncManager: SyncManagerProtocol?
     private var childCoordinators: [Any] = []
     private let disposeBag = DisposeBag()
     
     init(window: UIWindow) {
         self.window = window
+        self.client = makeSupabaseClient()
+        self.authManager = AuthManager(client: client)
     }
     
     func start() {
-        let client = makeSupabaseClient()
+        window.makeKeyAndVisible()
+        
+        Task {
+            await authManager.clearSessionIfReinstalled()
+            let hasSession = await authManager.restoreSession()
+            await MainActor.run {
+                if hasSession {
+                    showMain()
+                } else {
+                    showLogin()
+                }
+            }
+        }
+    }
+    
+    private func showLogin() {
+        let viewModel = LoginViewModel(authManager: authManager)
+        let viewController = LoginViewController(viewModel: viewModel)
+        let navigationController = BaseNavigationController(rootViewController: viewController)
+        navigationController.setNavigationBarHidden(true, animated: true)
+        
+        viewModel.loginCompleted
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] in
+                self?.showMain()
+            })
+            .disposed(by: disposeBag)
+        
+        window.rootViewController = navigationController
+    }
+    
+    private func showMain() {
         
         let productManager = ProductManager(client: client)
-        let categoryManager = CategoryManager(client: client)
+        let categoryManager = CategoryManager(client: client, authManager: authManager)
         let coreDataManager = CoreDataManager()
         
         let syncManager = SyncManager(
@@ -40,10 +75,6 @@ final class AppCoordinator {
         )
         
         Task {
-            _ = try? await client.auth.signIn(
-                email: "test@test.com",
-                password: "test1234"
-            )
             if !UserDefaults.standard.bool(forKey: "firstLaunch") {
                 for main in ["식재료", "생활용품"] {
                     if let mids = try? await categoryManager.fetchSystemMidCategories(mainCategory: main) {
@@ -64,6 +95,7 @@ final class AppCoordinator {
             }
         }
         self.syncManager = syncManager
+        NotificationManager.shared.config(client: client)
         
         let homeCoordinator = HomeCoordinator(
             productManager: productManager,
@@ -76,13 +108,15 @@ final class AppCoordinator {
             categoryManager: categoryManager,
             coreDataManager: coreDataManager,
             syncManager: syncManager,
-            client: client
+            client: client,
+            authManager: authManager
         )
         
         let stockCoordinator = StockCoordinator(
             productManager: productManager,
             categoryManager: categoryManager,
-            coreDataManager: coreDataManager
+            coreDataManager: coreDataManager,
+            authManager: authManager
         )
         childCoordinators = [homeCoordinator, registerCoordinator, stockCoordinator]
         let mainController = MainController(
@@ -114,8 +148,5 @@ final class AppCoordinator {
             .disposed(by: disposeBag)
         
         window.rootViewController = mainController
-        window.makeKeyAndVisible()
-
-                  
     }
 }
