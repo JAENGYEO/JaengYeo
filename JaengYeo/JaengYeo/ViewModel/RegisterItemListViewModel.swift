@@ -14,6 +14,7 @@ final class RegisterItemListViewModel: ViewModelProtocol {
     private let itemsSubject: BehaviorSubject<[RegisterFormData]>
     private let coreDataManager: CoreDataManagerProtocol
     private let syncManager: SyncManagerProtocol
+    private let authManager: AuthManagerProtocol
     private let disposeBag = DisposeBag()
     private let errorSubject = PublishSubject<String>()
     
@@ -21,10 +22,11 @@ final class RegisterItemListViewModel: ViewModelProtocol {
     let navigateToAdd = PublishSubject<Void>()
     let navigateToStock = PublishSubject<Void>()
     
-    init(items: [RegisterFormData], coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol) {
+    init(items: [RegisterFormData], coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol, authManager: AuthManagerProtocol) {
         self.itemsSubject = BehaviorSubject(value: items)
         self.coreDataManager = coreDataManager
         self.syncManager = syncManager
+        self.authManager = authManager
     }
     
     struct Input {
@@ -92,6 +94,10 @@ extension RegisterItemListViewModel {
 
 extension RegisterItemListViewModel {
     private func saveAllItems(items: [RegisterFormData]) {
+        guard let userId = authManager.currentUserId else {
+            errorSubject.onNext("로그인이 필요합니다.")
+            return
+        }
         let now = Date()
         let payloads: [ProductPayload] = items.compactMap { item in
             guard let name = item.name, let mainCategory = item.mainCategory else { return nil }
@@ -102,7 +108,7 @@ extension RegisterItemListViewModel {
             
             return ProductPayload(
                 id: item.id,
-                userId: Constants.Dev.userId,
+                userId: userId,
                 name: name,
                 quantity: Int32(item.quantity ?? 0),
                 quantityUnit: item.quantityUnit,

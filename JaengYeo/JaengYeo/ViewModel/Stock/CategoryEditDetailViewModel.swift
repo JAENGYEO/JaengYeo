@@ -108,6 +108,7 @@ final class CategoryEditDetailViewModel: ViewModelProtocol {
     private let mode: CategoryEditMode
     /// CoreData 매니저
     private let coreDataManager: CoreDataManagerProtocol
+    private let authManager: AuthManagerProtocol
 
     //MARK: - React Binding
     /// 입력
@@ -183,10 +184,12 @@ final class CategoryEditDetailViewModel: ViewModelProtocol {
     //MARK: - Init
     init(
         mode: CategoryEditMode,
-        coreDataManager: CoreDataManagerProtocol
+        coreDataManager: CoreDataManagerProtocol,
+        authManager: AuthManagerProtocol
     ) {
         self.mode = mode
         self.coreDataManager = coreDataManager
+        self.authManager = authManager
     }
 }
 
@@ -319,11 +322,14 @@ private extension CategoryEditDetailViewModel {
         name: String,
         iconName: String
     ) throws -> MidCategoryPayload {
+        guard let userId = authManager.currentUserId else {
+            throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "로그인이 필요합니다."])
+        }
         let now = Date()
 
         return MidCategoryPayload(
             id: UUID(),
-            userId: Constants.Dev.userId,
+            userId: userId,
             mainCategory: mainCategory,
             name: name,
             iconName: iconName,
@@ -340,11 +346,14 @@ private extension CategoryEditDetailViewModel {
         name: String,
         iconName: String
     ) throws -> SubCategoryPayload {
+        guard let userId = authManager.currentUserId else {
+            throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "로그인이 필요합니다."])
+        }
         let now = Date()
 
         return SubCategoryPayload(
             id: UUID(),
-            userId: Constants.Dev.userId,
+            userId: userId,
             mainCategory: mainCategory,
             name: name,
             iconName: iconName,

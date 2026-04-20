@@ -24,28 +24,32 @@ private enum Column: String {
 final class CategoryManager: CategoryManagerProtocol {
     
     private let client: SupabaseClient
+    private let authManager: AuthManagerProtocol
     
-    init(client: SupabaseClient) {
+    init(client: SupabaseClient, authManager: AuthManagerProtocol) {
         self.client = client
+        self.authManager = authManager
     }
     
     func fetchMidCategory(mainCategory: String) async throws -> [MidCategoryDTO] {
-        try await client
+        guard let userId = authManager.currentUserId else { return [] }
+        return try await client
             .from(Table.midCategory.rawValue)
             .select()
             .eq(Column.mainCategory.rawValue, value: mainCategory)
-            .or("\(Column.userId.rawValue).is.null,\(Column.userId.rawValue).eq.\(Constants.Dev.userId)") // postgREST 필터 문법 사용
+            .or("\(Column.userId.rawValue).is.null,\(Column.userId.rawValue).eq.\(userId)") // postgREST 필터 문법 사용
             .order(Column.sortOrder.rawValue, ascending: true)
             .execute()
             .value
     }
     
     func fetchSubCategory(mainCategory: String) async throws -> [SubCategoryDTO] {
-        try await client
+        guard let userId = authManager.currentUserId else { return [] }
+        return try await client
             .from(Table.subCategory.rawValue)
             .select()
             .eq(Column.mainCategory.rawValue, value: mainCategory)
-            .or("\(Column.userId.rawValue).is.null,\(Column.userId.rawValue).eq.\(Constants.Dev.userId)")
+            .or("\(Column.userId.rawValue).is.null,\(Column.userId.rawValue).eq.\(userId)")
             .order(Column.sortOrder.rawValue, ascending: true)
             .execute()
             .value
