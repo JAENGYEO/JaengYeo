@@ -38,7 +38,7 @@ final class LoginViewModel: ViewModelProtocol {
             .flatMapLatest { [weak self] (idToken, nonce) -> Observable<Void> in
                 guard let self else { return .empty() }
                 return Observable.create { observer in
-                    Task {
+                    let task = Task {
                         do {
                             try await self.authManager.signInWithApple(idToken: idToken, nonce: nonce)
                             self.isLoadingSubject.onNext(false)
@@ -50,7 +50,9 @@ final class LoginViewModel: ViewModelProtocol {
                             observer.onCompleted()
                         }
                     }
-                    return Disposables.create()
+                    return Disposables.create {
+                        task.cancel()
+                    }
                 }
             }
             .bind(to: loginCompleted)
