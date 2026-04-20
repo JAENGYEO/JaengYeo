@@ -52,16 +52,12 @@ extension MyPagePermissionView {
 
     /// 스냅샷 적용
     func applySnapshot(with items: [MyPagePermissionItem]) {
-        let currentItems = dataSource.snapshot().itemIdentifiers
-        let reloadItems = items.filter { currentItems.contains($0) }
-
         var snapshot = NSDiffableDataSourceSnapshot<
             Section,
             MyPagePermissionItem
         >()
         snapshot.appendSections([.main])
         snapshot.appendItems(items, toSection: .main)
-        snapshot.reloadItems(reloadItems)
         dataSource.apply(snapshot, animatingDifferences: false)
     }
 }
@@ -103,7 +99,7 @@ extension MyPagePermissionView {
 //MARK: - Compositional Layout
 extension MyPagePermissionView {
     /// 컬렉션 뷰 레이아웃 생성
-    func createLayout() -> UICollectionViewLayout {
+    private func createLayout() -> UICollectionViewLayout {
         let item = NSCollectionLayoutItem(
             layoutSize: .init(
                 widthDimension: .fractionalWidth(1.0),

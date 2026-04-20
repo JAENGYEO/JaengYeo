@@ -140,7 +140,7 @@ extension MyPageViewController {
     func presentMailUnavailableAlert() {
         AlertController.rx.alert(
             on: self,
-            image: UIImage(named: "alartRed") ?? UIImage(),
+            image: UIImage(named: "alertRed") ?? UIImage(),
             title: "메일 앱 확인",
             message: "메일 앱 설정 후 다시 시도해주세요.",
             actions: [.default("확인")]
