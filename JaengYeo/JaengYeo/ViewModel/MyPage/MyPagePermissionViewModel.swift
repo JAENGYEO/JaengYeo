@@ -26,12 +26,12 @@ enum MyPagePermissionType: CaseIterable {
             return "알림"
         }
     }
-    
+
     /// 권한 안내 알림 타이틀
     var alertTitle: String {
         "\(title) 권한 필요"
     }
-    
+
     /// 권한 안내 알림 메시지
     var alertMessage: String {
         "\(title) 사용을 위해 설정에서 권한을 허용해주세요."
@@ -133,10 +133,12 @@ extension MyPagePermissionViewModel {
     }
 
     /// 권한 허용 여부
-    static func isPermissionAllowed(_ type: MyPagePermissionType) async -> Bool {
+    static func isPermissionAllowed(_ type: MyPagePermissionType) async -> Bool
+    {
         switch type {
         case .camera:
-            return AVCaptureDevice.authorizationStatus(for: .video) == .authorized
+            return AVCaptureDevice.authorizationStatus(for: .video)
+                == .authorized
 
         case .notification:
             let settings = await UNUserNotificationCenter.current()
@@ -181,9 +183,18 @@ extension MyPagePermissionViewModel {
 
             switch settings.authorizationStatus {
             case .notDetermined:
-                _ = try? await UNUserNotificationCenter.current()
-                    .requestAuthorization(options: [.alert, .badge, .sound])
-                updatePermissionItems()
+                do {
+                    let granted = try await UNUserNotificationCenter.current()
+                        .requestAuthorization(options: [.alert, .badge, .sound])
+                    
+                    if granted {
+                        updatePermissionItems()
+                    } else {
+                        presentPermissionAlert(.notification)
+                    }
+                } catch {
+                    presentPermissionAlert(.notification)
+                }
             case .authorized:
                 updatePermissionItems()
             default:
@@ -201,7 +212,7 @@ extension MyPagePermissionViewModel {
             )
         )
     }
-    
+
     /// 권한 요청
     func requestPermission(_ type: MyPagePermissionType) {
         switch type {
@@ -211,7 +222,7 @@ extension MyPagePermissionViewModel {
             requestNotificationPermission()
         }
     }
-    
+
     /// 앱 설정 열기
     func openAppSettings() {
         guard let url = URL(string: UIApplication.openSettingsURLString) else {
