@@ -130,6 +130,14 @@ extension ButtonTitleConfiguration {
         disabledColor: .white,
         kern: -0.15
     )
+    
+    static let cancelTitle = ButtonTitleConfiguration (
+        font: .systemFont(ofSize: 12, weight: .regular),
+        normalColor: .gray800,
+        selectedColor: .gray300,
+        disabledColor: .white,
+        kern: -0.15
+    )
 }
 
 
@@ -191,6 +199,16 @@ extension ButtonAppearanceConfiguration {
         backgroundColor: .primaryRed,
         selectedBackgroundColor: .primaryRed,
         highlightedBackgroundColor: .primaryRed,
+        disabledBackgroundColor: .gray300,
+        cornerRadius: 12,
+        borderWidth: 0,
+        borderColor: UIColor.clear
+    )
+    
+    static let cancelAppearance = ButtonAppearanceConfiguration(
+        backgroundColor: .gray50,
+        selectedBackgroundColor: .gray100,
+        highlightedBackgroundColor: .gray100,
         disabledBackgroundColor: .gray300,
         cornerRadius: 12,
         borderWidth: 0,

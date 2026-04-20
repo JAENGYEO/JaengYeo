@@ -147,7 +147,7 @@ private extension CategoryIconsView {
     private func createLayout() -> UICollectionViewLayout {
         let item = NSCollectionLayoutItem(
             layoutSize: .init(
-                widthDimension: .absolute(48),
+                widthDimension: .fractionalWidth(0.2),
                 heightDimension: .absolute(48)
             )
         )
@@ -160,7 +160,6 @@ private extension CategoryIconsView {
             repeatingSubitem: item,
             count: 5
         )
-        group.interItemSpacing = .fixed(16)
 
         let section = NSCollectionLayoutSection(group: group)
         section.interGroupSpacing = 16

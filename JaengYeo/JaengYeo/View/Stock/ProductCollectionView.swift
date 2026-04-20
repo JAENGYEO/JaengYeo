@@ -152,6 +152,13 @@ private extension ProductCollectionView {
                 item.subCategory,
             ].compactMap { $0 }
 
+            var image: UIImage?
+            if let url = item.product.imageUrl {
+                image = ImageUtils.loadImage(fileName: url)
+            } else {
+                image = item.subCategoryImage
+            }
+            
             cell.updateUI(
                 type: .defaultType,
                 title: item.displayTitle,
@@ -159,7 +166,7 @@ private extension ProductCollectionView {
                 descriptions: descriptions,
                 subdescriptions: nil,
                 count: item.totalQuantity,
-                image: nil
+                image: image
             )
         }
 
@@ -178,13 +185,15 @@ private extension ProductCollectionView {
     
     /// 소비기한 D-day 생성
     func makeFreshness(_ expiryDate: Date) -> Int? {
-        let day = Calendar.current.dateComponents(
-            [.day],
-            from: Date(),
-            to: expiryDate
-        ).day
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let expiryDay = calendar.startOfDay(for: expiryDate)
         
-        return day.map { $0 + 1 }
+        return calendar.dateComponents(
+            [.day],
+            from: today,
+            to: expiryDay
+        ).day
     }
 }
 

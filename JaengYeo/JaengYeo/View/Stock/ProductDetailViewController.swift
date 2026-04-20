@@ -19,7 +19,7 @@ protocol ProductDetailViewControllerDelegate: AnyObject {
     )
 }
 
-final class ProductDetailViewController: UIViewController {
+final class ProductDetailViewController: BaseViewController {
 
     weak var delegate: ProductDetailViewControllerDelegate?
 

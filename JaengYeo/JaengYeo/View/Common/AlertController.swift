@@ -87,9 +87,9 @@ extension AlertController {
         case .default:
           (.defaultTitle, .defaultAppearance)
         case .destructive:
-          (.defaultTitle, .deleteAppearance)
+            (.redTitle, .redAppearance)
         case .cancel:
-          (.textGrayTitle12, .textEdgeAppearance)
+            (.cancelTitle, .cancelAppearance)
         }
         return StyledButton(
           title: $0.title,
