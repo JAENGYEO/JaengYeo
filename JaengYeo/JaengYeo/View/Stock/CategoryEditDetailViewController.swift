@@ -134,7 +134,7 @@ private extension CategoryEditDetailViewController {
                 
                 return AlertController.rx.alert(
                     on: self,
-                    image: UIImage(named: "alartRed") ?? UIImage(),
+                    image: UIImage(named: "alertRed") ?? UIImage(),
                     title: "분류 삭제",
                     message: "분류를 삭제하시겠습니까?",
                     actions: [
