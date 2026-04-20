@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Then
 import RxSwift
 import RxCocoa
 
@@ -30,6 +31,10 @@ final class HomeViewController: BaseViewController {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
+    
+    private let logoImage = UIImageView(image: UIImage(named: "homeLogo")).then {
+        $0.contentMode = .scaleAspectFit
+    }
         
     
     init(viewModel: HomeViewModel) {
@@ -55,14 +60,18 @@ final class HomeViewController: BaseViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         viewWillAppearRelay.accept(())
+        logoImage.isHidden = false
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        logoImage.isHidden = true
     }
 }
 
 extension HomeViewController {
     private func configureNavigationBar() {
-        
-        let logoImage = UIImageView(image: UIImage(named: "homeLogo"))
-        logoImage.contentMode = .scaleAspectFit
+
         navigationController?.navigationBar.addSubview(logoImage)
         logoImage.snp.makeConstraints {
             $0.leading.equalToSuperview().offset(16)

@@ -9,6 +9,7 @@ import UIKit
 import Supabase
 import RxSwift
 import RxCocoa
+import FoundationModels
 
 final class RegisterCoordinator {
     let navigationController: UINavigationController
@@ -37,7 +38,8 @@ final class RegisterCoordinator {
         self.authManager = authManager
         
         let parser: ReceiptProtocol
-        if #available(iOS 26, *) {
+        if #available(iOS 26, *),
+           SystemLanguageModel.default.availability == .available {
             parser = FoundationModelReceiptParser()
         } else {
             parser = AIReceiptParser(client: client)
