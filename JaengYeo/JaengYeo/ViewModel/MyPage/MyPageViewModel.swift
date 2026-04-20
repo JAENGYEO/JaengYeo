@@ -45,7 +45,7 @@ enum MyPageMenu: CaseIterable {
         case .appPermission:
             return "앱 사용 권한 확인"
         case .feedback:
-            return "의견 보내기"
+            return "앱 의견 보내기"
         case .appVersion:
             return "현재 버전 \(appVersion)"
         case .iconCopyright:

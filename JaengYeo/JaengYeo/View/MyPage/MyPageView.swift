@@ -78,7 +78,7 @@ extension MyPageView {
         }
 
         let headerRegistration = UICollectionView.SupplementaryRegistration<
-            UICollectionViewListCell
+            MyPageSectionHeaderView
         >(
             elementKind: UICollectionView.elementKindSectionHeader
         ) { [weak self] headerView, _, indexPath in
@@ -86,12 +86,7 @@ extension MyPageView {
                 for: indexPath.section
             ) else { return }
 
-            var contentConfiguration = UIListContentConfiguration.plainHeader()
-            contentConfiguration.text = section.title
-            contentConfiguration.textProperties.font = LabelConfiguration.body12.font
-            contentConfiguration.textProperties.color = .gray300
-            headerView.contentConfiguration = contentConfiguration
-            headerView.backgroundConfiguration = .clear()
+            headerView.updateUI(title: section.title)
         }
 
         let dataSource = UICollectionViewDiffableDataSource<
@@ -129,14 +124,14 @@ extension MyPageView {
             let item = NSCollectionLayoutItem(
                 layoutSize: .init(
                     widthDimension: .fractionalWidth(1.0),
-                    heightDimension: .absolute(48)
+                    heightDimension: .absolute(24)
                 )
             )
 
             let group = NSCollectionLayoutGroup.vertical(
                 layoutSize: .init(
                     widthDimension: .fractionalWidth(1.0),
-                    heightDimension: .absolute(48)
+                    heightDimension: .absolute(24)
                 ),
                 subitems: [item]
             )
@@ -144,7 +139,7 @@ extension MyPageView {
             let header = NSCollectionLayoutBoundarySupplementaryItem(
                 layoutSize: .init(
                     widthDimension: .fractionalWidth(1.0),
-                    heightDimension: .absolute(32)
+                    heightDimension: .absolute(30)
                 ),
                 elementKind: UICollectionView.elementKindSectionHeader,
                 alignment: .top
@@ -152,11 +147,12 @@ extension MyPageView {
 
             let section = NSCollectionLayoutSection(group: group)
             section.boundarySupplementaryItems = [header]
+            section.interGroupSpacing = 8
             section.contentInsets = NSDirectionalEdgeInsets(
                 top: 8,
-                leading: 0,
-                bottom: 20,
-                trailing: 0
+                leading: 16,
+                bottom: 32,
+                trailing: 16
             )
 
             return section
@@ -193,6 +189,54 @@ extension MyPageView {
             }
             .bind(to: itemSelectedRelay)
             .disposed(by: disposeBag)
+    }
+}
+
+final class MyPageSectionHeaderView: UICollectionReusableView {
+
+    //MARK: - Components
+    private let titleLabel = StyledLabel(config: .body12).then {
+        $0.numberOfLines = 1
+        $0.updateColor(.gray300)
+    }
+
+    //MARK: - Init
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        configureUI()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        titleLabel.text = nil
+    }
+}
+
+//MARK: - Public
+extension MyPageSectionHeaderView {
+    /// 헤더 UI 업데이트
+    func updateUI(title: String) {
+        titleLabel.text = title
+    }
+}
+
+//MARK: - Configure UI
+extension MyPageSectionHeaderView {
+    /// UI 설정
+    func configureUI() {
+        backgroundColor = .clear
+
+        addSubview(titleLabel)
+
+        titleLabel.snp.makeConstraints {
+            $0.leading.equalToSuperview()
+            $0.centerY.equalToSuperview()
+            $0.trailing.equalToSuperview()
+        }
     }
 }
 

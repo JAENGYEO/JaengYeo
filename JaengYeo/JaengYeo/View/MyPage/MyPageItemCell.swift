@@ -71,13 +71,13 @@ private extension MyPageItemCell {
         contentView.addSubview(chevronImageView)
 
         titleLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(24)
+            $0.leading.equalToSuperview()
             $0.centerY.equalToSuperview()
             $0.trailing.lessThanOrEqualTo(chevronImageView.snp.leading).offset(-12)
         }
 
         chevronImageView.snp.makeConstraints {
-            $0.trailing.equalToSuperview().inset(24)
+            $0.trailing.equalToSuperview()
             $0.centerY.equalToSuperview()
             $0.size.equalTo(16)
         }
