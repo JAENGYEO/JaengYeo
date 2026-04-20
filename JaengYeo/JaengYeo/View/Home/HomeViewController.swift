@@ -9,10 +9,15 @@ import UIKit
 import RxSwift
 import RxCocoa
 
+protocol HomeViewControllerDelegate: AnyObject {
+    func didTapMyPageButton()
+}
+
 final class HomeViewController: BaseViewController {
 
     private let disposeBag = DisposeBag()
     private let viewModel: HomeViewModel
+    weak var delegate: HomeViewControllerDelegate?
     
     private let mainView = HomeView()
     private var dataSource: UICollectionViewDiffableDataSource<HomeSection, HomeItem>?
@@ -34,6 +39,7 @@ final class HomeViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        configureNavigationBar()
         configDataSource()
         bind()
     }
@@ -41,6 +47,17 @@ final class HomeViewController: BaseViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         viewWillAppearRelay.accept(())
+    }
+}
+
+extension HomeViewController {
+    private func configureNavigationBar() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(named: "mypage02Icon"),
+            primaryAction: UIAction { [weak self] _ in
+                self?.delegate?.didTapMyPageButton()
+            }
+        )
     }
 }
 

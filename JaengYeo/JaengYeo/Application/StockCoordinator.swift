@@ -125,7 +125,7 @@ extension StockCoordinator: RegisterDetailViewControllerDelegate {
             )
         } catch {
             let alert = AlertController(
-                image: UIImage(named: "alartRed") ?? UIImage(),
+                image: UIImage(named: "alertRed") ?? UIImage(),
                 title: "수정 실패",
                 message: "상품 정보를 업데이트하는 중 오류가 발생했습니다.",
                 actions: [.default("확인")]

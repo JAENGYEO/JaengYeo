@@ -54,7 +54,7 @@ extension ProductDetailViewController {
             .flatMapLatest { [weak self] _ in
                 AlertController.rx.alert(
                     on: self,
-                    image: UIImage(named: "alartRed") ?? UIImage(),
+                    image: UIImage(named: "alertRed") ?? UIImage(),
                     title: "상품 삭제",
                     message: "해당 상품을 삭제하시겠습니까?",
                     actions: [
@@ -105,7 +105,7 @@ extension ProductDetailViewController {
                     } else {
                         AlertController.rx.alert(
                             on: self,
-                            image: UIImage(named: "alartRed") ?? UIImage(),
+                            image: UIImage(named: "alertRed") ?? UIImage(),
                             title: "삭제 실패",
                             message: "상품을 삭제하는 중 오류가 발생했습니다.",
                             actions: [.default("확인")]

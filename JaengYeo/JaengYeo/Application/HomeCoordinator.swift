@@ -32,6 +32,7 @@ final class HomeCoordinator {
         let viewModel = HomeViewModel(coreDataManager: coreDataManager)
         let viewController = HomeViewController(viewModel: viewModel)
         navigationController = BaseNavigationController(rootViewController: viewController)
+        viewController.delegate = self
         navigationController.tabBarItem = UITabBarItem(
             title: "홈",
             image: UIImage(named: "homeIcon"),
@@ -101,6 +102,19 @@ extension HomeCoordinator {
         detailViewController.delegate = self
         currentDetailViewController = detailViewController
         navigationController.pushViewController(detailViewController, animated: true)
+    }
+    
+    private func pushMyPage() {
+        let viewController = MyPageViewController(
+            viewModel: MyPageViewModel()
+        )
+        navigationController.pushViewController(viewController, animated: true)
+    }
+}
+
+extension HomeCoordinator: HomeViewControllerDelegate {
+    func didTapMyPageButton() {
+        pushMyPage()
     }
 }
 

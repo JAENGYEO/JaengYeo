@@ -246,7 +246,7 @@ private extension StockViewController {
         
         return AlertController.rx.alert(
             on: self,
-            image: UIImage(named: "alartRed") ?? UIImage(),
+            image: UIImage(named: "alertRed") ?? UIImage(),
             title: "상품 삭제",
             message:  item.isGrouped
             ? "같은 이름의 상품 \(item.groupedCount)건을 삭제하시겠습니까?"
