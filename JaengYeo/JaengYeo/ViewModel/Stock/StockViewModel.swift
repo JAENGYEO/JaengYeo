@@ -82,6 +82,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
                                                 [MainCategory.foodstuff.rawValue, MainCategory.household.rawValue])
     /// 상품 목록
     private let productsRelay = BehaviorRelay<[ProductCellItem]>(value: [])
+    /// 전체 상품 존재 여부
+    private let hasAnyProductRelay = BehaviorRelay<Bool>(value: false)
     /// 중분류 목록
     private let midCategoriesRelay = BehaviorRelay<[CategorySelectionItem]>(value: [])
     /// 소분류 목록
@@ -135,6 +137,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         let isMidCategorySelected: Observable<Bool>
         /// 소분류 선택 여부
         let isSubCategorySelected: Observable<Bool>
+        /// 전체 상품 존재 여부
+        let hasAnyProduct: Observable<Bool>
         /// 상품 개수
         let totalCountText: Observable<Int>
     }
@@ -251,6 +255,7 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
             selectedSortTitle: selectedSortTitle,
             isMidCategorySelected: isMidCategorySelected,
             isSubCategorySelected: isSubCategorySelected,
+            hasAnyProduct: hasAnyProductRelay.asObservable(),
             totalCountText: totalCountText
         )
     }
@@ -427,6 +432,8 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     
     /// 상품 도메인 변환 및 반영
     private func updateProducts() {
+        updateHasAnyProduct()
+        
         let midCategoryNames = midCategoryFetchResultController?.fetchedObjects?
             .reduce(into: [UUID: String]()) {
                 $0[$1.id] = $1.name
@@ -457,6 +464,23 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
             } ?? []
 
         productsRelay.accept(sortProducts(groupProducts(products)))
+    }
+    
+    /// 전체 상품 존재 여부 반영
+    private func updateHasAnyProduct() {
+        let request = ProductEntity.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "%K != %@",
+            ProductEntity.Keys.syncStatus,
+            SyncStatus.pendingDelete.rawValue
+        )
+        
+        do {
+            let count = try coreDataManager.context.count(for: request)
+            hasAnyProductRelay.accept(count > 0)
+        } catch {
+            hasAnyProductRelay.accept(false)
+        }
     }
     
     /// 중분류 아이템 변환 및 반영

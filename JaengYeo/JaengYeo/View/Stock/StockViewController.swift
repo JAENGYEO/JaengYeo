@@ -162,7 +162,13 @@ private extension StockViewController {
             .bind(onNext: { [weak self] products in
                 guard let self else { return }
                 self.productCollectionView.applySnapshot(with: products)
-                self.emptyStateView.isHidden = !products.isEmpty
+            })
+            .disposed(by: disposeBag)
+        
+        /// 전체 상품 존재 여부 바인딩
+        output.hasAnyProduct
+            .bind(onNext: { [weak self] hasAnyProduct in
+                self?.emptyStateView.isHidden = hasAnyProduct
             })
             .disposed(by: disposeBag)
         
