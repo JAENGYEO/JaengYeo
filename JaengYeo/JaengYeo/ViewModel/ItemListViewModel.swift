@@ -58,6 +58,8 @@ final class ItemListViewModel: ViewModelProtocol {
         let image: UIImage?
         let subCategoryIconName: String?
         let expiryDaysLeft: Int?
+        let midCategoryName: String?
+        let subCategoryName: String?
     }
     
     struct Input {
@@ -108,6 +110,20 @@ final class ItemListViewModel: ViewModelProtocol {
                         } else {
                             expiryDaysLeft = nil
                         }
+                        let midCategoryName: String?
+                        if let midCategoryId = payload.midCategoryId,
+                           let midCategory = try? self.coreDataManager.fetchMidCategory(of: midCategoryId) {
+                            midCategoryName = midCategory.name
+                        } else {
+                            midCategoryName = nil
+                        }
+                        let subCategoryName: String?
+                        if let subCategoryId = payload.subCategoryId,
+                           let subCategory = try? self.coreDataManager.fetchSubCategory(of: subCategoryId) {
+                            subCategoryName = subCategory.name
+                        } else {
+                            subCategoryName = nil
+                        }
                         return ItemSummary(
                             id: payload.id,
                             name: payload.name,
@@ -115,7 +131,9 @@ final class ItemListViewModel: ViewModelProtocol {
                             quantity: Int(payload.quantity),
                             image: image,
                             subCategoryIconName: iconName,
-                            expiryDaysLeft: expiryDaysLeft
+                            expiryDaysLeft: expiryDaysLeft,
+                            midCategoryName: midCategoryName,
+                            subCategoryName: subCategoryName
                         )
                     }
                 } catch {
