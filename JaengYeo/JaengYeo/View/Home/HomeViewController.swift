@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 import RxSwift
 import RxCocoa
 
@@ -59,6 +60,17 @@ final class HomeViewController: BaseViewController {
 
 extension HomeViewController {
     private func configureNavigationBar() {
+        
+        let logoImage = UIImageView(image: UIImage(named: "homeLogo"))
+        logoImage.contentMode = .scaleAspectFit
+        navigationController?.navigationBar.addSubview(logoImage)
+        logoImage.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.top.equalToSuperview().offset(8)
+            $0.width.equalTo(92)
+            $0.height.equalTo(44)
+        }
+        
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(named: "mypage02Icon"),
             primaryAction: UIAction { [weak self] _ in
