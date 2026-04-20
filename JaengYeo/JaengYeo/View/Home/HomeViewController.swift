@@ -24,6 +24,13 @@ final class HomeViewController: BaseViewController {
     
     private let viewWillAppearRelay = PublishRelay<Void>()
     
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+        
+    
     init(viewModel: HomeViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -136,11 +143,14 @@ extension HomeViewController {
                 return cell
             case .recentItem(let summary):
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProductCell.id, for: indexPath) as? ProductCell else { return UICollectionViewCell() }
+                var descriptions = [summary.mainCategory]
+                if let midCategory = summary.midCategoryName { descriptions.append(midCategory) }
+                descriptions.append(self.dateFormatter.string(from: summary.createdAt))
                 cell.updateUI(
                     type: .homeType,
                     title: summary.name,
                     freshness: nil,
-                    descriptions: [summary.mainCategory],
+                    descriptions: descriptions,
                     subdescriptions: nil,
                     count: summary.quantity,
                     image: summary.image ?? summary.subCategoryIconName.flatMap { UIImage(named: $0) } //TODO: 추후에 수정 필요
