@@ -42,7 +42,7 @@ final class ProductCell: UICollectionViewListCell{
                 productCountView.isHidden = false
                 
             case .registType:
-                productSubDescriptionStack.isHidden = true
+                productSubDescriptionStack.isHidden = false
                 productCountView.isHidden = true
             
             case .homeType:
@@ -179,13 +179,14 @@ extension ProductCell {
             stackView: productDescriptionStack,
             freshness: freshness,
             texts: descriptions,
+            highlightFirst: cellType == .registType
         )
         
         if cellType != .registType {
             productCountLabel.text = count.map { String($0) } ?? "0"
         }
         
-        if cellType == .detailType {
+        if cellType == .detailType || cellType == .registType {
             updateDescriptionStack(
                 stackView: productSubDescriptionStack,
                 freshness: nil,
@@ -202,7 +203,8 @@ private extension ProductCell {
     private func updateDescriptionStack(
         stackView: UIStackView,
         freshness: Int?,
-        texts: [String]?
+        texts: [String]?,
+        highlightFirst: Bool = false
     ) {
         stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         var labels: [UILabel] = []
@@ -225,8 +227,9 @@ private extension ProductCell {
         }
         
         /// 설명 라벨 생성
-        texts?.forEach { text in
-            let label = StyledLabel(config: .body12.updatingColor(color: .gray300)).then {
+        texts?.enumerated().forEach { index ,text in
+            let color: UIColor = (highlightFirst && index == 0) ? .primaryRed : .gray300
+            let label = StyledLabel(config: .body12.updatingColor(color: color)).then {
                 $0.text = text
                 $0.numberOfLines = 1
             }
