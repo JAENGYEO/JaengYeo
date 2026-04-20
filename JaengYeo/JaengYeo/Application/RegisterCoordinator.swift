@@ -18,6 +18,7 @@ final class RegisterCoordinator {
     private let coreDataManager: CoreDataManagerProtocol
     private let syncManager: SyncManagerProtocol
     private let client: SupabaseClient
+    private let authManager: AuthManagerProtocol
 
     
     private let disposeBag = DisposeBag()
@@ -27,12 +28,13 @@ final class RegisterCoordinator {
     
     let navigateToStock = PublishSubject<Void>()
     
-    init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol, client: SupabaseClient) {
+    init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol, client: SupabaseClient, authManager: AuthManagerProtocol) {
         self.productManager = productManager
         self.categoryManager = categoryManager
         self.coreDataManager = coreDataManager
         self.syncManager = syncManager
         self.client = client
+        self.authManager = authManager
         
         let parser: ReceiptProtocol
         if #available(iOS 26, *) {
@@ -56,7 +58,7 @@ final class RegisterCoordinator {
 
 extension RegisterCoordinator: RegisterViewControllerDelegate {
     func pushItemListView(items: [RegisterFormData], pageTitle: String, infoLabel: String) {
-        let viewModel = RegisterItemListViewModel(items: items, coreDataManager: coreDataManager, syncManager: syncManager)
+        let viewModel = RegisterItemListViewModel(items: items, coreDataManager: coreDataManager, syncManager: syncManager, authManager: authManager)
         let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: pageTitle, infoLabel: infoLabel)
         listViewModel = viewModel
         viewModel.navigateToAdd
@@ -86,12 +88,16 @@ extension RegisterCoordinator: RegisterViewControllerDelegate {
         
         Single.create { [weak self] single in
             guard let self else { return Disposables.create() }
+            guard let userId = authManager.currentUserId else {
+                single(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "로그인이 필요합니다."])))
+                return Disposables.create()
+            }
             let now = Date()
             let payloads: [ProductPayload] = items.compactMap { item in
                 guard let name = item.name, let mainCategory = item.mainCategory else { return nil }
                 return ProductPayload(
                     id: item.id,
-                    userId: Constants.Dev.userId,
+                    userId: userId,
                     name: name,
                     quantity: Int32(item.quantity ?? 1),
                     quantityUnit: item.quantityUnit,
