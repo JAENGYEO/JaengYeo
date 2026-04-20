@@ -109,7 +109,7 @@ extension ItemListViewController {
                     descriptions: ["\(dateString) 등록", "\(itemIdentifier.quantity)개"],
                     subdescriptions: nil,
                     count: nil,
-                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(systemName: $0) }
+                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) }
                 )
                 cell.accessories = [.disclosureIndicator(options: .init(tintColor: .gray300)) ]
             case .expiryImminent:
@@ -120,7 +120,7 @@ extension ItemListViewController {
                     descriptions: ["\(itemIdentifier.quantity)개"],
                     subdescriptions: nil,
                     count: nil,
-                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(systemName: $0) }
+                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) }
                 )
             case .lowStock:
                 cell.updateUI(
@@ -130,7 +130,7 @@ extension ItemListViewController {
                     descriptions: ["재고 \(itemIdentifier.quantity)개"],
                     subdescriptions: nil,
                     count: nil,
-                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(systemName: $0) }
+                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) }
                 )
             }
             return cell

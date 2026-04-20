@@ -143,7 +143,7 @@ extension HomeViewController {
                     descriptions: [summary.mainCategory],
                     subdescriptions: nil,
                     count: summary.quantity,
-                    image: summary.image ?? summary.subCategoryIconName.flatMap { UIImage(systemName: $0) } //TODO: 추후에 수정 필요
+                    image: summary.image ?? summary.subCategoryIconName.flatMap { UIImage(named: $0) } //TODO: 추후에 수정 필요
                 )
                 return cell
             }

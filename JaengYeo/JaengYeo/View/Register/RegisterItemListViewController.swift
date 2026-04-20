@@ -41,7 +41,7 @@ final class RegisterItemListViewController: BaseViewController {
                 descriptions: [itemIdentifier.mainCategory].compactMap { $0 },
                 subdescriptions: nil,
                 count: itemIdentifier.quantity,
-                image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(systemName: $0) }
+                image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) }
             )
             cell.accessories = [.disclosureIndicator(options: .init(tintColor: .gray300))]
             return cell
