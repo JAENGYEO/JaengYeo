@@ -1,9 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// TODO: Sign in with Apple 구현 후 JWT 검증으로 교체 예정
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
@@ -12,7 +12,26 @@ Deno.serve(async (req) => {
     });
   }
 
-  let body: { userId?: string; deviceToken?: string };
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: "missing_authorization" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error: authError } = await authClient.auth.getUser();
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  let body: { deviceToken?: string };
   try {
     body = await req.json();
   } catch {
@@ -22,10 +41,10 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { userId, deviceToken } = body;
-  if (!userId || !deviceToken) {
+  const { deviceToken } = body;
+  if (!deviceToken) {
     return new Response(
-      JSON.stringify({ error: "userId and deviceToken are required" }),
+      JSON.stringify({ error: "deviceToken is required" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -35,7 +54,7 @@ Deno.serve(async (req) => {
   const { error } = await supabase
     .from("user_device_tokens")
     .upsert(
-      { user_id: userId, device_token: deviceToken },
+      { user_id: user.id, device_token: deviceToken },
       { onConflict: "user_id,device_token" }
     );
 
