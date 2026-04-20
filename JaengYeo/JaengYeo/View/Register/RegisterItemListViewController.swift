@@ -47,7 +47,14 @@ final class RegisterItemListViewController: BaseViewController {
             if let quantity = itemIdentifier.quantity { descriptions.append("\(quantity)개") }
             
             if let expiryDate = itemIdentifier.expiryDate {
-                let dateString = self.dateFormatter.string(from: expiryDate) + "까지"
+                let today = Calendar.current.startOfDay(for: Date())
+                let expiry = Calendar.current.startOfDay(for: expiryDate)
+                let dateString: String
+                if today == expiry {
+                    dateString = "오늘까지"
+                } else {
+                    dateString = self.dateFormatter.string(from: expiryDate) + "까지"
+                }
                 cell.updateUI(
                     type: .registType,
                     title: itemIdentifier.name ?? "정보 없음",
