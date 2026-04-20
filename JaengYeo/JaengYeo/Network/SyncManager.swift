@@ -74,7 +74,7 @@ extension SyncManager {
             do {
                 try await productManager.upsert(dto: dto)
                 try coreDataManager.updateProductSyncStatus(id: payload.id)
-            } catch let e { //TODO: 에러 처리 필요
+            } catch { //TODO: 에러 처리 필요
                 
             }
         }

@@ -233,6 +233,9 @@ extension RegisterView {
         allButtons.forEach { button, mode in
             button.isSelected = (mode == cameraMode)
         }
+        captureRingView.isHidden = (cameraMode == .barcode)
+        quickRegisterButton.isHidden = (cameraMode == .barcode)
+        
     }
 }
 
