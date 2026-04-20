@@ -251,7 +251,7 @@ async function handleLowStockNotification(
     .is("deleted_at", null);
 
   const lowStockItems = (allCandidates ?? []).filter(
-    (item) => item.quantity <= item.low_stock_threshold
+    (item) => item.low_stock_threshold != null && item.quantity <= item.low_stock_threshold
   );
 
   const lowStockItemIds = new Set(lowStockItems.map((i) => i.id));
