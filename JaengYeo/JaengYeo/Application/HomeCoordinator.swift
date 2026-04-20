@@ -32,12 +32,7 @@ final class HomeCoordinator {
         let viewModel = HomeViewModel(coreDataManager: coreDataManager)
         let viewController = HomeViewController(viewModel: viewModel)
         navigationController = BaseNavigationController(rootViewController: viewController)
-        viewController.navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(named: "liquidMyPageIcon"),
-            primaryAction: UIAction { [weak self] _ in
-                self?.pushMyPage()
-            }
-        )
+        viewController.delegate = self
         navigationController.tabBarItem = UITabBarItem(
             title: "홈",
             image: UIImage(named: "homeIcon"),
@@ -114,6 +109,12 @@ extension HomeCoordinator {
             viewModel: MyPageViewModel()
         )
         navigationController.pushViewController(viewController, animated: true)
+    }
+}
+
+extension HomeCoordinator: HomeViewControllerDelegate {
+    func didTapMyPageButton() {
+        pushMyPage()
     }
 }
 

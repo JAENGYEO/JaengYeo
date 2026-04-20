@@ -20,28 +20,28 @@ final class MyPagePolicyViewController: BaseViewController {
     private let disposeBag = DisposeBag()
 
     //MARK: - Components
-    private let scrollView = UIScrollView().then {
+    private let bodyTextView = UITextView().then {
         $0.backgroundColor = .white
         $0.showsVerticalScrollIndicator = false
-    }
-
-    private let contentView = UIView().then {
-        $0.backgroundColor = .white
-    }
-
-    private let titleLabel = StyledLabel(config: .titleSemi18).then {
-        $0.textAlignment = .center
-        $0.updateColor(.gray800)
-    }
-
-    private let bodyLabel = StyledLabel(config: .bodyMedium14).then {
-        $0.numberOfLines = 0
-        $0.updateColor(.gray500)
+        $0.isEditable = false
+        $0.isSelectable = false
+        $0.textContainerInset = UIEdgeInsets(
+            top: 0,
+            left: 24,
+            bottom: 24,
+            right: 24
+        )
+        $0.textContainer.lineFragmentPadding = 0
     }
 
     private let closeButton = UIButton(type: .custom).then {
         $0.setImage(UIImage(named: "closeIcon"), for: .normal)
         $0.tintColor = .gray800
+    }
+    
+    private let titleLabel = StyledLabel(config: .titleSemi18).then {
+        $0.textAlignment = .center
+        $0.updateColor(.gray800)
     }
 
     //MARK: - Init
@@ -74,7 +74,7 @@ extension MyPagePolicyViewController {
         output.content
             .bind(onNext: { [weak self] content in
                 self?.titleLabel.text = content.title
-                self?.bodyLabel.attributedText = self?.makeBodyAttributedText(
+                self?.bodyTextView.attributedText = self?.makeBodyAttributedText(
                     content
                 )
             })
@@ -96,9 +96,7 @@ extension MyPagePolicyViewController {
 
         view.addSubview(closeButton)
         view.addSubview(titleLabel)
-        view.addSubview(scrollView)
-        scrollView.addSubview(contentView)
-        contentView.addSubview(bodyLabel)
+        view.addSubview(bodyTextView)
 
         closeButton.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(16)
@@ -112,20 +110,9 @@ extension MyPagePolicyViewController {
             $0.trailing.equalToSuperview().inset(56)
         }
 
-        scrollView.snp.makeConstraints {
+        bodyTextView.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(28)
             $0.leading.trailing.bottom.equalToSuperview()
-        }
-
-        contentView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-            $0.width.equalTo(scrollView)
-        }
-
-        bodyLabel.snp.makeConstraints {
-            $0.top.equalToSuperview()
-            $0.leading.trailing.equalToSuperview().inset(24)
-            $0.bottom.equalToSuperview().inset(24)
         }
     }
     

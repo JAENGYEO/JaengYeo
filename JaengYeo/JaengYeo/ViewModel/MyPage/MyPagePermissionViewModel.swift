@@ -51,7 +51,7 @@ struct MyPagePermissionAlertContent {
     let message: String
 }
 
-final class MyPagePermissionViewModel: ViewModelProtocol, @unchecked Sendable {
+final class MyPagePermissionViewModel: ViewModelProtocol {
 
     //MARK: - Properties
     private let disposeBag = DisposeBag()
@@ -108,18 +108,14 @@ final class MyPagePermissionViewModel: ViewModelProtocol, @unchecked Sendable {
 extension MyPagePermissionViewModel {
     /// 권한 목록 갱신
     func updatePermissionItems() {
-        Task { [weak self] in
-            guard let self else { return }
-            let items = await self.makePermissionItems()
-
-            await MainActor.run {
-                self.permissionItemsRelay.accept(items)
-            }
+        Task { @MainActor in
+            let items = await Self.makePermissionItems()
+            permissionItemsRelay.accept(items)
         }
     }
 
     /// 권한 아이템 생성
-    func makePermissionItems() async -> [MyPagePermissionItem] {
+    static func makePermissionItems() async -> [MyPagePermissionItem] {
         var items = [MyPagePermissionItem]()
 
         for type in MyPagePermissionType.allCases {
@@ -137,7 +133,7 @@ extension MyPagePermissionViewModel {
     }
 
     /// 권한 허용 여부
-    func isPermissionAllowed(_ type: MyPagePermissionType) async -> Bool {
+    static func isPermissionAllowed(_ type: MyPagePermissionType) async -> Bool {
         switch type {
         case .camera:
             return AVCaptureDevice.authorizationStatus(for: .video) == .authorized
@@ -166,8 +162,9 @@ extension MyPagePermissionViewModel {
     func requestCameraPermission() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { [weak self] _ in
-                self?.updatePermissionItems()
+            Task { @MainActor in
+                _ = await AVCaptureDevice.requestAccess(for: .video)
+                updatePermissionItems()
             }
         case .authorized:
             updatePermissionItems()
@@ -178,8 +175,7 @@ extension MyPagePermissionViewModel {
 
     /// 알림 권한 요청
     func requestNotificationPermission() {
-        Task { [weak self] in
-            guard let self else { return }
+        Task { @MainActor in
             let settings = await UNUserNotificationCenter.current()
                 .notificationSettings()
 
@@ -187,13 +183,11 @@ extension MyPagePermissionViewModel {
             case .notDetermined:
                 _ = try? await UNUserNotificationCenter.current()
                     .requestAuthorization(options: [.alert, .badge, .sound])
-                self.updatePermissionItems()
+                updatePermissionItems()
             case .authorized:
-                self.updatePermissionItems()
+                updatePermissionItems()
             default:
-                await MainActor.run {
-                    self.presentPermissionAlert(.notification)
-                }
+                presentPermissionAlert(.notification)
             }
         }
     }
