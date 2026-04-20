@@ -72,10 +72,6 @@ final class RegisterDetailViewController: BaseViewController {
         restoreFields()
         configPhotoButton()
         bind()
-        
-        let tap = UITapGestureRecognizer(target: view, action: #selector(UIView.endEditing))
-        tap.cancelsTouchesInView = false
-        view.addGestureRecognizer(tap)
     }
 }
 
