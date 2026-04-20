@@ -24,7 +24,7 @@ struct ProductDTO: Codable {
     let imageUrl: String?
     let isClassified: Bool
     let isLowStockNotificationEnabled: Bool
-    let lowStockThreshold: Int
+    let lowStockThreshold: Int?
     let isFavorite: Bool
     let createdAt: Date
     let updatedAt: Date
@@ -100,7 +100,7 @@ extension ProductDTO {
         self.memo = product.memo
         self.imageUrl = product.imageUrl
         self.isClassified = product.isClassified
-        self.lowStockThreshold = product.lowStockThreshold
+        self.lowStockThreshold = product.lowStockThreshold ?? 0
         self.isFavorite = product.isFavorite
         self.createdAt = product.createdAt
         self.updatedAt = product.updatedAt

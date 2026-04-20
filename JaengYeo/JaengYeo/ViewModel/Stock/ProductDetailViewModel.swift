@@ -327,12 +327,12 @@ private extension ProductDetailViewModel {
         }
 
         if product.isLowStockNotificationEnabled,
-           product.lowStockThreshold > 0 {
+           let threshold = product.lowStockThreshold, threshold > 0 {
             subInfos.append(
                 ProductDetailInfoItem(
                     icon: UIImage(named: ProductInfoIcon.lowStockThresholdIcon.rawValue),
                     title: "알림 재고 수량",
-                    detail: "\(product.lowStockThreshold)"
+                    detail: "\(threshold)"
                 )
             )
         }

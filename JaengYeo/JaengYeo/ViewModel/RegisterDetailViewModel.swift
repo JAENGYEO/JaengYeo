@@ -154,6 +154,9 @@ final class RegisterDetailViewModel: ViewModelProtocol {
                 if fields.contains(.stockAlert) {
                     result.lowStockThreshold = stock
                     result.isLowStockNotificationEnabled = stock > 0
+                } else {
+                    result.lowStockThreshold = nil
+                    result.isLowStockNotificationEnabled = false
                 }
                 result.selectedFields = fields
                 didConfirmSubject.onNext(result)
