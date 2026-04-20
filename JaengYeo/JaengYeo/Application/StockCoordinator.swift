@@ -16,11 +16,13 @@ final class StockCoordinator {
     private let productManager: ProductManagerProtocol
     private let categoryManager: CategoryManagerProtocol
     private let coreDataManager: CoreDataManagerProtocol
+    private let authManager: AuthManagerProtocol
     
-    init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol) {
+    init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, authManager: AuthManagerProtocol) {
         self.productManager = productManager
         self.categoryManager = categoryManager
         self.coreDataManager = coreDataManager
+        self.authManager = authManager
         
         let viewController = StockViewController(viewModel: StockViewModel(coreDataManager: coreDataManager))
         self.stockViewController = viewController
@@ -87,7 +89,8 @@ extension StockCoordinator: CategoryEditViewControllerDelegate {
             mode: mode,
             viewModel: CategoryEditDetailViewModel(
                 mode: mode,
-                coreDataManager: coreDataManager
+                coreDataManager: coreDataManager,
+                authManager: authManager
             )
         )
         navigationController.pushViewController(viewController, animated: true)
