@@ -16,6 +16,7 @@ protocol StockViewControllerDelegate: AnyObject {
     func didTapCategoryEditButton()
     func didTapSearchButton()
     func didSelectProduct(productID: UUID)
+    func didTapEmptyStateActionButton()
 }
 
 final class StockViewController: BaseViewController {
@@ -48,6 +49,10 @@ final class StockViewController: BaseViewController {
     private let categoryFilterView = CategoryFilterView()
     
     private let productCollectionView = ProductCollectionView()
+    
+    private let emptyStateView = EmptyStateView().then {
+        $0.isHidden = true
+    }
 
     //MARK: - Init
     init(viewModel: StockViewModel) {
@@ -89,6 +94,12 @@ private extension StockViewController {
         productCollectionView.itemSelected
             .bind(onNext: { [weak self] item in
                 self?.selectProduct(item)
+            })
+            .disposed(by: disposeBag)
+        
+        emptyStateView.actionButton.rx.tap
+            .bind(onNext: { [weak self] in
+                self?.delegate?.didTapEmptyStateActionButton()
             })
             .disposed(by: disposeBag)
         
@@ -151,6 +162,7 @@ private extension StockViewController {
             .bind(onNext: { [weak self] products in
                 guard let self else { return }
                 self.productCollectionView.applySnapshot(with: products)
+                self.emptyStateView.isHidden = !products.isEmpty
             })
             .disposed(by: disposeBag)
         
@@ -306,6 +318,7 @@ private extension StockViewController {
         view.addSubview(mainCategorySegment)
         view.addSubview(categoryFilterView)
         view.addSubview(productCollectionView)
+        view.addSubview(emptyStateView)
 
         mainCategorySegment.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).offset(8)
@@ -324,6 +337,10 @@ private extension StockViewController {
             $0.leading.equalToSuperview()
             $0.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
+        }
+        
+        emptyStateView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
     }
 }

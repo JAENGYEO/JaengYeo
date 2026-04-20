@@ -6,9 +6,11 @@
 //
 
 import UIKit
+import RxSwift
 
 final class StockCoordinator {
     let navigationController: UINavigationController
+    let navigateToRegister = PublishSubject<Void>()
     private let stockViewController: StockViewController
     private weak var registerDetailViewController: RegisterDetailViewController?
     private var editingProductPayloads: [ObjectIdentifier: ProductPayload] = [:]
@@ -61,6 +63,10 @@ extension StockCoordinator: StockViewControllerDelegate {
         )
         viewController.delegate = self
         navigationController.pushViewController(viewController, animated: true)
+    }
+    
+    func didTapEmptyStateActionButton() {
+        navigateToRegister.onNext(())
     }
 }
 

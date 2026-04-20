@@ -147,6 +147,13 @@ final class AppCoordinator {
             })
             .disposed(by: disposeBag)
         
+        stockCoordinator.navigateToRegister
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak mainController] in
+                mainController?.selectedIndex = Tab.register.rawValue
+            })
+            .disposed(by: disposeBag)
+        
         window.rootViewController = mainController
     }
 }
