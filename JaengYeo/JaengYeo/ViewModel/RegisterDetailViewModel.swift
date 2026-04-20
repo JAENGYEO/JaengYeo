@@ -138,6 +138,14 @@ final class RegisterDetailViewModel: ViewModelProtocol {
                     confirmErrorSubject.onNext(("메인 카테고리를 선택해주세요."))
                     return
                 }
+                if let expiryDate = item.expiryDate {
+                    let today = Calendar.current.startOfDay(for: Date())
+                    let expiry = Calendar.current.startOfDay(for: expiryDate)
+                    if expiry < today {
+                        confirmErrorSubject.onNext(("유통기한이 이미 지난 상품은 등록할 수 없습니다."))
+                        return
+                    }
+                }
                 var result = item
                 result.mainCategory = mainCategory
                 result.image = image
@@ -146,6 +154,9 @@ final class RegisterDetailViewModel: ViewModelProtocol {
                 if fields.contains(.stockAlert) {
                     result.lowStockThreshold = stock
                     result.isLowStockNotificationEnabled = stock > 0
+                } else {
+                    result.lowStockThreshold = nil
+                    result.isLowStockNotificationEnabled = false
                 }
                 result.selectedFields = fields
                 didConfirmSubject.onNext(result)

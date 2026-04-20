@@ -122,7 +122,7 @@ extension RegisterItemListViewModel {
                 memo: item.memo,
                 imageUrl: imageUrl, //TODO: 수정 필요
                 isClassified: item.midCategory != nil,
-                lowStockThreshold: Int32(item.lowStockThreshold ?? 1),
+                lowStockThreshold: item.lowStockThreshold.map { Int32($0) },
                 isFavorite: false, //TODO: 수정 필요
                 createdAt: now,
                 updatedAt: now,

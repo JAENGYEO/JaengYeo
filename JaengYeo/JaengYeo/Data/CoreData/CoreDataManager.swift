@@ -326,7 +326,7 @@ extension CoreDataManager {
         entity.memo = payload.memo
         entity.imageUrl = payload.imageUrl
         entity.isClassified = payload.isClassified
-        entity.lowStockThreshold = payload.lowStockThreshold
+        entity.lowStockThreshold = payload.lowStockThreshold ?? 0
         entity.isFavorite = payload.isFavorite
         entity.createdAt = payload.createdAt
         entity.updatedAt = payload.updatedAt
@@ -360,7 +360,7 @@ extension CoreDataManager {
             entity.memo = payload.memo
             entity.imageUrl = payload.imageUrl
             entity.isClassified = payload.isClassified
-            entity.lowStockThreshold = payload.lowStockThreshold
+            entity.lowStockThreshold = payload.lowStockThreshold ?? 0
             entity.isFavorite = payload.isFavorite
             entity.createdAt = payload.createdAt
             entity.updatedAt = payload.updatedAt
@@ -397,7 +397,7 @@ extension CoreDataManager {
             memo: entity.memo,
             imageUrl: entity.imageUrl,
             isClassified: entity.isClassified,
-            lowStockThreshold: entity.lowStockThreshold,
+            lowStockThreshold: entity.isLowStockNotificationEnabled ? entity.lowStockThreshold : nil,
             isFavorite: entity.isFavorite,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
@@ -431,7 +431,7 @@ extension CoreDataManager {
                     memo: $0.memo,
                     imageUrl: $0.imageUrl,
                     isClassified: $0.isClassified,
-                    lowStockThreshold: $0.lowStockThreshold,
+                    lowStockThreshold: $0.isLowStockNotificationEnabled ? $0.lowStockThreshold : nil,
                     isFavorite: $0.isFavorite,
                     createdAt: $0.createdAt,
                     updatedAt: $0.updatedAt,
@@ -464,7 +464,7 @@ extension CoreDataManager {
         entity.memo = payload.memo
         entity.imageUrl = payload.imageUrl
         entity.isClassified = payload.isClassified
-        entity.lowStockThreshold = payload.lowStockThreshold
+        entity.lowStockThreshold = payload.lowStockThreshold ?? 0
         entity.isFavorite = payload.isFavorite
         entity.updatedAt = payload.updatedAt
         entity.syncStatus = payload.syncStatus
@@ -610,7 +610,7 @@ extension CoreDataManager {
                     memo: $0.memo,
                     imageUrl: $0.imageUrl,
                     isClassified: $0.isClassified,
-                    lowStockThreshold: $0.lowStockThreshold,
+                    lowStockThreshold: $0.isLowStockNotificationEnabled ? $0.lowStockThreshold : nil,
                     isFavorite: $0.isFavorite,
                     createdAt: $0.createdAt,
                     updatedAt: $0.updatedAt,
@@ -813,7 +813,7 @@ extension CoreDataManager {
             memo: entity.memo,
             imageUrl: entity.imageUrl,
             isClassified: entity.isClassified,
-            lowStockThreshold: entity.lowStockThreshold,
+            lowStockThreshold: entity.isLowStockNotificationEnabled ? entity.lowStockThreshold : nil,
             isFavorite: entity.isFavorite,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,

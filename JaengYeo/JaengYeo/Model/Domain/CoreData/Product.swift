@@ -23,7 +23,7 @@ struct Product: Hashable {
     let memo: String?
     let imageUrl: String?
     let isClassified: Bool
-    let lowStockThreshold: Int
+    let lowStockThreshold: Int?
     let isFavorite: Bool
     let createdAt: Date
     let updatedAt: Date
@@ -53,7 +53,7 @@ extension Product {
             memo: memo,
             imageUrl: imageUrl,
             isClassified: isClassified,
-            lowStockThreshold: Int32(lowStockThreshold),
+            lowStockThreshold: lowStockThreshold.map { Int32($0) },
             isFavorite: isFavorite,
             createdAt: createdAt,
             updatedAt: updatedAt,

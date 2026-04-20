@@ -64,7 +64,7 @@ extension ProductEntity {
             memo: memo,
             imageUrl: imageUrl,
             isClassified: isClassified,
-            lowStockThreshold: Int(lowStockThreshold),
+            lowStockThreshold: isLowStockNotificationEnabled ? Int(lowStockThreshold) : nil,
             isFavorite: isFavorite,
             createdAt: createdAt,
             updatedAt: updatedAt,

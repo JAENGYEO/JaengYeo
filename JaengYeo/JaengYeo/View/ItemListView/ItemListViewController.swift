@@ -109,28 +109,34 @@ extension ItemListViewController {
                     descriptions: ["\(dateString) 등록", "\(itemIdentifier.quantity)개"],
                     subdescriptions: nil,
                     count: nil,
-                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(systemName: $0) }
+                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) }
                 )
                 cell.accessories = [.disclosureIndicator(options: .init(tintColor: .gray300)) ]
             case .expiryImminent:
+                var descriptions: [String] = []
+                if let midCategory = itemIdentifier.midCategoryName { descriptions.append(midCategory) }
+                if let subCategory = itemIdentifier.subCategoryName { descriptions.append(subCategory) }
                 cell.updateUI(
-                    type: .unclassifiedType,
+                    type: .detailType,
                     title: itemIdentifier.name,
                     freshness: itemIdentifier.expiryDaysLeft,
-                    descriptions: ["\(itemIdentifier.quantity)개"],
+                    descriptions: descriptions,
                     subdescriptions: nil,
-                    count: nil,
-                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(systemName: $0) }
+                    count: itemIdentifier.quantity,
+                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) }
                 )
             case .lowStock:
+                var descriptions: [String] = []
+                if let midCategory = itemIdentifier.midCategoryName { descriptions.append(midCategory) }
+                if let subCategory = itemIdentifier.subCategoryName { descriptions.append(subCategory) }
                 cell.updateUI(
-                    type: .unclassifiedType,
+                    type: .detailType,
                     title: itemIdentifier.name,
                     freshness: nil,
-                    descriptions: ["재고 \(itemIdentifier.quantity)개"],
+                    descriptions: descriptions,
                     subdescriptions: nil,
-                    count: nil,
-                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(systemName: $0) }
+                    count: itemIdentifier.quantity,
+                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) }
                 )
             }
             return cell

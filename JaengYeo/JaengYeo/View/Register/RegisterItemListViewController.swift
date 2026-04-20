@@ -19,6 +19,12 @@ final class RegisterItemListViewController: BaseViewController {
     
     private let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil)
     
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+    
     init(viewModel: RegisterItemListViewModel, pageTitle: String, infoLabel: String) {
         self.viewModel = viewModel
         self.pageTitle = pageTitle
@@ -34,15 +40,42 @@ final class RegisterItemListViewController: BaseViewController {
     private lazy var dataSource: UICollectionViewDiffableDataSource<Int, RegisterFormData> = {
         return UICollectionViewDiffableDataSource<Int, RegisterFormData>(collectionView: mainView.collectionView) { collectionView, indexPath, itemIdentifier in
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProductCell.id, for: indexPath) as? ProductCell else { return UICollectionViewCell() }
-            cell.updateUI(
-                type: ProductCellType.registType,
-                title: itemIdentifier.name ?? "정보 없음",
-                freshness: nil,
-                descriptions: [itemIdentifier.mainCategory].compactMap { $0 },
-                subdescriptions: nil,
-                count: itemIdentifier.quantity,
-                image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(systemName: $0) }
-            )
+            
+            var descriptions: [String] = []
+            if let midCategory = itemIdentifier.midCategoryName { descriptions.append(midCategory) }
+            if let subCategory = itemIdentifier.subCategoryName { descriptions.append(subCategory) }
+            if let quantity = itemIdentifier.quantity { descriptions.append("\(quantity)개") }
+            
+            if let expiryDate = itemIdentifier.expiryDate {
+                let today = Calendar.current.startOfDay(for: Date())
+                let expiry = Calendar.current.startOfDay(for: expiryDate)
+                let dateString: String
+                if today == expiry {
+                    dateString = "오늘까지"
+                } else {
+                    dateString = self.dateFormatter.string(from: expiryDate) + "까지"
+                }
+                cell.updateUI(
+                    type: .registType,
+                    title: itemIdentifier.name ?? "정보 없음",
+                    freshness: nil,
+                    descriptions: [dateString],
+                    subdescriptions: descriptions,
+                    count: nil,
+                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) }
+                    
+                )
+            } else {
+                cell.updateUI(
+                    type: .registType,
+                    title: itemIdentifier.name ?? "정보 없음",
+                    freshness: nil,
+                    descriptions: descriptions,
+                    subdescriptions: nil,
+                    count: nil,
+                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) }
+                )
+            }
             cell.accessories = [.disclosureIndicator(options: .init(tintColor: .gray300))]
             return cell
         }

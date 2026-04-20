@@ -111,7 +111,7 @@ extension RegisterCoordinator: RegisterViewControllerDelegate {
                     memo: nil,
                     imageUrl: nil,
                     isClassified: false,
-                    lowStockThreshold: 1,
+                    lowStockThreshold: nil,
                     isFavorite: false,
                     createdAt: now,
                     updatedAt: now,

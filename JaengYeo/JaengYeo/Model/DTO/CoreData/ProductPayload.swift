@@ -24,7 +24,7 @@ struct ProductPayload {
     let memo: String?
     let imageUrl: String?
     let isClassified: Bool
-    let lowStockThreshold: Int32
+    let lowStockThreshold: Int32?
     let isFavorite: Bool
     let createdAt: Date
     let updatedAt: Date
@@ -53,7 +53,7 @@ extension ProductPayload {
         form.caution = caution
         form.brand = brand
         form.imageUrl = imageUrl
-        form.lowStockThreshold = Int(lowStockThreshold)
+        form.lowStockThreshold = lowStockThreshold.map { Int($0) }
         form.isLowStockNotificationEnabled = isLowStockNotificationEnabled
 
         var fields: Set<RegisterOptionField> = []
@@ -86,7 +86,7 @@ extension ProductPayload {
             memo: item.memo,
             imageUrl: imageUrl,
             isClassified: item.midCategory != nil,
-            lowStockThreshold: Int32(item.lowStockThreshold ?? Int(lowStockThreshold)),
+            lowStockThreshold: item.lowStockThreshold.map { Int32($0) } ?? lowStockThreshold,
             isFavorite: isFavorite,
             createdAt: createdAt,
             updatedAt: Date(),
@@ -118,7 +118,7 @@ extension ProductPayload {
             memo: memo,
             imageUrl: imageUrl,
             isClassified: isClassified,
-            lowStockThreshold: Int(lowStockThreshold),
+            lowStockThreshold: lowStockThreshold.map { Int($0) },
             isFavorite: isFavorite,
             createdAt: createdAt,
             updatedAt: updatedAt,

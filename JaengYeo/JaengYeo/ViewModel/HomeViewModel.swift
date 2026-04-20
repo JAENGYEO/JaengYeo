@@ -34,6 +34,8 @@ final class HomeViewModel: ViewModelProtocol {
         let id: UUID
         let name: String
         let mainCategory: String
+        let midCategoryName: String?
+        let createdAt: Date
         let quantity: Int
         let image: UIImage?
         let subCategoryIconName: String?
@@ -147,10 +149,20 @@ final class HomeViewModel: ViewModelProtocol {
                                 iconName = nil
                             }
                             
+                            let midCategoryName: String?
+                            if let midCategoryId = payload.midCategoryId,
+                               let midCategory = try? self.coreDataManager.fetchMidCategory(of: midCategoryId) {
+                                midCategoryName = midCategory.name
+                            } else {
+                                midCategoryName = nil
+                            }
+                            
                             return RecentItemSummary(
                                 id: payload.id,
                                 name: payload.name,
                                 mainCategory: payload.mainCategory,
+                                midCategoryName: midCategoryName,
+                                createdAt: payload.createdAt,
                                 quantity: Int(payload.quantity),
                                 image: image,
                                 subCategoryIconName: iconName
