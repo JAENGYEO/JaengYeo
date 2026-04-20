@@ -11,7 +11,7 @@ import UIKit
 import RxCocoa
 import RxSwift
 
-final class CategoryEditDetailViewController: UIViewController {
+final class CategoryEditDetailViewController: BaseViewController {
 
     //MARK: - Properties
     /// 편집 모드
@@ -223,13 +223,14 @@ private extension CategoryEditDetailViewController {
     func configureData() {
         guard let item = mode.item else {
             selectedIconName = nil
-            deleteButton.isEnabled = false
+            deleteButton.isHidden = true
             return
         }
 
         selectedIconName = item.iconName
         categoryImageView.image = item.image
         nameTextField.text = item.title
+        deleteButton.isHidden = false
         deleteButton.isEnabled = item.userId != nil
     }
 
@@ -270,18 +271,34 @@ private extension CategoryEditDetailViewController {
             $0.height.equalTo(1)
         }
 
-        deleteButton.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(24)
-            $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(16)
-            $0.width.equalTo(82)
-            $0.height.equalTo(44)
-        }
+        configureBottomButtonConstraints()
+    }
+    
+    /// 하단 버튼 제약 설정
+    func configureBottomButtonConstraints() {
+        switch mode {
+        case .add:
+            confirmButton.snp.makeConstraints {
+                $0.leading.equalToSuperview().offset(16)
+                $0.trailing.equalToSuperview().inset(16)
+                $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(16)
+                $0.height.equalTo(44)
+            }
+            
+        case .edit:
+            deleteButton.snp.makeConstraints {
+                $0.leading.equalToSuperview().offset(24)
+                $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(16)
+                $0.width.equalTo(82)
+                $0.height.equalTo(44)
+            }
 
-        confirmButton.snp.makeConstraints {
-            $0.leading.equalTo(deleteButton.snp.trailing).offset(16)
-            $0.trailing.equalToSuperview().inset(16)
-            $0.centerY.equalTo(deleteButton)
-            $0.height.equalTo(44)
+            confirmButton.snp.makeConstraints {
+                $0.leading.equalTo(deleteButton.snp.trailing).offset(16)
+                $0.trailing.equalToSuperview().inset(16)
+                $0.centerY.equalTo(deleteButton)
+                $0.height.equalTo(44)
+            }
         }
     }
 }

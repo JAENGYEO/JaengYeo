@@ -72,16 +72,19 @@ final class ProductCell: UICollectionViewListCell{
     /// 아이템 타이틀
     private let productTitleLabel = StyledLabel(config: .bodyMedium14).then {
         $0.text = "아이템 타이틀"
+        $0.numberOfLines = 1
     }
     
     /// 아이템 카운트
     private let productCountLabel = StyledLabel(config: .titleSemi18).then {
         $0.text = "0"
+        $0.numberOfLines = 1
     }
     
     /// 카운트 단위
     private let countUnitLabel = StyledLabel(config: .body12.updatingColor(color: .gray300)).then {
         $0.text = "개"
+        $0.numberOfLines = 1
     }
     
     /// 메인 스택

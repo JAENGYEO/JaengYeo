@@ -9,6 +9,7 @@ import CoreData
 import Foundation
 import RxRelay
 import RxSwift
+import UIKit
 
 final class StockSearchViewModel: NSObject, ViewModelProtocol {
 
@@ -30,6 +31,9 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
 
     /// 소분류 ID -> 이름 매핑 캐시
     private lazy var subCategoryNames: [UUID: String] = fetchSubCategoryNames()
+    
+    /// 소분류 ID -> 이미지 매핑 캐시
+    private lazy var subCategoryImages: [UUID: UIImage] = fetchSubCategoryImages()
 
     //MARK: - React Binding
     struct Input {
@@ -52,6 +56,7 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
                 self.configureProductResultController()
                 self.midCategoryNames = fetchMidCategoryNames()
                 self.subCategoryNames = fetchSubCategoryNames()
+                self.subCategoryImages = fetchSubCategoryImages()
                 self.performFetch()
             })
             .disposed(by: disposeBag)
@@ -136,6 +141,9 @@ extension StockSearchViewModel: NSFetchedResultsControllerDelegate {
                 let subCategoryName = product.subCategoryId.flatMap {
                     subCategoryNames[$0]
                 }
+                let subCategoryImage = product.subCategoryId.flatMap {
+                    subCategoryImages[$0]
+                }
 
                 /// 비교용 문자열 정규화
                 let normalizedName = normalizedSearchText(product.name)
@@ -172,7 +180,8 @@ extension StockSearchViewModel: NSFetchedResultsControllerDelegate {
                 let item = ProductCellItem(
                     product: product,
                     midCategory: midCategoryName,
-                    subCategory: subCategoryName
+                    subCategory: subCategoryName,
+                    subCategoryImage: subCategoryImage
                 )
 
                 return (priority, item)
@@ -208,6 +217,7 @@ extension StockSearchViewModel: NSFetchedResultsControllerDelegate {
         /// 카테고리 캐시 갱신
         self.midCategoryNames = fetchMidCategoryNames()
         self.subCategoryNames = fetchSubCategoryNames()
+        self.subCategoryImages = fetchSubCategoryImages()
 
         /// 마지막 검색어 기준으로 다시 필터링
         updateProduct(keyword: latestKeywordRelay.value)
@@ -249,6 +259,23 @@ extension StockSearchViewModel {
             return try coreDataManager.context.fetch(request)
                 .reduce(into: [UUID: String]()) {
                     $0[$1.id] = $1.name
+                }
+        } catch {
+            return [:]
+        }
+    }
+    
+    /// 소분류 이미지 조회
+    private func fetchSubCategoryImages() -> [UUID: UIImage] {
+        let request = SubCategoryEntity.fetchRequest()
+
+        do {
+            return try coreDataManager.context.fetch(request)
+                .reduce(into: [UUID: UIImage]()) {
+                    guard let iconName = $1.iconName,
+                          let image = UIImage(named: iconName)
+                    else { return }
+                    $0[$1.id] = image
                 }
         } catch {
             return [:]

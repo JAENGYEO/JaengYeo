@@ -31,6 +31,7 @@ struct ProductCellItem: Hashable {
     let product: Product
     let midCategory: String?
     let subCategory: String?
+    let subCategoryImage: UIImage?
     let groupedCount: Int
     let totalQuantity: Int
     let groupedItems: [ProductCellItem]
@@ -39,6 +40,7 @@ struct ProductCellItem: Hashable {
         product: Product,
         midCategory: String?,
         subCategory: String?,
+        subCategoryImage: UIImage? = nil,
         groupedCount: Int = 1,
         totalQuantity: Int? = nil,
         groupedItems: [ProductCellItem] = []
@@ -46,6 +48,7 @@ struct ProductCellItem: Hashable {
         self.product = product
         self.midCategory = midCategory
         self.subCategory = subCategory
+        self.subCategoryImage = subCategoryImage
         self.groupedCount = groupedCount
         self.totalQuantity = totalQuantity ?? product.quantity
         self.groupedItems = groupedItems
@@ -434,13 +437,22 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
                 $0[$1.id] = $1.name
             } ?? [:]
         
+        let subCategoryImages = subCategoryFetchResultController?.fetchedObjects?
+            .reduce(into: [UUID: UIImage]()) {
+                guard let iconName = $1.iconName,
+                      let image = UIImage(named: iconName)
+                else { return }
+                $0[$1.id] = image
+            } ?? [:]
+        
         let products = productFetchResultController?.fetchedObjects?
             .map { $0.toDomain }
             .map {
                 ProductCellItem(
                     product: $0,
                     midCategory: $0.midCategoryId.flatMap { midCategoryNames[$0] },
-                    subCategory: $0.subCategoryId.flatMap { subCategoryNames[$0] }
+                    subCategory: $0.subCategoryId.flatMap { subCategoryNames[$0] },
+                    subCategoryImage: $0.subCategoryId.flatMap { subCategoryImages[$0] }
                 )
             } ?? []
 
@@ -544,6 +556,7 @@ private extension StockViewModel {
                 product: representative.product,
                 midCategory: representative.midCategory,
                 subCategory: representative.subCategory,
+                subCategoryImage: representative.subCategoryImage,
                 groupedCount: items.count,
                 totalQuantity: items.reduce(0) { $0 + $1.product.quantity },
                 groupedItems: sortedGroupItems

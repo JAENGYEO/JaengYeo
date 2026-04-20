@@ -142,10 +142,14 @@ private extension StockSearchViewController {
         > { cell, _, item in
             var freshness: Int? = nil
             if let expiryDate = item.product.expiryDate {
-                freshness = Calendar.current.dateComponents(
+                let calendar = Calendar.current
+                let today = calendar.startOfDay(for: Date())
+                let expiryDay = calendar.startOfDay(for: expiryDate)
+                
+                freshness = calendar.dateComponents(
                     [.day],
-                    from: Date(),
-                    to: expiryDate
+                    from: today,
+                    to: expiryDay
                 ).day
             }
 
@@ -153,6 +157,13 @@ private extension StockSearchViewController {
                 item.midCategory,
                 item.subCategory
             ].compactMap { $0 }
+            
+            var image: UIImage?
+            if let url = item.product.imageUrl {
+                image = ImageUtils.loadImage(fileName: url)
+            } else {
+                image = item.subCategoryImage
+            }
 
             cell.updateUI(
                 type: .homeType,
@@ -161,7 +172,7 @@ private extension StockSearchViewController {
                 descriptions: descriptions,
                 subdescriptions: nil,
                 count: item.product.quantity,
-                image: nil
+                image: image
             )
         }
 
