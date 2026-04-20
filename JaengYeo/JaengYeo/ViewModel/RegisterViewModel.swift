@@ -89,7 +89,7 @@ final class RegisterViewModel: ViewModelProtocol {
             .do(onNext: { _ in isLoadingSubject.onNext(true) })
             .flatMapLatest { [weak self] codes -> Observable<[RegisterFormData]> in
                 return Observable.create { observer in
-                    Task {
+                    let task = Task {
                         let items = await withTaskGroup(of: RegisterFormData?.self) { group in
                             for code in codes {
                                 group.addTask { try? await self?.lookupBarcode(code: code)}
@@ -108,7 +108,9 @@ final class RegisterViewModel: ViewModelProtocol {
                         }
                         observer.onCompleted()
                     }
-                    return Disposables.create()
+                    return Disposables.create {
+                        task.cancel()
+                    }
                 }
             }
         
