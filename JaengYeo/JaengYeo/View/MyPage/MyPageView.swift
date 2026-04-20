@@ -124,7 +124,7 @@ extension MyPageView {
 //MARK: - Compositional Layout
 extension MyPageView {
     /// 컬렉션 뷰 레이아웃 생성
-    func createLayout() -> UICollectionViewLayout {
+    private func createLayout() -> UICollectionViewLayout {
         UICollectionViewCompositionalLayout { _, _ in
             let item = NSCollectionLayoutItem(
                 layoutSize: .init(
