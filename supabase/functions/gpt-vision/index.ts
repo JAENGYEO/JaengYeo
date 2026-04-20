@@ -16,8 +16,9 @@ const RECEIPT_PROMPT = (ocrText: string) =>
 텍스트가 영수증이 아니거나 상품 목록을 추출할 수 없으면 빈 배열 []만 반환해.
 영수증인 경우에만 구매한 상품 목록을 분석해서 JSON 배열로 반환해줘.
 설명 텍스트 없이 JSON만 반환해.
-[{ "name": "상품명", "estimatedCategory": "카테고리", "estimatedQuantity": 수량, "purchaseDate": "YYYY-MM-DD 또는 null", "storeName": "매장명 또는 null" }]
+[{ "name": "상품명", "estimatedCategory": "카테고리", "estimatedQuantity": 수량 }]
 카테고리 규칙: 음식/식품/재료이면 "식재료", 그 외 모든 물건은 "생활용품".
+중요: estimatedQuantity는 반드시 숫자(integer)로 반환해. 문자열이나 "1개" 같은 형태 금지. 알 수 없으면 1을 반환해.
 
 영수증 텍스트:
 ${ocrText}`;

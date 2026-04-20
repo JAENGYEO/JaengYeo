@@ -172,17 +172,18 @@ extension ProductCell {
         subdescriptions: [String]?,
         count: Int?,
         image: UIImage?,
+        highlightFirst: Bool = false
     ) {
         cellType = type
         productTitleLabel.text = title
         productImageView.image = image ?? UIImage(named: "imageSelectIcon")
         productImageView.backgroundColor = .clear
-        
+
         updateDescriptionStack(
             stackView: productDescriptionStack,
             freshness: freshness,
             texts: descriptions,
-            highlightFirst: cellType == .registType
+            highlightFirst: highlightFirst
         )
         
         if cellType != .registType {

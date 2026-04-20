@@ -62,8 +62,8 @@ final class RegisterItemListViewController: BaseViewController {
                     descriptions: [dateString],
                     subdescriptions: descriptions,
                     count: nil,
-                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) }
-                    
+                    image: itemIdentifier.image ?? itemIdentifier.subCategoryIconName.flatMap { UIImage(named: $0) },
+                    highlightFirst: true
                 )
             } else {
                 cell.updateUI(

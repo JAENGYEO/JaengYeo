@@ -23,7 +23,15 @@ final class RegisterItemListViewModel: ViewModelProtocol {
     let navigateToStock = PublishSubject<Void>()
     
     init(items: [RegisterFormData], coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol, authManager: AuthManagerProtocol) {
-        self.itemsSubject = BehaviorSubject(value: items)
+        let filledItems = items.map { item -> RegisterFormData in
+            var copy = item
+            if copy.purchaseDate == nil {
+                copy.purchaseDate = Date()
+            }
+            return copy
+        }
+        
+        self.itemsSubject = BehaviorSubject(value: filledItems)
         self.coreDataManager = coreDataManager
         self.syncManager = syncManager
         self.authManager = authManager
@@ -68,7 +76,14 @@ final class RegisterItemListViewModel: ViewModelProtocol {
         return Output(
             items: itemsSubject.asObservable(),
             error: errorSubject.asObservable(),
-            isSaveEnabled: itemsSubject.map { !$0.isEmpty }.distinctUntilChanged()
+            isSaveEnabled: itemsSubject.map { items in
+                !items.isEmpty && items.allSatisfy { item in
+                    item.name != nil &&
+                    item.mainCategory != nil &&
+                    item.quantity != nil &&
+                    item.purchaseDate != nil
+                }
+            }.distinctUntilChanged()
         )
     }
 }
