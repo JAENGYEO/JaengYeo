@@ -17,17 +17,20 @@ final class HomeCoordinator {
     private let productManager: ProductManagerProtocol
     private let categoryManager: CategoryManagerProtocol
     private let coreDataManager: CoreDataManagerProtocol
+    private let authManager: AuthManagerProtocol
     
     let navigateToCategory = PublishSubject<String>()
     let navigateToRegister = PublishSubject<Void>()
+    let logoutCompleted = PublishSubject<Void>()
     
     private var currentProductPayload: ProductPayload?
     private weak var currentDetailViewController: RegisterDetailViewController?
     
-    init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol) {
+    init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, authManager: AuthManagerProtocol) {
         self.productManager = productManager
         self.categoryManager = categoryManager
         self.coreDataManager = coreDataManager
+        self.authManager = authManager
         
         let viewModel = HomeViewModel(coreDataManager: coreDataManager)
         let viewController = HomeViewController(viewModel: viewModel)
@@ -106,8 +109,9 @@ extension HomeCoordinator {
     
     private func pushMyPage() {
         let viewController = MyPageViewController(
-            viewModel: MyPageViewModel()
+            viewModel: MyPageViewModel(authManager: authManager)
         )
+        viewController.delegate = self
         navigationController.pushViewController(viewController, animated: true)
     }
 }
@@ -184,5 +188,11 @@ extension HomeCoordinator: RegisterDetailViewControllerDelegate {
             self?.currentDetailViewController?.didSelectSubCategory(id: selected?.id, name: selected?.name, iconName: selected?.iconName)
         }
         navigationController.present(viewController, animated: false)
+    }
+}
+
+extension HomeCoordinator: MyPageViewControllerDelegate {
+    func didLogout() {
+        logoutCompleted.onNext(())
     }
 }
