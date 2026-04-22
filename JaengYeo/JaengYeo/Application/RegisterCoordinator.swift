@@ -60,6 +60,7 @@ final class RegisterCoordinator {
 
 extension RegisterCoordinator: RegisterViewControllerDelegate {
     func pushItemListView(items: [RegisterFormData], pageTitle: String, infoLabel: String) {
+        guard !navigationController.viewControllers.contains(where: { $0 is RegisterItemListViewController }) else { return }
         let viewModel = RegisterItemListViewModel(items: items, coreDataManager: coreDataManager, syncManager: syncManager, authManager: authManager)
         let viewController = RegisterItemListViewController(viewModel: viewModel, pageTitle: pageTitle, infoLabel: infoLabel)
         listViewModel = viewModel
