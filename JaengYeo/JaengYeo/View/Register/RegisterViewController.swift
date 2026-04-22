@@ -40,6 +40,8 @@ final class RegisterViewController: UIViewController {
     
     private var currentMode: CameraMode = .barcode
     
+    private var frozenImageView: UIImageView?
+    
     init(viewModel: RegisterViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -202,9 +204,18 @@ extension RegisterViewController {
         output.isLoading
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] isLoading in
-                if !isLoading { self?.isBarcodeLocked = false }
-                isLoading ? self?.mainView.startScanAnimation() : self?.mainView.stopScanAnimation()
-                self?.mainView.captureButton.isEnabled = !isLoading
+                guard let self else { return }
+                if !isLoading {
+                    self.isBarcodeLocked = false
+                    self.restartPreview()
+                    if self.currentMode == .barcode {
+                        self.sessionQueue.async {
+                            self.captureSession.startRunning()
+                        }
+                    }
+                }
+                isLoading ? self.mainView.startScanAnimation() : self.mainView.stopScanAnimation()
+                self.mainView.captureButton.isEnabled = !isLoading
             })
             .disposed(by: disposeBag)
         
@@ -346,6 +357,8 @@ extension RegisterViewController: AVCapturePhotoCaptureDelegate {
               let data = photo.fileDataRepresentation(),
               let image = UIImage(data: data) else { return }
         
+        stopPreview(image: image)
+        
         switch currentMode {
         case .receipt:
             let resizedImage = image.resized(maxDimension: 1024)
@@ -389,6 +402,24 @@ extension RegisterViewController: AVCaptureMetadataOutputObjectsDelegate {
             .compactMap { $0.stringValue }
         guard !codes.isEmpty else { return }
         isBarcodeLocked = true
+        sessionQueue.async {
+            self.captureSession.stopRunning()
+        }
         barcodeCapturedSubject.onNext(codes)
+    }
+}
+
+extension RegisterViewController {
+    private func stopPreview(image: UIImage) {
+        let imageView = UIImageView(image: image)
+        imageView.frame = mainView.previewView.bounds
+        imageView.contentMode = .scaleAspectFill
+        mainView.previewView.addSubview(imageView)
+        frozenImageView = imageView
+    }
+    
+    private func restartPreview() {
+        frozenImageView?.removeFromSuperview()
+        frozenImageView = nil
     }
 }
