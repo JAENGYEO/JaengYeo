@@ -54,6 +54,10 @@ final class CoreDataManager: CoreDataManagerProtocol {
 extension CoreDataManager {
     // MARK: SubCategory Create
     func createSubCategory(_ payload: borrowing SubCategoryPayload) throws {
+        let request = SubCategoryEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", payload.id as CVarArg)
+        let count = (try? context.count(for: request)) ?? 0
+        guard count == 0 else { return }
         
         let entity = SubCategoryEntity(context: context)
         
@@ -182,7 +186,10 @@ extension CoreDataManager {
 extension CoreDataManager {
     // MARK: MidCategory Create
     func createMidCategory(_ payload: borrowing MidCategoryPayload) throws {
-        
+        let request = MidCategoryEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", payload.id as CVarArg)
+        let count = (try? context.count(for: request)) ?? 0
+        guard count == 0 else { return }
         let entity = MidCategoryEntity(context: context)
         
         entity.id = payload.id
