@@ -12,6 +12,10 @@ import SnapKit
 import Then
 import UIKit
 
+protocol MyPageViewControllerDelegate: AnyObject {
+    func didLogout()
+}
+
 final class MyPageViewController: BaseViewController {
 
     //MARK: - ViewModel
@@ -22,6 +26,9 @@ final class MyPageViewController: BaseViewController {
 
     //MARK: - Components
     private let myPageView = MyPageView()
+    
+    weak var delegate: MyPageViewControllerDelegate?
+    private let logoutConfirmRelay = PublishRelay<Void>()
 
     //MARK: - Init
     init(viewModel: MyPageViewModel) {
@@ -50,7 +57,8 @@ extension MyPageViewController {
     func bind() {
         let input = MyPageViewModel.Input(
             viewDidLoad: Observable.just(()),
-            itemSelected: myPageView.itemSelected
+            itemSelected: myPageView.itemSelected,
+            logoutConfirmed: logoutConfirmRelay.asObservable()
         )
 
         let output = viewModel.transform(input)
@@ -94,6 +102,18 @@ extension MyPageViewController {
         output.openExternalURL
             .bind(onNext: { url in
                 UIApplication.shared.open(url)
+            })
+            .disposed(by: disposeBag)
+        
+        output.showLogoutConfirm
+            .bind(onNext: { [weak self] in
+                self?.showLogoutAlert()
+            })
+            .disposed(by: disposeBag)
+        
+        output.logoutCompleted
+            .bind(onNext: { [weak self] in
+                self?.delegate?.didLogout()
             })
             .disposed(by: disposeBag)
     }
@@ -182,10 +202,20 @@ extension MyPageViewController: MFMailComposeViewControllerDelegate {
     }
 }
 
-#Preview {
-    UINavigationController(
-        rootViewController: MyPageViewController(
-            viewModel: MyPageViewModel()
+extension MyPageViewController {
+    private func showLogoutAlert() {
+        AlertController.rx.alert(
+            on: self,
+            image: UIImage(named: "alertRed") ?? UIImage(),
+            title: "로그아웃",
+            message: "로그아웃 하시겠습니까?",
+            actions: [.cancel("취소"), .destructive("로그아웃")]
         )
-    )
+        .subscribe(onNext: { [weak self] action in
+            if action.style == .destructive {
+                self?.logoutConfirmRelay.accept(())
+            }
+        })
+        .disposed(by: disposeBag)
+    }
 }

@@ -73,7 +73,8 @@ extension MyPageView {
         > { cell, _, item in
             cell.updateUI(
                 title: item.title,
-                showsChevron: item.showsArrow
+                showsChevron: item.showsArrow,
+                titleColor: item.menu == .logout ? .primaryRed : .gray800
             )
         }
 

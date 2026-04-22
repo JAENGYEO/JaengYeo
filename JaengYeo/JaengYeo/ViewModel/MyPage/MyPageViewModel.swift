@@ -14,6 +14,7 @@ import UIKit
 enum MyPageMenuSection: String, CaseIterable {
     case support = "고객 지원"
     case appInfo = "앱 정보"
+    case account = "계정"
 }
 
 /// 마이페이지 메뉴
@@ -24,6 +25,7 @@ enum MyPageMenu: CaseIterable {
     case feedback
     case appVersion
     case iconCopyright
+    case logout
 
     /// 섹션 타이틀
     var section: MyPageMenuSection {
@@ -32,6 +34,8 @@ enum MyPageMenu: CaseIterable {
             return .support
         case .feedback, .appVersion, .iconCopyright:
             return .appInfo
+        case .logout:
+            return .account
         }
     }
 
@@ -50,12 +54,19 @@ enum MyPageMenu: CaseIterable {
             return "현재 버전 \(appVersion)"
         case .iconCopyright:
             return "아이콘 저작권 : icons8"
+        case .logout:
+            return "로그아웃"
         }
     }
 
     /// 화살표 표시 여부
     var showsArrow: Bool {
-        true
+        switch self {
+        case .logout:
+            return false
+        default:
+            return true
+        }
     }
     
     /// 외부 이동 URL
@@ -108,12 +119,19 @@ final class MyPageViewModel: ViewModelProtocol {
     //MARK: - Properties
     private let disposeBag = DisposeBag()
     private let supportEmail = "your@email.com"
+    private let authManager: AuthManagerProtocol
+    
+    init(authManager: AuthManagerProtocol) {
+        self.authManager = authManager
+    }
 
     struct Input {
         /// 화면 진입 이벤트
         let viewDidLoad: Observable<Void>
         /// 마이페이지 항목 선택 이벤트
         let itemSelected: Observable<MyPageItem>
+        
+        let logoutConfirmed: Observable<Void>
     }
 
     struct Output {
@@ -129,6 +147,9 @@ final class MyPageViewModel: ViewModelProtocol {
         let composeFeedbackMail: Observable<MyPageMailContent>
         /// 외부 URL 이동 이벤트
         let openExternalURL: Observable<URL>
+        
+        let showLogoutConfirm: Observable<Void>
+        let logoutCompleted: Observable<Void>
     }
 
     func transform(_ input: Input) -> Output {
@@ -137,6 +158,8 @@ final class MyPageViewModel: ViewModelProtocol {
         let presentPermissionRelay = PublishRelay<Void>()
         let composeFeedbackMailRelay = PublishRelay<MyPageMailContent>()
         let openExternalURLRelay = PublishRelay<URL>()
+        let showLogoutConfirmRelay = PublishRelay<Void>()
+        let logoutCompletedRelay = PublishRelay<Void>()
 
         let sections = input.viewDidLoad
             .map { [weak self] in
@@ -169,8 +192,32 @@ final class MyPageViewModel: ViewModelProtocol {
                     if let url = item.menu.externalURL {
                         openExternalURLRelay.accept(url)
                     }
+                case .logout:
+                    showLogoutConfirmRelay.accept(())
+                
                 }
             })
+            .disposed(by: disposeBag)
+        
+        input.logoutConfirmed
+            .flatMapLatest { [weak self] _ -> Observable<Void> in
+                guard let self else { return .empty() }
+                return Observable.create { observer in
+                    Task {
+                        do {
+                            try await self.authManager.signOut()
+                            await MainActor.run {
+                                observer.onNext(())
+                                observer.onCompleted()
+                            }
+                        } catch {
+                            observer.onCompleted()
+                        }
+                    }
+                    return Disposables.create()
+                }
+            }
+            .bind(to: logoutCompletedRelay)
             .disposed(by: disposeBag)
 
         return Output(
@@ -179,7 +226,9 @@ final class MyPageViewModel: ViewModelProtocol {
             presentPrivacyPolicy: presentPrivacyPolicyRelay.asObservable(),
             presentPermission: presentPermissionRelay.asObservable(),
             composeFeedbackMail: composeFeedbackMailRelay.asObservable(),
-            openExternalURL: openExternalURLRelay.asObservable()
+            openExternalURL: openExternalURLRelay.asObservable(),
+            showLogoutConfirm: showLogoutConfirmRelay.asObservable(),
+            logoutCompleted: logoutCompletedRelay.asObservable()
         )
     }
 }

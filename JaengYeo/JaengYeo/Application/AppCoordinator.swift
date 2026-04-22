@@ -119,7 +119,8 @@ final class AppCoordinator {
         let homeCoordinator = HomeCoordinator(
             productManager: productManager,
             categoryManager: categoryManager,
-            coreDataManager: coreDataManager
+            coreDataManager: coreDataManager,
+            authManager: authManager
         )
         
         let registerCoordinator = RegisterCoordinator(
@@ -156,6 +157,13 @@ final class AppCoordinator {
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak mainController] in
                 mainController?.selectedIndex = Tab.register.rawValue
+            })
+            .disposed(by: disposeBag)
+        
+        homeCoordinator.logoutCompleted
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] in
+                self?.showLogin()
             })
             .disposed(by: disposeBag)
         
