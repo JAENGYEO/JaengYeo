@@ -40,6 +40,7 @@ final class MyPageItemCell: UICollectionViewListCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         titleLabel.text = nil
+        titleLabel.updateColor(.gray800)
         chevronImageView.isHidden = false
     }
 }
@@ -49,9 +50,11 @@ extension MyPageItemCell {
     /// 셀 UI 업데이트
     func updateUI(
         title: String,
-        showsChevron: Bool = true
+        showsChevron: Bool = true,
+        titleColor: UIColor
     ) {
         titleLabel.text = title
+        titleLabel.updateColor(titleColor)
         chevronImageView.isHidden = !showsChevron
     }
 }
@@ -82,10 +85,4 @@ private extension MyPageItemCell {
             $0.size.equalTo(16)
         }
     }
-}
-
-#Preview {
-    let cell = MyPageItemCell()
-    cell.updateUI(title: "사용 설명서")
-    return cell
 }
