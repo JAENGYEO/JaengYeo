@@ -76,19 +76,38 @@ final class AppCoordinator {
         
         Task {
             if !UserDefaults.standard.bool(forKey: "firstLaunch") {
+                var allSuccess = true
                 for main in ["식재료", "생활용품"] {
                     if let mids = try? await categoryManager.fetchSystemMidCategories(mainCategory: main) {
                         for dto in mids {
-                            try? coreDataManager.createMidCategory(dto.toPayload())
+                            do {
+                                try await MainActor.run {
+                                    try coreDataManager.createMidCategory(dto.toPayload())
+                                }
+                            } catch {
+                                allSuccess = false
+                            }
                         }
+                    } else {
+                        allSuccess = false
                     }
                     if let subs = try? await categoryManager.fetchSystemSubCategories(mainCategory: main) {
                         for dto in subs {
-                            try? coreDataManager.createSubCategory(dto.toPayload())
+                            do {
+                                try await MainActor.run {
+                                    try coreDataManager.createSubCategory(dto.toPayload())
+                                }
+                            } catch {
+                                allSuccess = false
+                            }
                         }
+                    } else {
+                        allSuccess = false
                     }
                 }
-                UserDefaults.standard.set(true, forKey: "firstLaunch")
+                if allSuccess {
+                    UserDefaults.standard.set(true, forKey: "firstLaunch")
+                }
             }
             await MainActor.run {
                 syncManager.networkCheck()
