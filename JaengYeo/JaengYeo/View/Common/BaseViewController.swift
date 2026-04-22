@@ -38,16 +38,16 @@ extension BaseViewController {
     @objc
     private func keyboardWillShow(_ notification: Notification) {
         guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-              let scrollView = findScrollView(in: view) else { return }
+              let scrollView = findScrollView(in: view),
+              let activeField = view.findFirstResponder(),
+              activeField.isDescendant(of: scrollView) else { return }
         let inset = UIEdgeInsets(top: 0, left: 0, bottom: keyboardFrame.height
                                  , right: 0)
         scrollView.contentInset = inset
         scrollView.scrollIndicatorInsets = inset
         
-        if let activeField = view.findFirstResponder() {
-            let rect = activeField.convert(activeField.bounds, to: scrollView)
-            scrollView.scrollRectToVisible(rect.insetBy(dx: 0, dy: -20), animated: true)
-        }
+        let rect = activeField.convert(activeField.bounds, to: scrollView)
+        scrollView.scrollRectToVisible(rect.insetBy(dx: 0, dy: -20), animated: true)
     }
     
     @objc
