@@ -202,9 +202,13 @@ extension RegisterViewController {
         output.isLoading
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] isLoading in
-                if !isLoading { self?.isBarcodeLocked = false }
-                isLoading ? self?.mainView.startScanAnimation() : self?.mainView.stopScanAnimation()
-                self?.mainView.captureButton.isEnabled = !isLoading
+                guard let self else { return }
+                if !isLoading { self.isBarcodeLocked = false }
+                isLoading ? self.mainView.startScanAnimation() : self.mainView.stopScanAnimation()
+                self.mainView.captureButton.isEnabled = !isLoading
+                self.sessionQueue.async {
+                    isLoading ? self.captureSession.stopRunning() : self.captureSession.startRunning()
+                }
             })
             .disposed(by: disposeBag)
         
