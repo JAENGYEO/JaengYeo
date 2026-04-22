@@ -233,7 +233,7 @@ extension RegisterDetailView {
         }
         confirmButton.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(16)
-            $0.bottom.equalTo(safeAreaLayoutGuide).offset(-8)
+            $0.bottom.equalTo(keyboardLayoutGuide.snp.top).offset(-8)
             $0.height.equalTo(48)
         }
         scrollView.snp.makeConstraints {

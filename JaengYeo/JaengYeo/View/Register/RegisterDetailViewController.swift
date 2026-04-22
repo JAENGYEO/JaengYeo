@@ -20,7 +20,9 @@ protocol RegisterDetailViewControllerDelegate: AnyObject {
 }
 
 final class RegisterDetailViewController: BaseViewController {
-    
+
+    override var handlesKeyboardInset: Bool { false }
+
     weak var delegate: RegisterDetailViewControllerDelegate?
     
     private let disposeBag = DisposeBag()
