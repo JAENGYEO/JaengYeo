@@ -8,11 +8,13 @@
 import UIKit
 
 class BaseViewController: UIViewController {
+    var handlesKeyboardInset: Bool { true }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupKeyboardHandling()
     }
-    
+
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .darkContent
     }
@@ -36,7 +38,8 @@ extension BaseViewController {
     
     @objc
     private func keyboardWillShow(_ notification: Notification) {
-        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+        guard handlesKeyboardInset,
+              let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
               let scrollView = findScrollView(in: view),
               let activeField = view.findFirstResponder(),
               activeField.isDescendant(of: scrollView) else { return }
@@ -56,7 +59,8 @@ extension BaseViewController {
     
     @objc
     private func keyboardWillHide(_ notification: Notification) {
-        guard let scrollView = findScrollView(in: view) else { return }
+        guard handlesKeyboardInset,
+              let scrollView = findScrollView(in: view) else { return }
         scrollView.contentInset = .zero
         scrollView.scrollIndicatorInsets = .zero
     }
