@@ -34,6 +34,8 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
     
     /// 소분류 ID -> 이미지 매핑 캐시
     private lazy var subCategoryImages: [UUID: UIImage] = fetchSubCategoryImages()
+    
+    private let recentSearchesSubject = BehaviorSubject<[RecentSearchPayload]>(value: [])
 
     //MARK: - React Binding
     struct Input {
@@ -42,11 +44,16 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
 
         /// 검색어 입력 이벤트
         let searchText: Observable<String>
+        
+        let searchButtonTapped: Observable<String>
+        let deleteRecentSearch: Observable<UUID>
+        let deleteAllRecentSearch: Observable<Void>
     }
 
     struct Output {
         /// 검색 결과 상품 목록
         let products: Observable<[ProductCellItem]>
+        let recentSearches: Observable<[RecentSearchPayload]>
     }
 
     func transform(_ input: Input) -> Output {
@@ -58,6 +65,7 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
                 self.subCategoryNames = fetchSubCategoryNames()
                 self.subCategoryImages = fetchSubCategoryImages()
                 self.performFetch()
+                self.loadRecentSearches()
             })
             .disposed(by: disposeBag)
 
@@ -71,9 +79,31 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
                 self?.updateProduct(keyword: text)
             })
             .disposed(by: disposeBag)
+        
+        input.searchButtonTapped
+            .subscribe(onNext: { [weak self] keyword in
+                try? self?.coreDataManager.saveRecentSearch(keyword: keyword)
+                self?.loadRecentSearches()
+                
+            })
+            .disposed(by: disposeBag)
+        
+        input.deleteRecentSearch
+            .subscribe(onNext: { [weak self] id in
+                try? self?.coreDataManager.deleteRecentSearch(id: id)
+                self?.loadRecentSearches()
+            })
+            .disposed(by: disposeBag)
+        input.deleteAllRecentSearch
+            .subscribe(onNext: { [weak self] in
+                try? self?.coreDataManager.deleteAllRecentSearches()
+                self?.loadRecentSearches()
+            })
+            .disposed(by: disposeBag)
 
         return Output(
-            products: productsRelay.asObservable()
+            products: productsRelay.asObservable(),
+            recentSearches: recentSearchesSubject.asObservable()
         )
     }
 
@@ -280,5 +310,12 @@ extension StockSearchViewModel {
         } catch {
             return [:]
         }
+    }
+}
+
+extension StockSearchViewModel {
+    private func loadRecentSearches() {
+        let searches = (try? coreDataManager.fetchRecentSearches(limit: 10)) ?? []
+        recentSearchesSubject.onNext(searches)
     }
 }
