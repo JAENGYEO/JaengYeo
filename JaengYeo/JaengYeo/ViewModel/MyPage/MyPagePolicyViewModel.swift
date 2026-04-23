@@ -58,7 +58,7 @@ extension MyPagePolicyViewModel {
 
             * 필수 항목: 이메일 주소, 사용자 식별 정보
             * 선택 항목: 카메라 촬영 이미지(사용자가 직접 촬영 및 등록한 경우)
-            * 자동 수집 항목: 기기 정보(OS 버전, 기기 모델), 앱 이용 기록
+            * 자동 수집 항목: 기기 정보(OS 버전, 기기 모델), 디바이스 식별 토큰(푸시 알림용), 앱 이용 기록
 
             2. 수집 방법
 
@@ -102,11 +102,11 @@ extension MyPagePolicyViewModel {
 
             쟁여(JAENG-YEO)은(는) 원활한 서비스 제공을 위해 외부 서비스를 사용할 수 있으며, 이 경우 필요한 범위 내에서 개인정보 처리가 위탁될 수 있습니다.
 
-            예:
+            현재 위탁 현황:
 
-            * 인증 서비스
-            * 푸시 알림 서비스
-            * 클라우드 저장 서비스
+            * Supabase — 데이터 저장, 사용자 인증
+            * Apple Push Notification Service (APNs) — 푸시 알림 발송
+            * OpenAI API — AI 기반 사물인식 기능
 
             ---
 
@@ -157,7 +157,7 @@ extension MyPagePolicyViewModel {
 
             개인정보 처리에 관한 문의 및 요청은 아래 연락처로 문의하시기 바랍니다.
 
-            이메일: your@email.com
+            이메일: jaengyeo09@gmail.com
 
             ---
 
