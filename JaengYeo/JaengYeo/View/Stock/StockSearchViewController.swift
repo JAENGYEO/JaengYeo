@@ -33,18 +33,6 @@ final class StockSearchViewController: BaseViewController {
     
     private let recentSearchDeletedRelay = PublishRelay<UUID>()
     private let deleteAllRecentSearchRelay = PublishRelay<Void>()
-
-    private let recentSearchHeaderView = UIView()
-    private let recentSearchTitleLabel = UILabel().then {
-        $0.text = "최근 검색어"
-        $0.font = LabelConfiguration.bodyMedium14.font
-        $0.textColor = .gray800
-    }
-    private let deleteAllButton = UIButton(type: .system).then {
-        $0.setTitle("전체 삭제", for: .normal)
-        $0.titleLabel?.font = LabelConfiguration.body12.font
-        $0.setTitleColor(.gray500, for: .normal)
-    }
     
     //MARK: - Components
     /// 뒤로가기 버튼
@@ -142,16 +130,11 @@ private extension StockSearchViewController {
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] text, searches, products in
                 let isEmpty = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                self?.recentSearchHeaderView.isHidden = !isEmpty || searches.isEmpty
                 self?.applySnapshot(
                     recentSearches: isEmpty ? searches : [],
                     products: isEmpty ? [] : products
                 )
             })
-            .disposed(by: disposeBag)
-        
-        deleteAllButton.rx.tap
-            .bind(to: deleteAllRecentSearchRelay)
             .disposed(by: disposeBag)
 
         backButton.rx.tap
@@ -241,7 +224,15 @@ private extension StockSearchViewController {
             )
         }
 
-        return UICollectionViewDiffableDataSource<Section, SearchItem>(
+        let headerRegistration = UICollectionView.SupplementaryRegistration<RecentSearchHeaderView>(
+            elementKind: UICollectionView.elementKindSectionHeader
+        ) { [weak self] headerView, _, _ in
+            headerView.deleteAllButton.rx.tap
+                .bind(to: self?.deleteAllRecentSearchRelay ?? PublishRelay<Void>())
+                .disposed(by: headerView.disposeBag)
+        }
+
+        let dataSource = UICollectionViewDiffableDataSource<Section, SearchItem>(
             collectionView: collectionView
         ) { collectionView, indexPath, item in
             switch item {
@@ -259,6 +250,15 @@ private extension StockSearchViewController {
                 )
             }
         }
+
+        dataSource.supplementaryViewProvider = { collectionView, kind, indexPath in
+            collectionView.dequeueConfiguredReusableSupplementary(
+                using: headerRegistration,
+                for: indexPath
+            )
+        }
+
+        return dataSource
     }
 }
 
@@ -293,9 +293,20 @@ private extension StockSearchViewController {
             subitems: [item]
         )
         
+        let headerSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .absolute(20)
+        )
+        let header = NSCollectionLayoutBoundarySupplementaryItem(
+            layoutSize: headerSize,
+            elementKind: UICollectionView.elementKindSectionHeader,
+            alignment: .top
+        )
+
         let section = NSCollectionLayoutSection(group: group)
+        section.boundarySupplementaryItems = [header]
         section.interGroupSpacing = 8
-        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
         section.orthogonalScrollingBehavior = .continuous
         return section
     }
@@ -335,12 +346,8 @@ private extension StockSearchViewController {
     func configureUI() {
         view.backgroundColor = .white
 
-        recentSearchHeaderView.addSubview(recentSearchTitleLabel)
-        recentSearchHeaderView.addSubview(deleteAllButton)
-        
         view.addSubview(backButton)
         view.addSubview(searchBar)
-        view.addSubview(recentSearchHeaderView)
         view.addSubview(collectionView)
 
         backButton.snp.makeConstraints {
@@ -356,22 +363,8 @@ private extension StockSearchViewController {
             $0.height.equalTo(40)
         }
 
-        recentSearchHeaderView.snp.makeConstraints {
-            $0.top.equalTo(searchBar.snp.bottom).offset(12)
-            $0.leading.trailing.equalToSuperview().inset(16)
-            $0.height.equalTo(20)
-        }
-        
-        recentSearchTitleLabel.snp.makeConstraints {
-            $0.leading.centerY.equalToSuperview()
-        }
-        
-        deleteAllButton.snp.makeConstraints {
-            $0.trailing.centerY.equalToSuperview()
-        }
-        
         collectionView.snp.makeConstraints {
-            $0.top.equalTo(recentSearchHeaderView.snp.bottom).offset(12)
+            $0.top.equalTo(searchBar.snp.bottom).offset(12)
             $0.leading.trailing.bottom.equalToSuperview()
         }
     }
