@@ -25,6 +25,9 @@ final class HomeViewController: BaseViewController {
     private var dataSource: UICollectionViewDiffableDataSource<HomeSection, HomeItem>?
     
     private let viewWillAppearRelay = PublishRelay<Void>()
+    private let recentItemQuantityIncreasedRelay = PublishRelay<UUID>()
+    private let recentItemQuantityDecreasedRelay = PublishRelay<UUID>()
+    private let recentItemDeletedRelay = PublishRelay<[UUID]>()
     
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -119,7 +122,10 @@ extension HomeViewController {
                 }
                 .map { _ in },
             categoryCardTapped: categoryCardTapped,
-            statusAlertTapped: statusAlertTapped
+            statusAlertTapped: statusAlertTapped,
+            recentItemQuantityIncreased: recentItemQuantityIncreasedRelay.asObservable(),
+            recentItemQuantityDecreased: recentItemQuantityDecreasedRelay.asObservable(),
+            recentItemDeleted: recentItemDeletedRelay.asObservable()
         )
         let output = viewModel.transform(input)
         
@@ -176,6 +182,24 @@ extension HomeViewController {
                     count: summary.quantity,
                     image: summary.image ?? summary.subCategoryIconName.flatMap { UIImage(named: $0) } //TODO: 추후에 수정 필요
                 )
+
+                cell.bindAddButtonTap { [weak self] in
+                    self?.recentItemQuantityIncreasedRelay.accept(summary.id)
+                }
+
+                cell.bindDeleteButtonTap { [weak self] in
+                    guard let self else { return }
+
+                    self.makeRecentItemDecreaseAction(summary: summary)
+                        .bind(onNext: { productIDs in
+                            if summary.quantity == 1 {
+                                self.recentItemDeletedRelay.accept(productIDs)
+                            } else {
+                                self.recentItemQuantityDecreasedRelay.accept(summary.id)
+                            }
+                        })
+                        .disposed(by: self.disposeBag)
+                }
                 return cell
             }
         }
@@ -185,6 +209,32 @@ extension HomeViewController {
             header.config(title: self?.dataSource?.sectionIdentifier(for: indexPath.section)?.title ?? "")
             return header
         }
+    }
+}
+
+//MARK: - Action
+private extension HomeViewController {
+    /// 최근 등록 상품 재고 차감 액션 생성
+    func makeRecentItemDecreaseAction(
+        summary: HomeViewModel.RecentItemSummary
+    ) -> Observable<[UUID]> {
+        guard summary.quantity == 1 else {
+            return .just([summary.id])
+        }
+
+        return AlertController.rx.alert(
+            on: self,
+            image: UIImage(named: "alertRed") ?? UIImage(),
+            title: "재고 차감",
+            message: "재고가 0이 되면 상품은 삭제됩니다.\n삭제하시겠습니까?",
+            actions: [
+                .cancel("취소"),
+                .destructive("삭제")
+            ]
+        )
+        .filter { $0.title == "삭제" }
+        .map { _ in [summary.id] }
+        .asObservable()
     }
 }
 
@@ -213,4 +263,3 @@ extension HomeViewController {
         dataSource?.apply(snapshot, animatingDifferences: false)
     }
 }
-
