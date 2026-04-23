@@ -15,6 +15,21 @@ struct CategorySelectionItem: Hashable {
     let title: String
     let image: UIImage?
     let isSelect: Bool
+    let isEnabled: Bool
+
+    init(
+        id: String,
+        title: String,
+        image: UIImage?,
+        isSelect: Bool,
+        isEnabled: Bool = true
+    ) {
+        self.id = id
+        self.title = title
+        self.image = image
+        self.isSelect = isSelect
+        self.isEnabled = isEnabled
+    }
 }
 
 final class CategorySelectionViewModel: ViewModelProtocol {
@@ -79,7 +94,8 @@ final class CategorySelectionViewModel: ViewModelProtocol {
                         id: $0.id,
                         title: $0.title,
                         image: $0.image,
-                        isSelect: selectedIDs.contains($0.id)
+                        isSelect: selectedIDs.contains($0.id),
+                        isEnabled: $0.isEnabled
                     )
                 }
             }
@@ -95,6 +111,8 @@ final class CategorySelectionViewModel: ViewModelProtocol {
 
 private extension CategorySelectionViewModel {
     func toggleSelection(_ item: CategorySelectionItem) {
+        guard item.isEnabled else { return }
+
         var selectedIDs = selectedItemIDsRelay.value
 
         if selectedIDs.contains(item.id) {

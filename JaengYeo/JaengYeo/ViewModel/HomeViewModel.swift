@@ -59,6 +59,9 @@ final class HomeViewModel: ViewModelProtocol {
         let unclassifiedTapped: Observable<Void>
         let categoryCardTapped: Observable<String>
         let statusAlertTapped: Observable<AlertType>
+        let recentItemQuantityIncreased: Observable<UUID>
+        let recentItemQuantityDecreased: Observable<UUID>
+        let recentItemDeleted: Observable<[UUID]>
     }
     
     struct Output {
@@ -69,8 +72,31 @@ final class HomeViewModel: ViewModelProtocol {
     }
     
     func transform(_ input: Input) -> Output {
-        // viewWillAppear 동시에 구독: share()
-        let trigger = input.viewWillAppear.share()
+        input.recentItemQuantityIncreased
+            .subscribe(onNext: { [weak self] productID in
+                self?.increaseRecentItemQuantity(productID: productID)
+            })
+            .disposed(by: disposeBag)
+
+        input.recentItemQuantityDecreased
+            .subscribe(onNext: { [weak self] productID in
+                self?.decreaseRecentItemQuantity(productID: productID)
+            })
+            .disposed(by: disposeBag)
+
+        input.recentItemDeleted
+            .subscribe(onNext: { [weak self] productIDs in
+                self?.deleteRecentItems(productIDs: productIDs)
+            })
+            .disposed(by: disposeBag)
+
+        let trigger = Observable.merge(
+            input.viewWillAppear,
+            input.recentItemQuantityIncreased.map { _ in },
+            input.recentItemQuantityDecreased.map { _ in },
+            input.recentItemDeleted.map { _ in }
+        )
+        .share()
         
         let unclassifiedCount = trigger
             .map { [weak self] _ -> Int in
@@ -198,5 +224,46 @@ final class HomeViewModel: ViewModelProtocol {
             statusAlerts: statusAlerts,
             recentItems: recentItems
         )
+    }
+}
+
+//MARK: - Quantity
+private extension HomeViewModel {
+    /// 최근 등록 상품 재고 1개 증가
+    func increaseRecentItemQuantity(productID: UUID) {
+        guard let product = try? coreDataManager.fetchProduct(of: productID) else { return }
+
+        do {
+            try coreDataManager.updateProduct(
+                product
+                    .toDomain()
+                    .increasedQuantity()
+                    .toPayload()
+            )
+        } catch {
+        }
+    }
+
+    /// 최근 등록 상품 재고 1개 차감
+    func decreaseRecentItemQuantity(productID: UUID) {
+        guard let product = try? coreDataManager.fetchProduct(of: productID) else { return }
+        guard product.quantity > 0 else { return }
+
+        do {
+            try coreDataManager.updateProduct(
+                product
+                    .toDomain()
+                    .decreasedQuantity()
+                    .toPayload()
+            )
+        } catch {
+        }
+    }
+
+    /// 최근 등록 상품 삭제
+    func deleteRecentItems(productIDs: [UUID]) {
+        productIDs.forEach {
+            try? coreDataManager.softDeleteProduct(id: $0)
+        }
     }
 }

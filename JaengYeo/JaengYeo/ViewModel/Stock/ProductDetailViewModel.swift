@@ -39,9 +39,7 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
     
     /// CoreData 매니저
     private let coreDataManager: CoreDataManagerProtocol
-
-    
-    private var productFetchResultController: NSFetchedResultsController<ProductEntity>?
+    private var productObservationDisposeBag = DisposeBag()
     
     private let productRelay = BehaviorRelay<Product?>(value: nil)
     private let midCategoryRelay = BehaviorRelay<MidCategory?>(value: nil)
@@ -80,8 +78,7 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
         input.viewDidLoad
             .subscribe(onNext: { [weak self] in
                 guard let self else { return }
-                self.configureProductFetchResultController(id: productID)
-                self.performFetch()
+                self.bindProduct()
             })
             .disposed(by: disposeBag)
         
@@ -112,48 +109,36 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
 }
 
 
-// MARK: - FetchedResultsController
-extension ProductDetailViewModel: NSFetchedResultsControllerDelegate  {
-        private func configureProductFetchResultController(id: UUID){
-            let request = ProductEntity.fetchRequest()
-            request.sortDescriptors = [
+// MARK: - CoreData Stream
+private extension ProductDetailViewModel {
+    func bindProduct() {
+        productObservationDisposeBag = DisposeBag()
+
+        coreDataManager.observeProducts(
+            predicate: makeProductPredicate(id: productID),
+            sortDescriptors: [
                 NSSortDescriptor(
                     key: ProductEntity.Keys.createdAt,
                     ascending: false
                 )
             ]
-            request.fetchLimit = 1
-            request.predicate = NSPredicate(
-                format: "%K == %@",
-                ProductEntity.Keys.id,
-                id as CVarArg
-            )
-
-            let controller = NSFetchedResultsController(
-                fetchRequest: request,
-                managedObjectContext: coreDataManager.context,
-                sectionNameKeyPath: nil,
-                cacheName: nil
-            )
-
-        controller.delegate = self
-        productFetchResultController = controller
+        )
+        .subscribe(
+            onNext: { [weak self] products in
+                self?.updateProductDetail(productEntity: products.first)
+            },
+            onError: { [weak self] _ in
+                self?.productRelay.accept(nil)
+                self?.midCategoryRelay.accept(nil)
+                self?.subCategoryRelay.accept(nil)
+                self?.displayModelRelay.accept(self?.makeNotFoundDisplayModel())
+            }
+        )
+        .disposed(by: productObservationDisposeBag)
     }
-    
-    private func performFetch() {
-        do {
-            try productFetchResultController?.performFetch()
-            updateProductDetail()
-        } catch {
-            productRelay.accept(nil)
-            midCategoryRelay.accept(nil)
-            subCategoryRelay.accept(nil)
-            displayModelRelay.accept(makeNotFoundDisplayModel())
-        }
-    }
-    
-    private func updateProductDetail() {
-        guard let productEntity = productFetchResultController?.fetchedObjects?.first else {
+
+    func updateProductDetail(productEntity: ProductEntity?) {
+        guard let productEntity else {
             productRelay.accept(nil)
             midCategoryRelay.accept(nil)
             subCategoryRelay.accept(nil)
@@ -178,39 +163,20 @@ extension ProductDetailViewModel: NSFetchedResultsControllerDelegate  {
         displayModelRelay.accept(displayModel)
     }
     
+    func makeProductPredicate(id: UUID) -> NSPredicate {
+        NSPredicate(
+            format: "%K == %@",
+            ProductEntity.Keys.id,
+            id as CVarArg
+        )
+    }
+
     func fetchMidCategory(id: UUID) -> MidCategory? {
-           let request: NSFetchRequest<MidCategoryEntity> = MidCategoryEntity.fetchRequest()
-           request.fetchLimit = 1
-           request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        try? coreDataManager.fetchMidCategory(of: id).toDomain()
+    }
 
-           do {
-               guard let midEntity = try coreDataManager.context.fetch(request).first else { return nil }
-               return midEntity.toDomain
-               
-           } catch {
-               return nil
-           }
-       }
-
-       func fetchSubCategory(id: UUID) -> SubCategory? {
-           let request: NSFetchRequest<SubCategoryEntity> = SubCategoryEntity.fetchRequest()
-           request.fetchLimit = 1
-           request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-
-           do {
-               guard let subEntity = try coreDataManager.context.fetch(request).first else { return nil }
-               return subEntity.toDomain
-           } catch {
-               return nil
-           }
-       }
-    
-    func controllerDidChangeContent(
-        _ controller: NSFetchedResultsController<NSFetchRequestResult>
-    ) {
-        if controller == productFetchResultController {
-            updateProductDetail()
-        }
+    func fetchSubCategory(id: UUID) -> SubCategory? {
+        try? coreDataManager.fetchSubCategory(of: id).toDomain()
     }
 }
 

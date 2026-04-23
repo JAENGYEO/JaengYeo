@@ -51,6 +51,7 @@ extension StockCoordinator: StockViewControllerDelegate {
         let viewController = StockSearchViewController(
             viewModel: StockSearchViewModel(coreDataManager: coreDataManager)
         )
+        viewController.delegate = self
         navigationController.pushViewController(viewController, animated: true)
     }
     
@@ -200,5 +201,14 @@ extension StockCoordinator: RegisterDetailViewControllerDelegate {
 extension StockCoordinator {
     func selectMainCategory(name: String) {
         stockViewController.selectMainCategory(name: name)
+    }
+}
+
+extension StockCoordinator: StockSearchViewControllerDelegate {
+    func stockSearchViewController(
+        _ viewController: StockSearchViewController,
+        didSelectProduct productID: UUID
+    ) {
+        didSelectProduct(productID: productID)
     }
 }

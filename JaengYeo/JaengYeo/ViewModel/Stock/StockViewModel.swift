@@ -19,6 +19,8 @@ enum MainCategory: String {
 
 //MARK: - Sort
 enum ProductSortOption: String, CaseIterable {
+    case nameAtAsc = "이름순"
+    case nameAtDesc = "이름 역순"
     case createdAtDesc = "등록일 최신순"
     case createdAtAsc = "등록일 오래된순"
     case expiryDateAsc = "소비기한 가까운순"
@@ -35,7 +37,7 @@ struct ProductCellItem: Hashable {
     let groupedCount: Int
     let totalQuantity: Int
     let groupedItems: [ProductCellItem]
-    
+
     init(
         product: Product,
         midCategory: String?,
@@ -53,7 +55,7 @@ struct ProductCellItem: Hashable {
         self.totalQuantity = totalQuantity ?? product.quantity
         self.groupedItems = groupedItems
     }
-    
+
     var displayTitle: String {
         if isGrouped {
             return "\(product.name) (\(groupedCount)건)"
@@ -72,10 +74,10 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     private let disposeBag = DisposeBag()
     
     private let coreDataManager: CoreDataManagerProtocol
-    
-    private var productFetchResultController: NSFetchedResultsController<ProductEntity>?
-    private var midCategoryFetchResultController: NSFetchedResultsController<MidCategoryEntity>?
-    private var subCategoryFetchResultController: NSFetchedResultsController<SubCategoryEntity>?
+    private var allProductObservationDisposeBag = DisposeBag()
+    private var productObservationDisposeBag = DisposeBag()
+    private var midCategoryObservationDisposeBag = DisposeBag()
+    private var subCategoryObservationDisposeBag = DisposeBag()
     
     /// 메인 카테고리 목록
     var mainCategory = BehaviorRelay<[String]>(value:
@@ -84,6 +86,14 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     private let productsRelay = BehaviorRelay<[ProductCellItem]>(value: [])
     /// 전체 상품 존재 여부
     private let hasAnyProductRelay = BehaviorRelay<Bool>(value: false)
+    /// 상품 엔티티 목록
+    private let productEntitiesRelay = BehaviorRelay<[ProductEntity]>(value: [])
+    /// 전체 상품 엔티티 목록
+    private let allProductEntitiesRelay = BehaviorRelay<[ProductEntity]>(value: [])
+    /// 중분류 엔티티 목록
+    private let midCategoryEntitiesRelay = BehaviorRelay<[MidCategoryEntity]>(value: [])
+    /// 소분류 엔티티 목록
+    private let subCategoryEntitiesRelay = BehaviorRelay<[SubCategoryEntity]>(value: [])
     /// 중분류 목록
     private let midCategoriesRelay = BehaviorRelay<[CategorySelectionItem]>(value: [])
     /// 소분류 목록
@@ -104,6 +114,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     struct Input {
         /// 화면 로드 이벤트
         let viewDidLoad: Observable<Void>
+        /// 화면 재진입 이벤트
+        let viewWillAppear: Observable<Void>
         /// 대분류 선택 이벤트
         let mainCategorySelected: Observable<Int>
         /// 중분류 버튼 선택 이벤트
@@ -116,8 +128,10 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         let subCategoryApplied: Observable<[String]>
         /// 상품 정렬 선택 이벤트
         let sortOptionSelected: Observable<ProductSortOption>
+        /// 상품 재고 증가 이벤트
+        let productQuantityIncreased: Observable<Product>
         /// 상품 재고 차감 이벤트
-        let productQuantityDecreased: Observable<ProductCellItem>
+        let productQuantityDecreased: Observable<Product>
         /// 상품 삭제 이벤트
         let productDeleted: Observable<[UUID]>
     }
@@ -153,10 +167,17 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
         input.viewDidLoad
             .subscribe(onNext: { [weak self] in
                 guard let self else { return }
-                self.configureProductResultController()
-                self.configureMidCategoryResultController()
-                self.configureSubCategoryResultController()
+                self.bindAllProducts()
                 self.updatePredicate(for: 0)
+            })
+            .disposed(by: disposeBag)
+        
+        /// 화면 재진입 시 현재 상태 기준 재조회
+        input.viewWillAppear
+            .subscribe(onNext: { [weak self] in
+                guard let self else { return }
+                self.bindAllProducts()
+                self.updatePredicate()
             })
             .disposed(by: disposeBag)
         
@@ -211,11 +232,21 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
             })
             .disposed(by: disposeBag)
         
+        /// 상품 재고 증가
+        input.productQuantityIncreased
+            .subscribe(onNext: { [weak self] product in
+                guard let self else { return }
+                self.increaseProductQuantity(product)
+                self.refreshProducts()
+            })
+            .disposed(by: disposeBag)
+        
         /// 상품 재고 차감
         input.productQuantityDecreased
-            .subscribe(onNext: { [weak self] item in
+            .subscribe(onNext: { [weak self] product in
                 guard let self else { return }
-                self.decreaseProductQuantity(item.product)
+                self.decreaseProductQuantity(product)
+                self.refreshProducts()
             })
             .disposed(by: disposeBag)
         
@@ -224,6 +255,7 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
             .subscribe(onNext: { [weak self] productIDs in
                 guard let self else { return }
                 self.deleteProducts(productIDs)
+                self.refreshProducts()
             })
             .disposed(by: disposeBag)
         
@@ -267,71 +299,93 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
 }
 
 //MARK: - Core Data
-extension StockViewModel: NSFetchedResultsControllerDelegate {
-    /// 상품 조회 컨트롤러 구성
-    private func configureProductResultController() {
-        let request = ProductEntity.fetchRequest()
-        request.sortDescriptors = [
-            NSSortDescriptor(key: ProductEntity.Keys.createdAt, ascending: false)
-        ]
-        request.predicate = NSPredicate(format: "mainCategory == %@", MainCategory.foodstuff.rawValue)
+private extension StockViewModel {
+    /// 전체 상품 조회 스트림 바인딩
+    func bindAllProducts() {
+        allProductObservationDisposeBag = DisposeBag()
 
-        let controller = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: coreDataManager.context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
+        coreDataManager.observeProducts(
+            predicate: nil,
+            sortDescriptors: [
+                NSSortDescriptor(
+                    key: ProductEntity.Keys.createdAt,
+                    ascending: false
+                )
+            ]
         )
-        controller.delegate = self
-        productFetchResultController = controller
+        .subscribe(onNext: { [weak self] products in
+            guard let self else { return }
+            self.allProductEntitiesRelay.accept(products)
+            self.hasAnyProductRelay.accept(!products.isEmpty)
+            self.updateMidCategories()
+            self.updateSubCategories()
+        })
+        .disposed(by: allProductObservationDisposeBag)
+    }
+
+    /// 상품 조회 스트림 바인딩
+    func bindProducts(predicate: NSPredicate?) {
+        productObservationDisposeBag = DisposeBag()
+
+        coreDataManager.observeProducts(
+            predicate: predicate,
+            sortDescriptors: [
+                NSSortDescriptor(
+                    key: ProductEntity.Keys.createdAt,
+                    ascending: false
+                )
+            ]
+        )
+        .subscribe(onNext: { [weak self] products in
+            guard let self else { return }
+            self.productEntitiesRelay.accept(products)
+            self.updateProducts()
+        })
+        .disposed(by: productObservationDisposeBag)
     }
     
-    /// 중분류 조회 컨트롤러 구성
-    private func configureMidCategoryResultController() {
-        let request = MidCategoryEntity.fetchRequest()
-        request.sortDescriptors = [
-            NSSortDescriptor(key: MidCategoryEntity.Keys.sortOrder, ascending: true)
-        ]
+    /// 중분류 조회 스트림 바인딩
+    func bindMidCategories(predicate: NSPredicate?) {
+        midCategoryObservationDisposeBag = DisposeBag()
 
-        let controller = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: coreDataManager.context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
+        coreDataManager.observeMidCategories(
+            predicate: predicate,
+            sortDescriptors: [
+                NSSortDescriptor(
+                    key: MidCategoryEntity.Keys.sortOrder,
+                    ascending: true
+                )
+            ]
         )
-        controller.delegate = self
-        midCategoryFetchResultController = controller
+        .subscribe(onNext: { [weak self] categories in
+            guard let self else { return }
+            self.midCategoryEntitiesRelay.accept(categories)
+            self.updateMidCategories()
+            self.updateProducts()
+        })
+        .disposed(by: midCategoryObservationDisposeBag)
     }
     
-    /// 소분류 조회 컨트롤러 구성
-    private func configureSubCategoryResultController() {
-        let request = SubCategoryEntity.fetchRequest()
-        request.sortDescriptors = [
-            NSSortDescriptor(key: SubCategoryEntity.Keys.sortOrder, ascending: true)
-        ]
+    /// 소분류 조회 스트림 바인딩
+    func bindSubCategories(predicate: NSPredicate?) {
+        subCategoryObservationDisposeBag = DisposeBag()
 
-        let controller = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: coreDataManager.context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
+        coreDataManager.observeSubCategories(
+            predicate: predicate,
+            sortDescriptors: [
+                NSSortDescriptor(
+                    key: SubCategoryEntity.Keys.sortOrder,
+                    ascending: true
+                )
+            ]
         )
-        controller.delegate = self
-        subCategoryFetchResultController = controller
-    }
-    
-    /// 데이터 조회
-    private func performFetch() {
-        do {
-            try productFetchResultController?.performFetch()
-            try midCategoryFetchResultController?.performFetch()
-            try subCategoryFetchResultController?.performFetch()
-            updateProducts()
-            updateMidCategories()
-            updateSubCategories()
-        } catch {
-            
-        }
+        .subscribe(onNext: { [weak self] categories in
+            guard let self else { return }
+            self.subCategoryEntitiesRelay.accept(categories)
+            self.updateSubCategories()
+            self.updateProducts()
+        })
+        .disposed(by: subCategoryObservationDisposeBag)
     }
     
     /// 메인 카테고리 필터 적용
@@ -341,13 +395,13 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
         
         let mainCategoryPredicate = makeMainCategoryPredicate(for: selectedIndex)
         
-        productFetchResultController?.fetchRequest.predicate = makeProductPredicate(
-            mainCategoryPredicate: mainCategoryPredicate
+        bindProducts(
+            predicate: makeProductPredicate(
+                mainCategoryPredicate: mainCategoryPredicate
+            )
         )
-        midCategoryFetchResultController?.fetchRequest.predicate = mainCategoryPredicate
-        subCategoryFetchResultController?.fetchRequest.predicate = mainCategoryPredicate
-
-        performFetch()
+        bindMidCategories(predicate: mainCategoryPredicate)
+        bindSubCategories(predicate: mainCategoryPredicate)
     }
     
     /// 선택 필터 적용
@@ -356,11 +410,17 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
             for: selectedMainCategoryIndexRelay.value
         )
 
-        productFetchResultController?.fetchRequest.predicate = makeProductPredicate(
-            mainCategoryPredicate: mainCategoryPredicate
+        bindProducts(
+            predicate: makeProductPredicate(
+                mainCategoryPredicate: mainCategoryPredicate
+            )
         )
+    }
 
-        performFetch()
+    /// 상품 목록 재조회
+    private func refreshProducts() {
+        bindAllProducts()
+        updatePredicate()
     }
     
     /// 메인 카테고리 필터 조건 생성
@@ -379,13 +439,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
     private func makeProductPredicate(
         mainCategoryPredicate: NSPredicate?
     ) -> NSPredicate? {
-        var predicates = [
-            NSPredicate(
-                format: "%K != %@",
-                ProductEntity.Keys.syncStatus,
-                SyncStatus.pendingDelete.rawValue
-            )
-        ]
+        var predicates = [NSPredicate]()
         
         if let mainCategoryPredicate {
             predicates.append(mainCategoryPredicate)
@@ -401,6 +455,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
             predicates.append(NSPredicate(format: "subCategoryId IN %@", subCategoryIDs))
         }
         
+        guard !predicates.isEmpty else { return nil }
         return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
     }
     
@@ -410,6 +465,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
             selectedMainCategoryIndexRelay.value
         ] = ids
         selectedMidCategoryIDsRelay.accept(ids)
+        updateMidCategories()
     }
     
     /// 소분류 선택값 저장
@@ -418,6 +474,7 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
             selectedMainCategoryIndexRelay.value
         ] = ids
         selectedSubCategoryIDsRelay.accept(ids)
+        updateSubCategories()
     }
     
     /// 대분류별 선택값 복원
@@ -428,31 +485,31 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
         selectedSubCategoryIDsRelay.accept(
             selectedSubCategoryIDsByMainCategory[selectedIndex] ?? []
         )
+        updateMidCategories()
+        updateSubCategories()
     }
     
     /// 상품 도메인 변환 및 반영
     private func updateProducts() {
-        updateHasAnyProduct()
-        
-        let midCategoryNames = midCategoryFetchResultController?.fetchedObjects?
+        let midCategoryNames = midCategoryEntitiesRelay.value
             .reduce(into: [UUID: String]()) {
                 $0[$1.id] = $1.name
-            } ?? [:]
+            }
         
-        let subCategoryNames = subCategoryFetchResultController?.fetchedObjects?
+        let subCategoryNames = subCategoryEntitiesRelay.value
             .reduce(into: [UUID: String]()) {
                 $0[$1.id] = $1.name
-            } ?? [:]
+            }
         
-        let subCategoryImages = subCategoryFetchResultController?.fetchedObjects?
+        let subCategoryImages = subCategoryEntitiesRelay.value
             .reduce(into: [UUID: UIImage]()) {
                 guard let iconName = $1.iconName,
                       let image = UIImage(named: iconName)
                 else { return }
                 $0[$1.id] = image
-            } ?? [:]
+            }
         
-        let products = productFetchResultController?.fetchedObjects?
+        let products = productEntitiesRelay.value
             .map { $0.toDomain }
             .map {
                 ProductCellItem(
@@ -461,72 +518,49 @@ extension StockViewModel: NSFetchedResultsControllerDelegate {
                     subCategory: $0.subCategoryId.flatMap { subCategoryNames[$0] },
                     subCategoryImage: $0.subCategoryId.flatMap { subCategoryImages[$0] }
                 )
-            } ?? []
+            }
 
         productsRelay.accept(sortProducts(groupProducts(products)))
     }
     
-    /// 전체 상품 존재 여부 반영
-    private func updateHasAnyProduct() {
-        let request = ProductEntity.fetchRequest()
-        request.predicate = NSPredicate(
-            format: "%K != %@",
-            ProductEntity.Keys.syncStatus,
-            SyncStatus.pendingDelete.rawValue
-        )
-        
-        do {
-            let count = try coreDataManager.context.count(for: request)
-            hasAnyProductRelay.accept(count > 0)
-        } catch {
-            hasAnyProductRelay.accept(false)
-        }
-    }
-    
     /// 중분류 아이템 변환 및 반영
     private func updateMidCategories() {
-        let categories = midCategoryFetchResultController?.fetchedObjects?
-            .filter { $0.syncStatus != SyncStatus.pendingDelete.rawValue }
+        let usedMidCategoryIDs = Set(
+            allProductEntitiesRelay.value.compactMap { $0.midCategoryId }
+        )
+
+        let categories = midCategoryEntitiesRelay.value
             .map {
                 CategorySelectionItem(
                     id: $0.id.uuidString,
                     title: $0.name,
                     image: UIImage(named: $0.iconName ?? "categoryIcon"),
-                    isSelect: selectedMidCategoryIDsRelay.value.contains($0.id.uuidString)
+                    isSelect: selectedMidCategoryIDsRelay.value.contains($0.id.uuidString),
+                    isEnabled: usedMidCategoryIDs.contains($0.id)
                 )
-            } ?? []
+            }
 
         midCategoriesRelay.accept(categories)
     }
     
     /// 소분류 아이템 변환 및 반영
     private func updateSubCategories() {
-        let categories = subCategoryFetchResultController?.fetchedObjects?
-            .filter { $0.syncStatus != SyncStatus.pendingDelete.rawValue }
+        let usedSubCategoryIDs = Set(
+            allProductEntitiesRelay.value.compactMap { $0.subCategoryId }
+        )
+
+        let categories = subCategoryEntitiesRelay.value
             .map {
                 CategorySelectionItem(
                     id: $0.id.uuidString,
                     title: $0.name,
                     image: UIImage(named: $0.iconName ?? "categoryIcon"),
-                    isSelect: selectedSubCategoryIDsRelay.value.contains($0.id.uuidString)
+                    isSelect: selectedSubCategoryIDsRelay.value.contains($0.id.uuidString),
+                    isEnabled: usedSubCategoryIDs.contains($0.id)
                 )
-            } ?? []
+            }
 
         subCategoriesRelay.accept(categories)
-    }
-    
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        if controller == productFetchResultController {
-            updateProducts()
-        }
-        
-        if controller == midCategoryFetchResultController {
-            updateMidCategories()
-        }
-        
-        if controller == subCategoryFetchResultController {
-            updateSubCategories()
-        }
     }
 }
 
@@ -535,6 +569,10 @@ private extension StockViewModel {
     /// 상품 정렬
     func sortProducts(_ products: [ProductCellItem]) -> [ProductCellItem] {
         switch selectedSortOptionRelay.value {
+        case .nameAtDesc:
+            return products.sorted { $0.product.name > $1.product.name }
+        case .nameAtAsc:
+            return products.sorted { $0.product.name < $1.product.name }
         case .createdAtDesc:
             return products.sorted { $0.product.createdAt > $1.product.createdAt }
         case .createdAtAsc:
@@ -645,6 +683,18 @@ private extension StockViewModel {
 
 //MARK: - Delete
 private extension StockViewModel {
+    /// 상품 재고 1개 증가
+    func increaseProductQuantity(_ product: Product) {
+        do {
+            try coreDataManager.updateProduct(
+                product
+                    .increasedQuantity()
+                    .toPayload()
+            )
+        } catch {
+        }
+    }
+    
     /// 상품 재고 1개 차감
     func decreaseProductQuantity(_ product: Product) {
         guard product.quantity > 0 else { return }
@@ -655,7 +705,6 @@ private extension StockViewModel {
                     .decreasedQuantity()
                     .toPayload()
             )
-            performFetch()
         } catch {
         }
     }
@@ -665,6 +714,5 @@ private extension StockViewModel {
         productIDs.forEach {
             try? coreDataManager.softDeleteProduct(id: $0)
         }
-        performFetch()
     }
 }

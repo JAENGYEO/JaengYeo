@@ -17,6 +17,11 @@ private enum Tab: Int {
 }
 
 final class AppCoordinator {
+    private enum UserDefaultsKey {
+        static let firstLaunch = "firstLaunch"
+        static let hasSeenOnboarding = "hasSeenOnboarding"
+    }
+
     private let window: UIWindow
     private let client: SupabaseClient
     private let authManager: AuthManagerProtocol
@@ -38,11 +43,19 @@ final class AppCoordinator {
             let hasSession = await authManager.restoreSession()
             await MainActor.run {
                 if hasSession {
-                    showMain()
+                    routeToInitialScreen()
                 } else {
                     showLogin()
                 }
             }
+        }
+    }
+
+    private func routeToInitialScreen() {
+        if UserDefaults.standard.bool(forKey: UserDefaultsKey.hasSeenOnboarding) {
+            showMain()
+        } else {
+            showOnboarding()
         }
     }
     
@@ -55,10 +68,19 @@ final class AppCoordinator {
         viewModel.loginCompleted
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] in
-                self?.showMain()
+                self?.routeToInitialScreen()
             })
             .disposed(by: disposeBag)
         
+        window.rootViewController = navigationController
+    }
+
+    private func showOnboarding() {
+        let viewController = OnboardingViewController()
+        viewController.delegate = self
+
+        let navigationController = BaseNavigationController(rootViewController: viewController)
+        navigationController.setNavigationBarHidden(true, animated: false)
         window.rootViewController = navigationController
     }
     
@@ -75,7 +97,7 @@ final class AppCoordinator {
         )
         
         Task {
-            if !UserDefaults.standard.bool(forKey: "firstLaunch") {
+            if !UserDefaults.standard.bool(forKey: UserDefaultsKey.firstLaunch) {
                 var allSuccess = true
                 for main in ["식재료", "생활용품"] {
                     if let mids = try? await categoryManager.fetchSystemMidCategories(mainCategory: main) {
@@ -106,7 +128,7 @@ final class AppCoordinator {
                     }
                 }
                 if allSuccess {
-                    UserDefaults.standard.set(true, forKey: "firstLaunch")
+                    UserDefaults.standard.set(true, forKey: UserDefaultsKey.firstLaunch)
                 }
             }
             await MainActor.run {
@@ -182,5 +204,12 @@ final class AppCoordinator {
             .disposed(by: disposeBag)
         
         window.rootViewController = mainController
+    }
+}
+
+extension AppCoordinator: OnboardingViewControllerDelegate {
+    func didTapOnboardingStartButton() {
+        UserDefaults.standard.set(true, forKey: UserDefaultsKey.hasSeenOnboarding)
+        showMain()
     }
 }

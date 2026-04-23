@@ -20,12 +20,22 @@ protocol StockViewControllerDelegate: AnyObject {
 }
 
 final class StockViewController: BaseViewController {
+    
+    //MARK: - Enum
+    private enum QuantityAction {
+        case decrease(Product)
+        case delete([UUID])
+    }
 
     //MARK: - ViewModel
     private let viewModel: StockViewModel
 
     //MARK: - Properties
     private let disposeBag = DisposeBag()
+    private let viewWillAppearRelay = PublishRelay<Void>()
+    private let productQuantityIncreasedRelay = PublishRelay<Product>()
+    private let productQuantityDecreasedRelay = PublishRelay<Product>()
+    private let productDeletedRelay = PublishRelay<[UUID]>()
     weak var delegate: StockViewControllerDelegate?
 
     //MARK: - Components
@@ -71,6 +81,11 @@ final class StockViewController: BaseViewController {
         configureUI()
         bind()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewWillAppearRelay.accept(())
+    }
 }
 
 //MARK: - Binding
@@ -82,10 +97,6 @@ private extension StockViewController {
         let subCategoryAppliedRelay = PublishRelay<[String]>()
         /// 상품 정렬 선택
         let sortOptionSelectedRelay = PublishRelay<ProductSortOption>()
-        /// 상품 재고 차감 선택
-        let productQuantityDecreasedRelay = PublishRelay<ProductCellItem>()
-        /// 상품 삭제 선택
-        let productDeletedRelay = PublishRelay<[UUID]>()
         
         productCollectionView.configureSortMenu { sortOption in
             sortOptionSelectedRelay.accept(sortOption)
@@ -97,6 +108,11 @@ private extension StockViewController {
             })
             .disposed(by: disposeBag)
         
+        productCollectionView.itemQuantityIncreased
+            .compactMap(\.quantityControlTargetProduct)
+            .bind(to: productQuantityIncreasedRelay)
+            .disposed(by: disposeBag)
+        
         emptyStateView.actionButton.rx.tap
             .bind(onNext: { [weak self] in
                 self?.delegate?.didTapEmptyStateActionButton()
@@ -104,7 +120,18 @@ private extension StockViewController {
             .disposed(by: disposeBag)
         
         productCollectionView.itemQuantityDecreased
-            .bind(to: productQuantityDecreasedRelay)
+            .flatMapLatest { [weak self] item -> Observable<QuantityAction> in
+                guard let self else { return .empty() }
+                return self.makeDecreaseAction(item: item)
+            }
+            .bind(onNext: { action in
+                switch action {
+                case .decrease(let product):
+                    self.productQuantityDecreasedRelay.accept(product)
+                case .delete(let productIDs):
+                    self.productDeletedRelay.accept(productIDs)
+                }
+            })
             .disposed(by: disposeBag)
         
         productCollectionView.itemDeleted
@@ -118,6 +145,7 @@ private extension StockViewController {
         /// ViewModel 입력값
         let input = StockViewModel.Input(
             viewDidLoad: Observable.just(()),
+            viewWillAppear: viewWillAppearRelay.asObservable(),
             mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
                 .asObservable()
                 .filter { $0 >= 0 },
@@ -126,6 +154,7 @@ private extension StockViewController {
             midCategoryApplied: midCategoryAppliedRelay.asObservable(),
             subCategoryApplied: subCategoryAppliedRelay.asObservable(),
             sortOptionSelected: sortOptionSelectedRelay.asObservable(),
+            productQuantityIncreased: productQuantityIncreasedRelay.asObservable(),
             productQuantityDecreased: productQuantityDecreasedRelay.asObservable(),
             productDeleted: productDeletedRelay.asObservable()
         )
@@ -165,10 +194,13 @@ private extension StockViewController {
             })
             .disposed(by: disposeBag)
         
-        /// 전체 상품 존재 여부 바인딩
-        output.hasAnyProduct
-            .bind(onNext: { [weak self] hasAnyProduct in
-                self?.emptyStateView.isHidden = hasAnyProduct
+        /// 빈 상태 바인딩
+        Observable.combineLatest(
+            output.hasAnyProduct,
+            output.products
+        )
+        .bind(onNext: { [weak self] hasAnyProduct, products in
+                self?.emptyStateView.isHidden = hasAnyProduct || !products.isEmpty
             })
             .disposed(by: disposeBag)
         
@@ -254,6 +286,15 @@ private extension StockViewController {
         viewController.onSelect = { [weak self] productID in
             self?.delegate?.didSelectProduct(productID: productID)
         }
+        viewController.onIncrease = { [weak self] product in
+            self?.productQuantityIncreasedRelay.accept(product)
+        }
+        viewController.onDecrease = { [weak self] product in
+            self?.productQuantityDecreasedRelay.accept(product)
+        }
+        viewController.onDelete = { [weak self] productIDs in
+            self?.productDeletedRelay.accept(productIDs)
+        }
         
         present(viewController, animated: false)
     }
@@ -278,10 +319,58 @@ private extension StockViewController {
         .map { _ in productIDs }
         .asObservable()
     }
+    
+    /// 상품 재고 차감 액션 생성
+    private func makeDecreaseAction(
+        item: ProductCellItem
+    ) -> Observable<QuantityAction> {
+        guard let targetProduct = item.quantityControlTargetProduct else {
+            return .empty()
+        }
+        
+        guard targetProduct.quantity == 1 else {
+            return .just(.decrease(targetProduct))
+        }
+        
+        return AlertController.rx.alert(
+            on: self,
+            image: UIImage(named: "alertRed") ?? UIImage(),
+            title: "재고 차감",
+            message: "재고가 0이 되면 상품은 삭제됩니다.\n삭제하시겠습니까?",
+            actions: [
+                .cancel("취소"),
+                .destructive("삭제")
+            ]
+        )
+        .filter { $0.title == "삭제" }
+        .map { _ in .delete([targetProduct.id]) }
+        .asObservable()
+    }
 }
 
 //MARK: - ProductCellItem
 private extension ProductCellItem {
+    /// 수량 증감 대상 상품
+    var quantityControlTargetProduct: Product? {
+        let items = groupedItems.isEmpty ? [self] : groupedItems
+        
+        return items.min { lhs, rhs in
+            switch (lhs.product.expiryDate, rhs.product.expiryDate) {
+            case let (lhsDate?, rhsDate?):
+                if lhsDate == rhsDate {
+                    return lhs.product.createdAt < rhs.product.createdAt
+                }
+                return lhsDate < rhsDate
+            case (.some, .none):
+                return true
+            case (.none, .some):
+                return false
+            case (.none, .none):
+                return lhs.product.createdAt < rhs.product.createdAt
+            }
+        }?.product
+    }
+    
     /// 삭제 대상 상품 ID 목록
     var deleteTargetProductIDs: [UUID] {
         if isGrouped {

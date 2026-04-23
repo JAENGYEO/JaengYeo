@@ -11,12 +11,24 @@ import SnapKit
 import Then
 import UIKit
 
+protocol StockSearchViewControllerDelegate: AnyObject {
+    func stockSearchViewController(
+        _ viewController: StockSearchViewController,
+        didSelectProduct productID: UUID
+    )
+}
+
 final class StockSearchViewController: BaseViewController {
 
     //MARK: - Enum
     private enum Section {
         case recentSearch
         case searchResult
+    }
+
+    private enum QuantityAction {
+        case decrease(Product)
+        case delete([UUID])
     }
     
     private enum SearchItem: Hashable {
@@ -30,9 +42,13 @@ final class StockSearchViewController: BaseViewController {
     //MARK: - Properties
     private let disposeBag = DisposeBag()
     private lazy var dataSource = configureDataSource()
-    
+    weak var delegate: StockSearchViewControllerDelegate?
+
     private let recentSearchDeletedRelay = PublishRelay<UUID>()
     private let deleteAllRecentSearchRelay = PublishRelay<Void>()
+    private let productQuantityIncreasedRelay = PublishRelay<Product>()
+    private let productQuantityDecreasedRelay = PublishRelay<Product>()
+    private let productDeletedRelay = PublishRelay<[UUID]>()
     
     //MARK: - Components
     /// 뒤로가기 버튼
@@ -121,7 +137,10 @@ private extension StockSearchViewController {
             searchText: searchText,
             searchButtonTapped: searchButtonTapped,
             deleteRecentSearch: recentSearchDeletedRelay.asObservable(),
-            deleteAllRecentSearch: deleteAllRecentSearchRelay.asObservable()
+            deleteAllRecentSearch: deleteAllRecentSearchRelay.asObservable(),
+            productQuantityIncreased: productQuantityIncreasedRelay.asObservable(),
+            productQuantityDecreased: productQuantityDecreasedRelay.asObservable(),
+            productDeleted: productDeletedRelay.asObservable()
         )
 
         let output = viewModel.transform(input)
@@ -140,6 +159,22 @@ private extension StockSearchViewController {
         backButton.rx.tap
             .bind(onNext: { [weak self] in
                 self?.navigationController?.popViewController(animated: true)
+            })
+            .disposed(by: disposeBag)
+
+        collectionView.rx.itemSelected
+            .compactMap { [weak self] indexPath -> ProductCellItem? in
+                guard
+                    let self,
+                    case let .product(item) = self.dataSource.itemIdentifier(
+                        for: indexPath
+                    )
+                else { return nil }
+
+                return item
+            }
+            .bind(onNext: { [weak self] item in
+                self?.selectProduct(item)
             })
             .disposed(by: disposeBag)
     }
@@ -187,7 +222,7 @@ private extension StockSearchViewController {
         let productRegistration = UICollectionView.CellRegistration<
             ProductCell,
             ProductCellItem
-        > { cell, _, item in
+        > { [weak self] cell, _, item in
             var freshness: Int? = nil
             if let expiryDate = item.product.expiryDate {
                 let calendar = Calendar.current
@@ -222,6 +257,25 @@ private extension StockSearchViewController {
                 count: item.product.quantity,
                 image: image
             )
+
+            cell.bindAddButtonTap { [weak self] in
+                self?.productQuantityIncreasedRelay.accept(item.product)
+            }
+
+            cell.bindDeleteButtonTap { [weak self] in
+                guard let self else { return }
+
+                self.makeDecreaseAction(item: item)
+                    .bind(onNext: { action in
+                        switch action {
+                        case .decrease(let product):
+                            self.productQuantityDecreasedRelay.accept(product)
+                        case .delete(let productIDs):
+                            self.productDeletedRelay.accept(productIDs)
+                        }
+                    })
+                    .disposed(by: self.disposeBag)
+            }
         }
 
         let headerRegistration = UICollectionView.SupplementaryRegistration<RecentSearchHeaderView>(
@@ -259,6 +313,40 @@ private extension StockSearchViewController {
         }
 
         return dataSource
+    }
+}
+
+//MARK: - Action
+private extension StockSearchViewController {
+    /// 상품 선택
+    func selectProduct(_ item: ProductCellItem) {
+        delegate?.stockSearchViewController(
+            self,
+            didSelectProduct: item.product.id
+        )
+    }
+
+    /// 상품 재고 차감 액션 생성
+    private func makeDecreaseAction(
+        item: ProductCellItem
+    ) -> Observable<QuantityAction> {
+        guard item.product.quantity == 1 else {
+            return .just(.decrease(item.product))
+        }
+
+        return AlertController.rx.alert(
+            on: self,
+            image: UIImage(named: "alertRed") ?? UIImage(),
+            title: "재고 차감",
+            message: "재고가 0이 되면 상품은 삭제됩니다.\n삭제하시겠습니까?",
+            actions: [
+                .cancel("취소"),
+                .destructive("삭제")
+            ]
+        )
+        .filter { $0.title == "삭제" }
+        .map { _ in .delete([item.product.id]) }
+        .asObservable()
     }
 }
 
