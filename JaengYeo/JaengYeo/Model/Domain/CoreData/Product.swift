@@ -66,6 +66,37 @@ extension Product {
 }
 
 extension Product {
+    /// 재고가 1개 증가된 상품 생성
+    func increasedQuantity() -> Product {
+        Product(
+            id: id,
+            userId: userId,
+            name: name,
+            quantity: quantity + 1,
+            quantityUnit: quantityUnit,
+            mainCategory: mainCategory,
+            midCategoryId: midCategoryId,
+            subCategoryId: subCategoryId,
+            purchaseDate: purchaseDate,
+            expiryDate: expiryDate,
+            price: price,
+            locationMemo: locationMemo,
+            memo: memo,
+            imageUrl: imageUrl,
+            isClassified: isClassified,
+            lowStockThreshold: lowStockThreshold,
+            isFavorite: isFavorite,
+            createdAt: createdAt,
+            updatedAt: Date(),
+            syncStatus: SyncStatus.pendingUpload.rawValue,
+            isLowStockNotificationEnabled: isLowStockNotificationEnabled,
+            caution: caution,
+            brand: brand
+        )
+    }
+}
+
+extension Product {
     /// 재고가 1개 차감된 상품 생성
     func decreasedQuantity() -> Product {
         Product(

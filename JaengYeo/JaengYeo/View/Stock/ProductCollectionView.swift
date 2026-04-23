@@ -18,6 +18,7 @@ final class ProductCollectionView: UIView {
     private let itemSelectedRelay = PublishRelay<ProductCellItem>()
     private let swipeDecreaseRelay = PublishRelay<IndexPath>()
     private let swipeDeleteRelay = PublishRelay<IndexPath>()
+    private let itemQuantityIncreasedRelay = PublishRelay<ProductCellItem>()
     private let itemQuantityDecreasedRelay = PublishRelay<ProductCellItem>()
     private let itemDeletedRelay = PublishRelay<ProductCellItem>()
     private lazy var dataSource = configureDataSource()
@@ -105,6 +106,11 @@ extension ProductCollectionView {
     }
     
     /// 상품 재고 차감 이벤트
+    var itemQuantityIncreased: Observable<ProductCellItem> {
+        itemQuantityIncreasedRelay.asObservable()
+    }
+    
+    /// 상품 재고 차감 이벤트
     var itemQuantityDecreased: Observable<ProductCellItem> {
         itemQuantityDecreasedRelay.asObservable()
     }
@@ -168,6 +174,14 @@ private extension ProductCollectionView {
                 count: item.totalQuantity,
                 image: image
             )
+            
+            cell.bindAddButtonTap { [weak self] in
+                self?.itemQuantityIncreasedRelay.accept(item)
+            }
+            
+            cell.bindDeleteButtonTap { [weak self] in
+                self?.itemQuantityDecreasedRelay.accept(item)
+            }
         }
 
         return UICollectionViewDiffableDataSource<
