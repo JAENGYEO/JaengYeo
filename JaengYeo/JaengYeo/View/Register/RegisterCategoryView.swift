@@ -158,8 +158,7 @@ private extension RegisterCategoryView {
         }
         confirmButton.snp.makeConstraints {
             $0.top.equalTo(pageControl.snp.bottom).offset(16)
-            $0.trailing.equalToSuperview().inset(16)
-            $0.width.equalTo(238)
+            $0.leading.trailing.equalToSuperview().inset(16)
             $0.height.equalTo(44)
             $0.bottom.equalTo(contentView.safeAreaLayoutGuide).offset(-8)
         }

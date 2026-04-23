@@ -57,4 +57,10 @@ protocol CoreDataManagerProtocol {
     func fetchByMainCategory(mainCategory: String) throws -> [ProductPayload]
     func fetchWithExpiryDate() throws -> [ProductPayload]
     func fetchLowStockEnabled() throws -> [ProductPayload]
+    
+    //MARK: - 최근검색어
+    func saveRecentSearch(keyword: String) throws
+    func fetchRecentSearches(limit: Int) throws -> [RecentSearchPayload]
+    func deleteRecentSearch(id: UUID) throws
+    func deleteAllRecentSearches() throws
 }

@@ -15,7 +15,13 @@ final class StockSearchViewController: BaseViewController {
 
     //MARK: - Enum
     private enum Section {
-        case main
+        case recentSearch
+        case searchResult
+    }
+    
+    private enum SearchItem: Hashable {
+        case recent(RecentSearchPayload)
+        case product(ProductCellItem)
     }
 
     //MARK: - ViewModel
@@ -24,7 +30,10 @@ final class StockSearchViewController: BaseViewController {
     //MARK: - Properties
     private let disposeBag = DisposeBag()
     private lazy var dataSource = configureDataSource()
-
+    
+    private let recentSearchDeletedRelay = PublishRelay<UUID>()
+    private let deleteAllRecentSearchRelay = PublishRelay<Void>()
+    
     //MARK: - Components
     /// 뒤로가기 버튼
     private let backButton = UIButton(type: .custom).then {
@@ -96,19 +105,35 @@ final class StockSearchViewController: BaseViewController {
 //MARK: - Binding
 private extension StockSearchViewController {
     func bind() {
+        
+        let searchText = searchBar.rx.text.orEmpty
+            .debounce(.milliseconds(200), scheduler: MainScheduler.instance)
+            .distinctUntilChanged()
+            .asObservable()
+        
+        let searchButtonTapped = searchBar.rx.searchButtonClicked
+            .withLatestFrom(searchBar.rx.text.orEmpty)
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .asObservable()
+        
         let input = StockSearchViewModel.Input(
             viewDidLoad: Observable.just(()),
-            searchText: searchBar.rx.text.orEmpty
-                .debounce(.milliseconds(200), scheduler: MainScheduler.instance)
-                .distinctUntilChanged()
-                .asObservable()
+            searchText: searchText,
+            searchButtonTapped: searchButtonTapped,
+            deleteRecentSearch: recentSearchDeletedRelay.asObservable(),
+            deleteAllRecentSearch: deleteAllRecentSearchRelay.asObservable()
         )
 
         let output = viewModel.transform(input)
 
-        output.products
-            .bind(onNext: { [weak self] products in
-                self?.applySnapshot(with: products)
+        Observable.combineLatest(searchText, output.recentSearches, output.products)
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] text, searches, products in
+                let isEmpty = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                self?.applySnapshot(
+                    recentSearches: isEmpty ? searches : [],
+                    products: isEmpty ? [] : products
+                )
             })
             .disposed(by: disposeBag)
 
@@ -124,19 +149,42 @@ private extension StockSearchViewController {
 private extension StockSearchViewController {
     
     /// 스냅샷
-    func applySnapshot(with products: [ProductCellItem]) {
-        var snapshot = NSDiffableDataSourceSnapshot<Section, ProductCellItem>()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(products, toSection: .main)
+    func applySnapshot(recentSearches: [RecentSearchPayload], products: [ProductCellItem]) {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, SearchItem>()
+        
+        if !recentSearches.isEmpty {
+            snapshot.appendSections([.recentSearch])
+            snapshot.appendItems(
+                recentSearches.map { .recent($0) },
+                toSection: .recentSearch
+            )
+        }
+        
+        if !products.isEmpty {
+            snapshot.appendSections([.searchResult])
+            snapshot.appendItems(
+                products.map { .product($0) },
+                toSection: .searchResult
+            )
+        }
         dataSource.apply(snapshot, animatingDifferences: false)
     }
     
     /// 데이터소스 설정
     private func configureDataSource() -> UICollectionViewDiffableDataSource<
         Section,
-        ProductCellItem
+        SearchItem
     > {
-        let cellRegistration = UICollectionView.CellRegistration<
+        let searchRegistration = UICollectionView.CellRegistration<RecentSearchCell, RecentSearchPayload> { [weak self] cell, _, item in
+            cell.config(keyword: item.keyword)
+            cell.deleteButton.rx.tap
+                .map { item.id }
+                .bind(to: self?.recentSearchDeletedRelay ?? PublishRelay<UUID>())
+                .disposed(by: cell.disposeBag)
+        }
+        
+        
+        let productRegistration = UICollectionView.CellRegistration<
             ProductCell,
             ProductCellItem
         > { cell, _, item in
@@ -176,22 +224,94 @@ private extension StockSearchViewController {
             )
         }
 
-        return UICollectionViewDiffableDataSource<Section, ProductCellItem>(
+        let headerRegistration = UICollectionView.SupplementaryRegistration<RecentSearchHeaderView>(
+            elementKind: UICollectionView.elementKindSectionHeader
+        ) { [weak self] headerView, _, _ in
+            headerView.deleteAllButton.rx.tap
+                .bind(to: self?.deleteAllRecentSearchRelay ?? PublishRelay<Void>())
+                .disposed(by: headerView.disposeBag)
+        }
+
+        let dataSource = UICollectionViewDiffableDataSource<Section, SearchItem>(
             collectionView: collectionView
         ) { collectionView, indexPath, item in
-            collectionView.dequeueConfiguredReusableCell(
-                using: cellRegistration,
-                for: indexPath,
-                item: item
+            switch item {
+            case .recent(let payload):
+                return collectionView.dequeueConfiguredReusableCell(
+                    using: searchRegistration,
+                    for: indexPath,
+                    item: payload
+                )
+            case .product(let product):
+                return collectionView.dequeueConfiguredReusableCell(
+                    using: productRegistration,
+                    for: indexPath,
+                    item: product
+                )
+            }
+        }
+
+        dataSource.supplementaryViewProvider = { collectionView, kind, indexPath in
+            collectionView.dequeueConfiguredReusableSupplementary(
+                using: headerRegistration,
+                for: indexPath
             )
         }
+
+        return dataSource
     }
 }
 
 //MARK: - Compositional Layout
 private extension StockSearchViewController {
     /// 컬렉션 뷰 레이아웃 생성
+    
     func createLayout() -> UICollectionViewLayout {
+        UICollectionViewCompositionalLayout { [weak self] sectionIndex, _ in
+            guard let self,
+                  let section = self.dataSource.sectionIdentifier(for: sectionIndex) else { return nil }
+            switch section {
+            case .recentSearch:
+                return self.createRecentSearchSection()
+            case .searchResult:
+                return self.createSearchResultSection()
+            }
+        }
+    }
+    
+    func createRecentSearchSection() -> NSCollectionLayoutSection {
+        let item = NSCollectionLayoutItem(
+            layoutSize: .init(
+                widthDimension: .estimated(100),
+                heightDimension: .absolute(34)
+            )
+        )
+        let group = NSCollectionLayoutGroup.horizontal(
+            layoutSize: .init(
+                widthDimension: .estimated(100),
+                heightDimension: .absolute(34)),
+            subitems: [item]
+        )
+        
+        let headerSize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .absolute(20)
+        )
+        let header = NSCollectionLayoutBoundarySupplementaryItem(
+            layoutSize: headerSize,
+            elementKind: UICollectionView.elementKindSectionHeader,
+            alignment: .top
+        )
+
+        let section = NSCollectionLayoutSection(group: group)
+        section.boundarySupplementaryItems = [header]
+        section.interGroupSpacing = 8
+        section.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+        section.orthogonalScrollingBehavior = .continuous
+        return section
+    }
+    
+    func createSearchResultSection() -> NSCollectionLayoutSection {
         let item = NSCollectionLayoutItem(
             layoutSize: .init(
                 widthDimension: .fractionalWidth(1.0),
@@ -216,7 +336,7 @@ private extension StockSearchViewController {
             trailing: 16
         )
 
-        return UICollectionViewCompositionalLayout(section: section)
+        return section
     }
 }
 
