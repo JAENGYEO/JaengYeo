@@ -259,7 +259,8 @@ extension CategorySelectionViewController {
             cell.updateUI(
                 title: item.title,
                 image: item.image,
-                isSelect: item.isSelect
+                isSelect: item.isSelect,
+                isEnabled: item.isEnabled
             )
         }
 

@@ -67,7 +67,10 @@ final class CategorySelectionItemCell: UICollectionViewCell {
         super.prepareForReuse()
         titleLabel.text = nil
         imageView.image = nil
+        imageView.tintColor = nil
         deleteButton.isHidden = true
+        contentView.alpha = 1.0
+        isUserInteractionEnabled = true
         disposeBag = DisposeBag()
         isItemSelected = false
     }
@@ -79,11 +82,18 @@ extension CategorySelectionItemCell {
         title: String,
         image: UIImage?,
         isSelect: Bool,
-        showsDeleteButton: Bool? = nil
+        showsDeleteButton: Bool? = nil,
+        isEnabled: Bool = true
     ) {
         titleLabel.text = title
-        imageView.image = image
+        imageView.image = makeImage(
+            image,
+            isEnabled: isEnabled
+        )
+        imageView.tintColor = isEnabled ? nil : .gray300
         deleteButton.isHidden = !(showsDeleteButton ?? false)
+        contentView.alpha = isEnabled ? 1.0 : 0.35
+        isUserInteractionEnabled = isEnabled
         isItemSelected = isSelect
     }
     
@@ -144,6 +154,13 @@ private extension CategorySelectionItemCell {
         itemContainerView.backgroundColor = isItemSelected ? .primary100 : .clear
         //TODO: 아이콘 이미지 적용시 백그라운드 색상 clear로 변경
         imageBackgroundView.backgroundColor = .clear
+    }
+    
+    func makeImage(
+        _ image: UIImage?,
+        isEnabled: Bool
+    ) -> UIImage? {
+        image?.withRenderingMode(isEnabled ? .alwaysOriginal : .alwaysTemplate)
     }
 }
 
