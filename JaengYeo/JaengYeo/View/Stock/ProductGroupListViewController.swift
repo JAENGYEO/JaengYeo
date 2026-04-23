@@ -16,7 +16,11 @@ final class ProductGroupListViewController: BaseViewController {
 
     //MARK: - Properties
     private let disposeBag = DisposeBag()
+    private var currentItems = [ProductCellItem]()
     var onSelect: ((UUID) -> Void)?
+    var onIncrease: ((Product) -> Void)?
+    var onDecrease: ((Product) -> Void)?
+    var onDelete: (([UUID]) -> Void)?
 
     //MARK: - Components
     private let mainView = ProductGroupListView()
@@ -76,7 +80,8 @@ private extension ProductGroupListViewController {
 
         output.items
             .bind(onNext: { [weak self] items in
-                self?.mainView.applySnapshot(with: items)
+                self?.currentItems = items
+                self?.updateUI()
             })
             .disposed(by: disposeBag)
 
@@ -85,11 +90,49 @@ private extension ProductGroupListViewController {
                 self?.selectProduct(productID)
             })
             .disposed(by: disposeBag)
+        
+        mainView.itemQuantityIncreased
+            .bind(onNext: { [weak self] item in
+                self?.increaseItem(item)
+            })
+            .disposed(by: disposeBag)
+        
+        mainView.itemQuantityDecreased
+            .flatMapLatest { [weak self] item -> Observable<ProductCellItem> in
+                guard let self else { return .empty() }
+                return self.confirmDecreaseIfNeeded(item: item)
+            }
+            .bind(onNext: { [weak self] item in
+                self?.decreaseItem(item)
+            })
+            .disposed(by: disposeBag)
     }
 }
 
 //MARK: - Action
 private extension ProductGroupListViewController {
+    /// 상품 수량 증가
+    func increaseItem(_ item: ProductCellItem) {
+        let updatedProduct = item.product.increasedQuantity()
+        onIncrease?(updatedProduct)
+        updateItem(productID: item.product.id, product: updatedProduct)
+    }
+    
+    /// 상품 수량 감소
+    func decreaseItem(_ item: ProductCellItem) {
+        let product = item.product
+        
+        guard product.quantity > 1 else {
+            onDelete?([product.id])
+            removeItem(productID: product.id)
+            return
+        }
+        
+        let updatedProduct = product.decreasedQuantity()
+        onDecrease?(updatedProduct)
+        updateItem(productID: product.id, product: updatedProduct)
+    }
+    
     /// 상품 선택
     func selectProduct(_ productID: UUID) {
         animateOut { [weak self] in
@@ -104,6 +147,54 @@ private extension ProductGroupListViewController {
         animateOut { [weak self] in
             self?.dismiss(animated: false)
         }
+    }
+    
+    /// 재고 감소 확인
+    func confirmDecreaseIfNeeded(item: ProductCellItem) -> Observable<ProductCellItem> {
+        guard item.product.quantity == 1 else {
+            return .just(item)
+        }
+        
+        return AlertController.rx.alert(
+            on: self,
+            image: UIImage(named: "alertRed") ?? UIImage(),
+            title: "재고 차감",
+            message: "재고가 0이 되면 상품은 삭제됩니다.\n삭제하시겠습니까?",
+            actions: [
+                .cancel("취소"),
+                .destructive("삭제")
+            ]
+        )
+        .filter { $0.title == "삭제" }
+        .map { _ in item }
+        .asObservable()
+    }
+    
+    /// 로컬 아이템 갱신
+    func updateItem(productID: UUID, product: Product) {
+        currentItems = currentItems.map { item in
+            guard item.product.id == productID else { return item }
+            return item.updated(product: product)
+        }
+        updateUI()
+    }
+    
+    /// 로컬 아이템 제거
+    func removeItem(productID: UUID) {
+        currentItems.removeAll { $0.product.id == productID }
+        
+        guard !currentItems.isEmpty else {
+            close()
+            return
+        }
+        
+        updateUI()
+    }
+    
+    /// 화면 갱신
+    func updateUI() {
+        mainView.titleLabel.text = "총 \(totalQuantity)개"
+        mainView.applySnapshot(with: currentItems)
     }
 }
 
@@ -147,6 +238,30 @@ private extension ProductGroupListViewController {
             completion: { _ in
                 completion()
             }
+        )
+    }
+}
+
+//MARK: - Data
+private extension ProductGroupListViewController {
+    /// 총 수량
+    var totalQuantity: Int {
+        currentItems.reduce(0) { $0 + $1.product.quantity }
+    }
+}
+
+//MARK: - ProductCellItem
+private extension ProductCellItem {
+    /// 상품 정보 갱신
+    func updated(product: Product) -> ProductCellItem {
+        ProductCellItem(
+            product: product,
+            midCategory: midCategory,
+            subCategory: subCategory,
+            subCategoryImage: subCategoryImage,
+            groupedCount: groupedCount,
+            totalQuantity: product.quantity,
+            groupedItems: groupedItems
         )
     }
 }

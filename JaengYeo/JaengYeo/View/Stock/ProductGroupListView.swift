@@ -21,6 +21,8 @@ final class ProductGroupListView: UIView {
     //MARK: - Properties
     private let disposeBag = DisposeBag()
     private let itemSelectedRelay = PublishRelay<ProductCellItem>()
+    private let itemQuantityIncreasedRelay = PublishRelay<ProductCellItem>()
+    private let itemQuantityDecreasedRelay = PublishRelay<ProductCellItem>()
     private lazy var dataSource = configureDataSource()
 
     //MARK: - Components
@@ -76,6 +78,16 @@ extension ProductGroupListView {
     /// 상품 셀 선택 이벤트
     var itemSelected: Observable<ProductCellItem> {
         itemSelectedRelay.asObservable()
+    }
+    
+    /// 상품 재고 증가 이벤트
+    var itemQuantityIncreased: Observable<ProductCellItem> {
+        itemQuantityIncreasedRelay.asObservable()
+    }
+    
+    /// 상품 재고 감소 이벤트
+    var itemQuantityDecreased: Observable<ProductCellItem> {
+        itemQuantityDecreasedRelay.asObservable()
     }
 
     /// 컬렉션 뷰 접근
@@ -134,6 +146,14 @@ private extension ProductGroupListView {
                 count: item.totalQuantity,
                 image: image
             )
+            
+            cell.bindAddButtonTap { [weak self] in
+                self?.itemQuantityIncreasedRelay.accept(item)
+            }
+            
+            cell.bindDeleteButtonTap { [weak self] in
+                self?.itemQuantityDecreasedRelay.accept(item)
+            }
         }
 
         return UICollectionViewDiffableDataSource<Section, ProductCellItem>(

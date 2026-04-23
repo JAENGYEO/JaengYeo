@@ -23,7 +23,6 @@ final class StockViewController: BaseViewController {
     
     //MARK: - Enum
     private enum QuantityAction {
-        case increase(Product)
         case decrease(Product)
         case delete([UUID])
     }
@@ -33,6 +32,10 @@ final class StockViewController: BaseViewController {
 
     //MARK: - Properties
     private let disposeBag = DisposeBag()
+    private let viewWillAppearRelay = PublishRelay<Void>()
+    private let productQuantityIncreasedRelay = PublishRelay<Product>()
+    private let productQuantityDecreasedRelay = PublishRelay<Product>()
+    private let productDeletedRelay = PublishRelay<[UUID]>()
     weak var delegate: StockViewControllerDelegate?
 
     //MARK: - Components
@@ -78,6 +81,11 @@ final class StockViewController: BaseViewController {
         configureUI()
         bind()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewWillAppearRelay.accept(())
+    }
 }
 
 //MARK: - Binding
@@ -89,12 +97,6 @@ private extension StockViewController {
         let subCategoryAppliedRelay = PublishRelay<[String]>()
         /// 상품 정렬 선택
         let sortOptionSelectedRelay = PublishRelay<ProductSortOption>()
-        /// 상품 재고 증가 선택
-        let productQuantityIncreasedRelay = PublishRelay<Product>()
-        /// 상품 재고 차감 선택
-        let productQuantityDecreasedRelay = PublishRelay<Product>()
-        /// 상품 삭제 선택
-        let productDeletedRelay = PublishRelay<[UUID]>()
         
         productCollectionView.configureSortMenu { sortOption in
             sortOptionSelectedRelay.accept(sortOption)
@@ -124,12 +126,10 @@ private extension StockViewController {
             }
             .bind(onNext: { action in
                 switch action {
-                case .increase(let product):
-                    productQuantityIncreasedRelay.accept(product)
                 case .decrease(let product):
-                    productQuantityDecreasedRelay.accept(product)
+                    self.productQuantityDecreasedRelay.accept(product)
                 case .delete(let productIDs):
-                    productDeletedRelay.accept(productIDs)
+                    self.productDeletedRelay.accept(productIDs)
                 }
             })
             .disposed(by: disposeBag)
@@ -145,6 +145,7 @@ private extension StockViewController {
         /// ViewModel 입력값
         let input = StockViewModel.Input(
             viewDidLoad: Observable.just(()),
+            viewWillAppear: viewWillAppearRelay.asObservable(),
             mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
                 .asObservable()
                 .filter { $0 >= 0 },
@@ -284,6 +285,15 @@ private extension StockViewController {
         
         viewController.onSelect = { [weak self] productID in
             self?.delegate?.didSelectProduct(productID: productID)
+        }
+        viewController.onIncrease = { [weak self] product in
+            self?.productQuantityIncreasedRelay.accept(product)
+        }
+        viewController.onDecrease = { [weak self] product in
+            self?.productQuantityDecreasedRelay.accept(product)
+        }
+        viewController.onDelete = { [weak self] productIDs in
+            self?.productDeletedRelay.accept(productIDs)
         }
         
         present(viewController, animated: false)

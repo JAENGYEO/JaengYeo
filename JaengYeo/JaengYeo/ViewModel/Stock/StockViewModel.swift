@@ -114,6 +114,8 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
     struct Input {
         /// 화면 로드 이벤트
         let viewDidLoad: Observable<Void>
+        /// 화면 재진입 이벤트
+        let viewWillAppear: Observable<Void>
         /// 대분류 선택 이벤트
         let mainCategorySelected: Observable<Int>
         /// 중분류 버튼 선택 이벤트
@@ -167,6 +169,15 @@ final class StockViewModel:  NSObject, ViewModelProtocol {
                 guard let self else { return }
                 self.bindAllProducts()
                 self.updatePredicate(for: 0)
+            })
+            .disposed(by: disposeBag)
+        
+        /// 화면 재진입 시 현재 상태 기준 재조회
+        input.viewWillAppear
+            .subscribe(onNext: { [weak self] in
+                guard let self else { return }
+                self.bindAllProducts()
+                self.updatePredicate()
             })
             .disposed(by: disposeBag)
         
