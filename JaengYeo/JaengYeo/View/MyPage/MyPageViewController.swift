@@ -72,8 +72,8 @@ extension MyPageViewController {
 
         /// 사용 설명서 표시
         output.showGuide
-            .bind(onNext: {
-                //TODO: 온보딩 화면 구현 후 연결 필요
+            .bind(onNext: { [weak self] in
+                self?.pushGuide()
             })
             .disposed(by: disposeBag)
 
@@ -121,6 +121,12 @@ extension MyPageViewController {
 
 //MARK: - Present
 extension MyPageViewController {
+    /// 사용설명서 화면 이동
+    func pushGuide() {
+        let viewController = OnboardingViewController()
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+
     /// 앱 권한 화면 이동
     func pushPermission() {
         let viewController = MyPagePermissionViewController(
