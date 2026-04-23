@@ -48,6 +48,12 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
         let deleteRecentSearch: Observable<UUID>
         /// 최근 검색어 전체 삭제 이벤트
         let deleteAllRecentSearch: Observable<Void>
+        /// 상품 재고 증가 이벤트
+        let productQuantityIncreased: Observable<Product>
+        /// 상품 재고 차감 이벤트
+        let productQuantityDecreased: Observable<Product>
+        /// 상품 삭제 이벤트
+        let productDeleted: Observable<[UUID]>
     }
 
     struct Output {
@@ -97,6 +103,24 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
                 guard let self else { return }
                 try? self.coreDataManager.deleteAllRecentSearches()
                 self.loadRecentSearches()
+            })
+            .disposed(by: disposeBag)
+
+        input.productQuantityIncreased
+            .subscribe(onNext: { [weak self] product in
+                self?.increaseProductQuantity(product)
+            })
+            .disposed(by: disposeBag)
+
+        input.productQuantityDecreased
+            .subscribe(onNext: { [weak self] product in
+                self?.decreaseProductQuantity(product)
+            })
+            .disposed(by: disposeBag)
+
+        input.productDeleted
+            .subscribe(onNext: { [weak self] productIDs in
+                self?.deleteProducts(productIDs)
             })
             .disposed(by: disposeBag)
 
@@ -283,5 +307,41 @@ private extension StockSearchViewModel {
             .components(separatedBy: .whitespacesAndNewlines)
             .joined()
             .lowercased()
+    }
+}
+
+//MARK: - Quantity
+private extension StockSearchViewModel {
+    /// 상품 재고 1개 증가
+    func increaseProductQuantity(_ product: Product) {
+        do {
+            try coreDataManager.updateProduct(
+                product
+                    .increasedQuantity()
+                    .toPayload()
+            )
+        } catch {
+        }
+    }
+
+    /// 상품 재고 1개 차감
+    func decreaseProductQuantity(_ product: Product) {
+        guard product.quantity > 0 else { return }
+
+        do {
+            try coreDataManager.updateProduct(
+                product
+                    .decreasedQuantity()
+                    .toPayload()
+            )
+        } catch {
+        }
+    }
+
+    /// 상품 삭제
+    func deleteProducts(_ productIDs: [UUID]) {
+        productIDs.forEach {
+            try? coreDataManager.softDeleteProduct(id: $0)
+        }
     }
 }
