@@ -854,3 +854,90 @@ extension CoreDataManager {
         }
     }
 }
+
+extension CoreDataManager {
+    func saveRecentSearch(keyword: String) throws {
+        let trimmed = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        let request = RecentSearchEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "keyword == %@", trimmed)
+        request.fetchLimit = 1
+        
+        if let existing = try context.fetch(request).first {
+            existing.searchedAt = Date()
+        } else {
+            let entity = RecentSearchEntity(context: context)
+            entity.id = UUID()
+            entity.keyword = trimmed
+            entity.searchedAt = Date()
+        }
+        
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+        try trimRecentSearches(limit: 10)
+    }
+    
+    func fetchRecentSearches(limit: Int) throws -> [RecentSearchPayload] {
+        let request = RecentSearchEntity.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "searchedAt", ascending: false)
+        ]
+        request.fetchLimit = limit
+        do {
+            return try context.fetch(request).map {
+                RecentSearchPayload(
+                    id: $0.id,
+                    keyword: $0.keyword,
+                    searchedAt: $0.searchedAt
+                )
+            }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    func deleteRecentSearch(id: UUID) throws {
+        let request = RecentSearchEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        
+        guard let entity = try context.fetch(request).first else { return }
+        context.delete(entity)
+        
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.contextSaveFailed(error)
+        }
+    }
+    
+    func deleteAllRecentSearches() throws {
+        let request = RecentSearchEntity.fetchRequest()
+        do {
+            let entities = try context.fetch(request)
+            entities.forEach { context.delete($0) }
+            try context.save()
+        } catch {
+            throw CoreDataError.contextSaveFailed(error)
+        }
+    }
+    
+    // 최대 보관 개수 초과 시 오래된 항목 삭제용 -> 내부호출용으로 protocol 추상화 x
+    private func trimRecentSearches(limit: Int) throws {
+        let request = RecentSearchEntity.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "searchedAt", ascending: false)
+        ]
+        let all = try context.fetch(request)
+        guard all.count > limit else { return }
+        
+        let toDelete = all[limit...]
+        toDelete.forEach { context.delete($0) }
+        
+        try context.save()
+    }
+}
