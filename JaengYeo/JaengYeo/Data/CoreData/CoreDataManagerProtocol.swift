@@ -7,11 +7,10 @@
 
 import CoreData
 import Foundation
+import RxSwift
 
 protocol CoreDataManagerProtocol {
-    
-    var context: NSManagedObjectContext { get }
-    
+
     //MARK: - Product
     func createProduct(_ payload: ProductPayload) throws
     func fetchProduct(of id: UUID) throws -> ProductPayload
@@ -25,6 +24,10 @@ protocol CoreDataManagerProtocol {
     func createProducts(payloads: [ProductPayload]) throws
     func removeMidCategoryFromProducts(midCategoryId: UUID) throws
     func removeSubCategoryFromProducts(subCategoryId: UUID) throws
+    func observeProducts(
+        predicate: NSPredicate?,
+        sortDescriptors: [NSSortDescriptor]
+    ) -> Observable<[ProductEntity]>
     
     //MARK: - SubCategory
     func createSubCategory(_ payload: SubCategoryPayload) throws
@@ -36,6 +39,10 @@ protocol CoreDataManagerProtocol {
     func updateSubCategorySyncStatus(id: UUID) throws
     func softDeleteSubCategory(id: UUID) throws
     func hardDeleteSubCategory(id: UUID) throws
+    func observeSubCategories(
+        predicate: NSPredicate?,
+        sortDescriptors: [NSSortDescriptor]
+    ) -> Observable<[SubCategoryEntity]>
     
     //MARK: - MidCategory
     func createMidCategory(_ payload: MidCategoryPayload) throws
@@ -47,6 +54,10 @@ protocol CoreDataManagerProtocol {
     func updateMidCategorySyncStatus(id: UUID) throws
     func softDeleteMidCategory(id: UUID) throws
     func hardDeleteMidCategory(id: UUID) throws
+    func observeMidCategories(
+        predicate: NSPredicate?,
+        sortDescriptors: [NSSortDescriptor]
+    ) -> Observable<[MidCategoryEntity]>
     
     
     //MARK: - 메인화면 조회용

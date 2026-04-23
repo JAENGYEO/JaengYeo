@@ -41,11 +41,13 @@ final class CategoryEditViewModel: NSObject, ViewModelProtocol {
             MainCategory.household.rawValue
         ]
     )
+    /// 선택된 메인 카테고리 인덱스
+    private let selectedMainCategoryIndexRelay = BehaviorRelay<Int>(value: 0)
 
-    /// 중분류 조회 컨트롤러
-    private var midCategoryFetchResultController: NSFetchedResultsController<MidCategoryEntity>?
-    /// 소분류 조회 컨트롤러
-    private var subCategoryFetchResultController: NSFetchedResultsController<SubCategoryEntity>?
+    /// 중분류 조회 스트림 해제 가방
+    private var midCategoryObservationDisposeBag = DisposeBag()
+    /// 소분류 조회 스트림 해제 가방
+    private var subCategoryObservationDisposeBag = DisposeBag()
     
     /// 중분류 목록
     private let midCategoriesRelay = BehaviorRelay<[CategoryEditItem]>(value: [])
@@ -57,6 +59,8 @@ final class CategoryEditViewModel: NSObject, ViewModelProtocol {
     struct Input {
         /// 화면 진입 이벤트
         let viewDidLoad: Observable<Void>
+        /// 화면 재진입 이벤트
+        let viewWillAppear: Observable<Int>
         /// 메인 카테고리 선택 이벤트
         let mainCategorySelected: Observable<Int>
         /// 삭제 버튼 선택 이벤트
@@ -78,9 +82,14 @@ final class CategoryEditViewModel: NSObject, ViewModelProtocol {
         input.viewDidLoad
             .subscribe(onNext: { [weak self] in
                 guard let self else { return }
-                self.configureMidCategoryResultController()
-                self.configureSubCategoryResultController()
                 self.updatePredicate(for: 0)
+            })
+            .disposed(by: disposeBag)
+
+        input.viewWillAppear
+            .subscribe(onNext: { [weak self] index in
+                guard let self else { return }
+                self.updatePredicate(for: index)
             })
             .disposed(by: disposeBag)
         
@@ -98,6 +107,9 @@ final class CategoryEditViewModel: NSObject, ViewModelProtocol {
                     try self.deleteCategory(
                         target: target,
                         item: item
+                    )
+                    self.updatePredicate(
+                        for: self.selectedMainCategoryIndexRelay.value
                     )
                 } catch {
                 }
@@ -119,93 +131,63 @@ final class CategoryEditViewModel: NSObject, ViewModelProtocol {
 }
 
 //MARK: - CoreData
-extension CategoryEditViewModel: NSFetchedResultsControllerDelegate {
-    /// 중분류 조회 컨트롤러 구성
-    private func configureMidCategoryResultController() {
-        let request = MidCategoryEntity.fetchRequest()
-        request.sortDescriptors = [
-            NSSortDescriptor(key: MidCategoryEntity.Keys.sortOrder, ascending: true)
-        ]
+private extension CategoryEditViewModel {
+    /// 중분류 조회 스트림 바인딩
+    func bindMidCategories(predicate: NSPredicate?) {
+        midCategoryObservationDisposeBag = DisposeBag()
 
-        let controller = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: coreDataManager.context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        controller.delegate = self
-        midCategoryFetchResultController = controller
-    }
-    
-    /// 소분류 조회 컨트롤러 구성
-    private func configureSubCategoryResultController() {
-        let request = SubCategoryEntity.fetchRequest()
-        request.sortDescriptors = [
-            NSSortDescriptor(key: SubCategoryEntity.Keys.sortOrder, ascending: true)
-        ]
-
-        let controller = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: coreDataManager.context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        controller.delegate = self
-        subCategoryFetchResultController = controller
-    }
-    
-    /// 중분류 아이템 변환 및 반영
-    private func updateMidCategories() {
-        let categories: [CategoryEditItem] = midCategoryFetchResultController?.fetchedObjects?
-            .filter { $0.syncStatus != SyncStatus.pendingDelete.rawValue }
-            .map {
-                makeCategoryEditItem(
-                    id: $0.id,
-                    title: $0.name,
-                    iconName: $0.iconName,
-                    userId: $0.userId
+        coreDataManager.observeMidCategories(
+            predicate: predicate,
+            sortDescriptors: [
+                NSSortDescriptor(
+                    key: MidCategoryEntity.Keys.sortOrder,
+                    ascending: true
                 )
-            } ?? []
-
-        midCategoriesRelay.accept(categories)
+            ]
+        )
+        .map { [weak self] entities -> [CategoryEditItem] in
+            guard let self else { return [] }
+            return entities
+                .map {
+                    self.makeCategoryEditItem(
+                        id: $0.id,
+                        title: $0.name,
+                        iconName: $0.iconName,
+                        userId: $0.userId
+                    )
+                }
+        }
+        .bind(to: midCategoriesRelay)
+        .disposed(by: midCategoryObservationDisposeBag)
     }
     
-    /// 소분류 아이템 변환 및 반영
-    private func updateSubCategories() {
-        let categories: [CategoryEditItem] = subCategoryFetchResultController?.fetchedObjects?
-            .filter { $0.syncStatus != SyncStatus.pendingDelete.rawValue }
-            .map {
-                makeCategoryEditItem(
-                    id: $0.id,
-                    title: $0.name,
-                    iconName: $0.iconName,
-                    userId: $0.userId
+    /// 소분류 조회 스트림 바인딩
+    func bindSubCategories(predicate: NSPredicate?) {
+        subCategoryObservationDisposeBag = DisposeBag()
+
+        coreDataManager.observeSubCategories(
+            predicate: predicate,
+            sortDescriptors: [
+                NSSortDescriptor(
+                    key: SubCategoryEntity.Keys.sortOrder,
+                    ascending: true
                 )
-            } ?? []
-
-        subCategoriesRelay.accept(categories)
-    }
-
-    /// 데이터 조회
-    private func performFetch() {
-        do {
-            try midCategoryFetchResultController?.performFetch()
-            try subCategoryFetchResultController?.performFetch()
-            updateMidCategories()
-            updateSubCategories()
-        } catch {
-
+            ]
+        )
+        .map { [weak self] entities -> [CategoryEditItem] in
+            guard let self else { return [] }
+            return entities
+                .map {
+                    self.makeCategoryEditItem(
+                        id: $0.id,
+                        title: $0.name,
+                        iconName: $0.iconName,
+                        userId: $0.userId
+                    )
+                }
         }
-    }
-    
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        if controller == midCategoryFetchResultController {
-            updateMidCategories()
-        }
-        
-        if controller == subCategoryFetchResultController {
-            updateSubCategories()
-        }
+        .bind(to: subCategoriesRelay)
+        .disposed(by: subCategoryObservationDisposeBag)
     }
     
     /// 메인 카테고리 필터 조건 생성
@@ -222,11 +204,10 @@ extension CategoryEditViewModel: NSFetchedResultsControllerDelegate {
 
     /// 메인 카테고리 필터 적용
     private func updatePredicate(for selectedIndex: Int) {
+        selectedMainCategoryIndexRelay.accept(selectedIndex)
         let mainCategoryPredicate = makeMainCategoryPredicate(for: selectedIndex)
-        midCategoryFetchResultController?.fetchRequest.predicate = mainCategoryPredicate
-        subCategoryFetchResultController?.fetchRequest.predicate = mainCategoryPredicate
-
-        performFetch()
+        bindMidCategories(predicate: mainCategoryPredicate)
+        bindSubCategories(predicate: mainCategoryPredicate)
     }
 
     /// 카테고리 아이템 생성

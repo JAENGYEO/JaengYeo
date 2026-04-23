@@ -16,43 +16,44 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
     //MARK: - Properties
     private let disposeBag = DisposeBag()
     private let coreDataManager: CoreDataManagerProtocol
+    private var productObservationDisposeBag = DisposeBag()
+    private var midCategoryObservationDisposeBag = DisposeBag()
+    private var subCategoryObservationDisposeBag = DisposeBag()
 
-    /// 검색 결과로 보여줄 상품 셀 아이템 목록
+    /// 검색 결과 상품 목록
     private let productsRelay = BehaviorRelay<[ProductCellItem]>(value: [])
-
-    /// 마지막으로 입력된 검색어 저장
+    /// 최근 검색어 목록
+    private let recentSearchesRelay = BehaviorRelay<[RecentSearchPayload]>(value: [])
+    /// 검색 대상 상품 엔티티 목록
+    private let productEntitiesRelay = BehaviorRelay<[ProductEntity]>(value: [])
+    /// 마지막 검색어
     private let latestKeywordRelay = BehaviorRelay<String>(value: "")
 
-    /// 상품 변경 사항을 감지하기 위한 FetchedResultsController
-    private var productFetchResultController: NSFetchedResultsController<ProductEntity>?
-
-    /// 중분류 ID -> 이름 매핑 캐시
-    private lazy var midCategoryNames: [UUID: String] = fetchMidCategoryNames()
-
-    /// 소분류 ID -> 이름 매핑 캐시
-    private lazy var subCategoryNames: [UUID: String] = fetchSubCategoryNames()
-    
-    /// 소분류 ID -> 이미지 매핑 캐시
-    private lazy var subCategoryImages: [UUID: UIImage] = fetchSubCategoryImages()
-    
-    private let recentSearchesSubject = BehaviorSubject<[RecentSearchPayload]>(value: [])
+    /// 중분류 이름 매핑
+    private var midCategoryNames: [UUID: String] = [:]
+    /// 소분류 이름 매핑
+    private var subCategoryNames: [UUID: String] = [:]
+    /// 소분류 이미지 매핑
+    private var subCategoryImages: [UUID: UIImage] = [:]
 
     //MARK: - React Binding
     struct Input {
-        /// 화면 진입 시점 이벤트
+        /// 화면 진입 이벤트
         let viewDidLoad: Observable<Void>
-
         /// 검색어 입력 이벤트
         let searchText: Observable<String>
-        
+        /// 검색 버튼 선택 이벤트
         let searchButtonTapped: Observable<String>
+        /// 최근 검색어 개별 삭제 이벤트
         let deleteRecentSearch: Observable<UUID>
+        /// 최근 검색어 전체 삭제 이벤트
         let deleteAllRecentSearch: Observable<Void>
     }
 
     struct Output {
         /// 검색 결과 상품 목록
         let products: Observable<[ProductCellItem]>
+        /// 최근 검색어 목록
         let recentSearches: Observable<[RecentSearchPayload]>
     }
 
@@ -60,11 +61,9 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
         input.viewDidLoad
             .subscribe(onNext: { [weak self] in
                 guard let self else { return }
-                self.configureProductResultController()
-                self.midCategoryNames = fetchMidCategoryNames()
-                self.subCategoryNames = fetchSubCategoryNames()
-                self.subCategoryImages = fetchSubCategoryImages()
-                self.performFetch()
+                self.bindProducts()
+                self.bindMidCategories()
+                self.bindSubCategories()
                 self.loadRecentSearches()
             })
             .disposed(by: disposeBag)
@@ -72,38 +71,38 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
         input.searchText
             .distinctUntilChanged()
             .subscribe(onNext: { [weak self] text in
-                /// 현재 검색어 저장
                 self?.latestKeywordRelay.accept(text)
-
-                /// 검색어 기준으로 결과 갱신
-                self?.updateProduct(keyword: text)
+                self?.updateProducts(keyword: text)
             })
             .disposed(by: disposeBag)
-        
+
         input.searchButtonTapped
             .subscribe(onNext: { [weak self] keyword in
-                try? self?.coreDataManager.saveRecentSearch(keyword: keyword)
-                self?.loadRecentSearches()
-                
+                guard let self else { return }
+                try? self.coreDataManager.saveRecentSearch(keyword: keyword)
+                self.loadRecentSearches()
             })
             .disposed(by: disposeBag)
-        
+
         input.deleteRecentSearch
             .subscribe(onNext: { [weak self] id in
-                try? self?.coreDataManager.deleteRecentSearch(id: id)
-                self?.loadRecentSearches()
+                guard let self else { return }
+                try? self.coreDataManager.deleteRecentSearch(id: id)
+                self.loadRecentSearches()
             })
             .disposed(by: disposeBag)
+
         input.deleteAllRecentSearch
             .subscribe(onNext: { [weak self] in
-                try? self?.coreDataManager.deleteAllRecentSearches()
-                self?.loadRecentSearches()
+                guard let self else { return }
+                try? self.coreDataManager.deleteAllRecentSearches()
+                self.loadRecentSearches()
             })
             .disposed(by: disposeBag)
 
         return Output(
             products: productsRelay.asObservable(),
-            recentSearches: recentSearchesSubject.asObservable()
+            recentSearches: recentSearchesRelay.asObservable()
         )
     }
 
@@ -114,85 +113,133 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
     }
 }
 
-//MARK: - FRC
-extension StockSearchViewModel: NSFetchedResultsControllerDelegate {
-    /// 상품 FRC 구성
-    /// 여기서는 fetchRequest와 delegate만 연결하고,
-    /// 실제 데이터 조회는 performFetch()에서 수행
-    private func configureProductResultController() {
-        let request = ProductEntity.fetchRequest()
-        request.sortDescriptors = [
-            NSSortDescriptor(
-                key: ProductEntity.Keys.createdAt,
-                ascending: false
-            )
-        ]
+//MARK: - CoreData Stream
+private extension StockSearchViewModel {
+    /// 상품 조회 스트림 바인딩
+    func bindProducts() {
+        productObservationDisposeBag = DisposeBag()
 
-        let controller = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: coreDataManager.context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
+        coreDataManager.observeProducts(
+            predicate: nil,
+            sortDescriptors: [
+                NSSortDescriptor(
+                    key: ProductEntity.Keys.createdAt,
+                    ascending: false
+                )
+            ]
         )
-
-        controller.delegate = self
-        productFetchResultController = controller
+        .subscribe(onNext: { [weak self] products in
+            guard let self else { return }
+            self.productEntitiesRelay.accept(products)
+            self.updateProducts(keyword: self.latestKeywordRelay.value)
+        })
+        .disposed(by: productObservationDisposeBag)
     }
 
-    /// 검색어 기준으로 상품 목록 갱신
-    ///
-    /// 우선순위:
-    /// 1. 상품명(name)에 검색어 포함
-    /// 2. 중분류명(midCategory)에 검색어 포함
-    /// 3. 소분류명(subCategory)에 검색어 포함
-    private func updateProduct(keyword: String) {
-        let trimmedkeyword = keyword.trimmingCharacters(
+    /// 중분류 조회 스트림 바인딩
+    func bindMidCategories() {
+        midCategoryObservationDisposeBag = DisposeBag()
+
+        coreDataManager.observeMidCategories(
+            predicate: nil,
+            sortDescriptors: [
+                NSSortDescriptor(
+                    key: MidCategoryEntity.Keys.sortOrder,
+                    ascending: true
+                )
+            ]
+        )
+        .subscribe(onNext: { [weak self] categories in
+            guard let self else { return }
+            self.midCategoryNames = categories.reduce(into: [UUID: String]()) {
+                $0[$1.id] = $1.name
+            }
+            self.updateProducts(keyword: self.latestKeywordRelay.value)
+        })
+        .disposed(by: midCategoryObservationDisposeBag)
+    }
+
+    /// 소분류 조회 스트림 바인딩
+    func bindSubCategories() {
+        subCategoryObservationDisposeBag = DisposeBag()
+
+        coreDataManager.observeSubCategories(
+            predicate: nil,
+            sortDescriptors: [
+                NSSortDescriptor(
+                    key: SubCategoryEntity.Keys.sortOrder,
+                    ascending: true
+                )
+            ]
+        )
+        .subscribe(onNext: { [weak self] categories in
+            guard let self else { return }
+
+            self.subCategoryNames = categories.reduce(into: [UUID: String]()) {
+                $0[$1.id] = $1.name
+            }
+
+            self.subCategoryImages = categories.reduce(into: [UUID: UIImage]()) {
+                guard let iconName = $1.iconName,
+                      let image = UIImage(named: iconName)
+                else { return }
+                $0[$1.id] = image
+            }
+
+            self.updateProducts(keyword: self.latestKeywordRelay.value)
+        })
+        .disposed(by: subCategoryObservationDisposeBag)
+    }
+
+    /// 최근 검색어 조회
+    func loadRecentSearches() {
+        let searches = (try? coreDataManager.fetchRecentSearches(limit: 10)) ?? []
+        recentSearchesRelay.accept(searches)
+    }
+}
+
+//MARK: - Update Products
+private extension StockSearchViewModel {
+    /// 검색어 기준 상품 목록 갱신
+    func updateProducts(keyword: String) {
+        let trimmedKeyword = keyword.trimmingCharacters(
             in: .whitespacesAndNewlines
         )
 
-        /// 빈 검색어면 결과 비움
-        guard !trimmedkeyword.isEmpty else {
+        guard !trimmedKeyword.isEmpty else {
             productsRelay.accept([])
             return
         }
 
-        /// 공백 제거 + 소문자 변환한 검색어
-        let normalizedKeyword = normalizedSearchText(trimmedkeyword)
+        let normalizedKeyword = normalizedSearchText(trimmedKeyword)
 
-        let products: [ProductCellItem] = productFetchResultController?
-            .fetchedObjects?
-            .compactMap { entity -> (priority: Int, item: ProductCellItem)? in
+        let products: [ProductCellItem] = productEntitiesRelay.value
+            .compactMap { [weak self] entity -> (priority: Int, item: ProductCellItem)? in
+                guard let self else { return nil }
+
                 let product = entity.toDomain
-
-                /// 상품에 연결된 중분류/소분류 이름 조회
                 let midCategoryName = product.midCategoryId.flatMap {
-                    midCategoryNames[$0]
+                    self.midCategoryNames[$0]
                 }
                 let subCategoryName = product.subCategoryId.flatMap {
-                    subCategoryNames[$0]
+                    self.subCategoryNames[$0]
                 }
                 let subCategoryImage = product.subCategoryId.flatMap {
-                    subCategoryImages[$0]
+                    self.subCategoryImages[$0]
                 }
 
-                /// 비교용 문자열 정규화
                 let normalizedName = normalizedSearchText(product.name)
                 let normalizedMid = midCategoryName.map {
-                    normalizedSearchText($0)
+                    self.normalizedSearchText($0)
                 }
                 let normalizedSub = subCategoryName.map {
-                    normalizedSearchText($0)
+                    self.normalizedSearchText($0)
                 }
 
-                /// 우선순위별 매칭 여부 확인
                 let nameMatch = normalizedName.contains(normalizedKeyword)
-                let midMatch =
-                    normalizedMid?.contains(normalizedKeyword) ?? false
-                let subMatch =
-                    normalizedSub?.contains(normalizedKeyword) ?? false
+                let midMatch = normalizedMid?.contains(normalizedKeyword) ?? false
+                let subMatch = normalizedSub?.contains(normalizedKeyword) ?? false
 
-                /// 매칭 우선순위 결정
-                /// 상품명 > 중분류 > 소분류 순
                 let priority: Int?
                 if nameMatch {
                     priority = 0
@@ -204,7 +251,6 @@ extension StockSearchViewModel: NSFetchedResultsControllerDelegate {
                     priority = nil
                 }
 
-                /// 어떤 조건에도 맞지 않으면 결과 제외
                 guard let priority else { return nil }
 
                 let item = ProductCellItem(
@@ -217,105 +263,25 @@ extension StockSearchViewModel: NSFetchedResultsControllerDelegate {
                 return (priority, item)
             }
             .sorted {
-                /// 우선순위 오름차순 정렬
-                if $0.priority !=  $1.priority {
+                if $0.priority != $1.priority {
                     return $0.priority < $1.priority
                 }
 
-                /// 같은 우선순위 내에서는 최신 등록순 정렬
                 return $0.item.product.createdAt > $1.item.product.createdAt
             }
-            .map { $0.item } ?? []
+            .map { $0.item }
 
         productsRelay.accept(products)
     }
-
-    /// fetch 수행
-    private func performFetch() {
-        do {
-            try productFetchResultController?.performFetch()
-        } catch {
-
-        }
-    }
-
-    /// CoreData 변경 감지 시 호출
-    /// 상세 화면에서 상품 수정 후 저장되면 여기로 들어올 수 있음
-    func controllerDidChangeContent(
-        _ controller: NSFetchedResultsController<NSFetchRequestResult>
-    ) {
-        /// 카테고리 캐시 갱신
-        self.midCategoryNames = fetchMidCategoryNames()
-        self.subCategoryNames = fetchSubCategoryNames()
-        self.subCategoryImages = fetchSubCategoryImages()
-
-        /// 마지막 검색어 기준으로 다시 필터링
-        updateProduct(keyword: latestKeywordRelay.value)
-    }
 }
 
-//MARK: - Action
-extension StockSearchViewModel {
+//MARK: - Normalized Text
+private extension StockSearchViewModel {
     /// 문자열 정규화
-    private func normalizedSearchText(_ text: String) -> String {
+    func normalizedSearchText(_ text: String) -> String {
         text
             .components(separatedBy: .whitespacesAndNewlines)
             .joined()
             .lowercased()
-    }
-}
-
-//MARK: - CoreData
-extension StockSearchViewModel {
-    /// 중분류 이름 조회
-    private func fetchMidCategoryNames() -> [UUID: String] {
-        let request = MidCategoryEntity.fetchRequest()
-
-        do {
-            return try coreDataManager.context.fetch(request)
-                .reduce(into: [UUID: String]()) {
-                    $0[$1.id] = $1.name
-                }
-        } catch {
-            return [:]
-        }
-    }
-
-    /// 소분류 이름 조회
-    private func fetchSubCategoryNames() -> [UUID: String] {
-        let request = SubCategoryEntity.fetchRequest()
-
-        do {
-            return try coreDataManager.context.fetch(request)
-                .reduce(into: [UUID: String]()) {
-                    $0[$1.id] = $1.name
-                }
-        } catch {
-            return [:]
-        }
-    }
-    
-    /// 소분류 이미지 조회
-    private func fetchSubCategoryImages() -> [UUID: UIImage] {
-        let request = SubCategoryEntity.fetchRequest()
-
-        do {
-            return try coreDataManager.context.fetch(request)
-                .reduce(into: [UUID: UIImage]()) {
-                    guard let iconName = $1.iconName,
-                          let image = UIImage(named: iconName)
-                    else { return }
-                    $0[$1.id] = image
-                }
-        } catch {
-            return [:]
-        }
-    }
-}
-
-extension StockSearchViewModel {
-    private func loadRecentSearches() {
-        let searches = (try? coreDataManager.fetchRecentSearches(limit: 10)) ?? []
-        recentSearchesSubject.onNext(searches)
     }
 }
