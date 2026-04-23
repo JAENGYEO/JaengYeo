@@ -231,8 +231,11 @@ extension RegisterDetailView {
             $0.leading.trailing.bottom.equalToSuperview()
             $0.top.equalTo(confirmButton.snp.top).offset(-8)
         }
+        
+        keyboardLayoutGuide.usesBottomSafeArea = true
         confirmButton.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(16)
+    
             $0.bottom.equalTo(keyboardLayoutGuide.snp.top).offset(-8)
             $0.height.equalTo(48)
         }
