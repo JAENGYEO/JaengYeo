@@ -236,6 +236,7 @@ private extension CategoryEditDetailViewController {
 
     /// UI 설정
     func configureUI() {
+        view.keyboardLayoutGuide.usesBottomSafeArea = true
         view.backgroundColor = .white
 
         view.addSubview(inputContainerView)
@@ -281,14 +282,14 @@ private extension CategoryEditDetailViewController {
             confirmButton.snp.makeConstraints {
                 $0.leading.equalToSuperview().offset(16)
                 $0.trailing.equalToSuperview().inset(16)
-                $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(16)
+                $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-16)
                 $0.height.equalTo(44)
             }
             
         case .edit:
             deleteButton.snp.makeConstraints {
                 $0.leading.equalToSuperview().offset(24)
-                $0.bottom.equalTo(view.safeAreaLayoutGuide).inset(16)
+                $0.bottom.equalTo(view.keyboardLayoutGuide.snp.top).offset(-16)
                 $0.width.equalTo(82)
                 $0.height.equalTo(44)
             }

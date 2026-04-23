@@ -52,6 +52,8 @@ final class CategoryEditViewController: BaseViewController {
     private let disposeBag = DisposeBag()
     /// 삭제할 분류 전달
     private let deleteItemSelectedRelay = PublishRelay<(CategoryEditTarget, CategoryEditItem)>()
+    /// 화면 재진입 전달
+    private let viewWillAppearRelay = PublishRelay<Void>()
     private lazy var dataSource = configureDataSource()
     weak var delegate: CategoryEditViewControllerDelegate?
 
@@ -99,6 +101,11 @@ final class CategoryEditViewController: BaseViewController {
         configureUI()
         bind()
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewWillAppearRelay.accept(())
+    }
 }
 
 //MARK: - Bind
@@ -106,6 +113,11 @@ private extension CategoryEditViewController {
     func bind() {
         let input = CategoryEditViewModel.Input(
             viewDidLoad: Observable.just(()),
+            viewWillAppear: viewWillAppearRelay
+                .map { [weak self] in
+                    self?.mainCategorySegment.selectedSegmentIndex ?? 0
+                }
+                .filter { $0 >= 0 },
             mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
                 .asObservable()
                 .filter { $0 >= 0 },
