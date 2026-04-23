@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+struct RecentSearchPayload: Hashable {
+    let id: UUID
+    let keyword: String
+    let searchedAt: Date
+}
