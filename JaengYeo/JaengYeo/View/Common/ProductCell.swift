@@ -33,6 +33,8 @@ final class ProductCell: UICollectionViewListCell{
 
     // MARK: - Properties
     private var disposeBag = DisposeBag()
+    private var mainStackTrailingToCountConstraint: Constraint?
+    private var mainStackTrailingToUpDownConstraint: Constraint?
 
     private var cellType: ProductCellType = .defaultType {
         didSet {
@@ -66,6 +68,8 @@ final class ProductCell: UICollectionViewListCell{
                 productCountView.isHidden = true
                 upDownCountView.isHidden = true
             }
+
+            updateMainStackTrailingConstraint()
         }
     }
     
@@ -175,6 +179,8 @@ final class ProductCell: UICollectionViewListCell{
             freshness: nil,
             texts: nil
         )
+        
+        updateMainStackTrailingConstraint()
     }
 }
 
@@ -209,13 +215,20 @@ extension ProductCell {
             productCountView.isHidden = true
             upDownCountView.isHidden = false
             upDownCountView.updateUI(count: count)
-        } else if cellType != .unclassifiedType || cellType != .registType {
-            productCountLabel.text = count.map { String($0) } ?? "0"
-            productCountView.isHidden = false
-            upDownCountView.isHidden = true
         } else {
-            productCountView.isHidden = true
-            upDownCountView.isHidden = true
+            switch cellType {
+            case .detailType:
+                productCountLabel.text = count.map { String($0) } ?? "0"
+                productCountView.isHidden = false
+                upDownCountView.isHidden = true
+
+            case .registType, .unclassifiedType:
+                productCountView.isHidden = true
+                upDownCountView.isHidden = true
+
+            case .defaultType, .homeType:
+                break
+            }
         }
         
         if cellType == .detailType || cellType == .registType {
@@ -225,6 +238,8 @@ extension ProductCell {
                 texts: subdescriptions,
             )
         }
+
+        updateMainStackTrailingConstraint()
 
     }
 
@@ -255,6 +270,16 @@ extension ProductCell {
 
 // MARK: - Update
 private extension ProductCell {
+    /// 우측 컴포넌트에 맞게 메인 스택 최대 너비 갱신
+    func updateMainStackTrailingConstraint() {
+        if usesUpDownCountView {
+            mainStackTrailingToCountConstraint?.deactivate()
+            mainStackTrailingToUpDownConstraint?.activate()
+        } else {
+            mainStackTrailingToUpDownConstraint?.deactivate()
+            mainStackTrailingToCountConstraint?.activate()
+        }
+    }
     
     /// 설명 스택에 삽입될 텍스트 라벨 제작 메소드
     private func updateDescriptionStack(
@@ -345,9 +370,16 @@ private extension ProductCell {
         productMainStack.snp.makeConstraints {
             $0.top.equalTo(contentView).offset(12)
             $0.bottom.equalTo(contentView).inset(12)
-            $0.leading.equalTo(contentView).offset(8)
-            $0.trailing.lessThanOrEqualTo(productCountView.snp.leading).offset(-12)
+            $0.leading.equalTo(contentView).offset(16)
             $0.height.equalTo(64)
+            mainStackTrailingToCountConstraint = $0.trailing
+                .lessThanOrEqualTo(productCountView.snp.leading)
+                .offset(-12)
+                .constraint
+            mainStackTrailingToUpDownConstraint = $0.trailing
+                .lessThanOrEqualTo(upDownCountView.snp.leading)
+                .offset(-12)
+                .constraint
         }
         
         productCountView.snp.makeConstraints {
@@ -381,5 +413,7 @@ private extension ProductCell {
             $0.trailing.equalToSuperview()
             $0.centerY.equalToSuperview()
         }
+        
+        updateMainStackTrailingConstraint()
     }
 }

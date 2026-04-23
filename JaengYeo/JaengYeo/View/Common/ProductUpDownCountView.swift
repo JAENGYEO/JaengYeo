@@ -103,7 +103,7 @@ private extension ProductUpDownCountView {
         relay: PublishRelay<Void>
     ) {
         let longPress = UILongPressGestureRecognizer()
-        longPress.minimumPressDuration = 0.35
+        longPress.minimumPressDuration = 0.20
         button.addGestureRecognizer(longPress)
 
         longPress.rx.event
@@ -126,7 +126,7 @@ private extension ProductUpDownCountView {
         relay.accept(())
 
         repeatTimer = Timer.scheduledTimer(
-            withTimeInterval: 0.07,
+            withTimeInterval: 0.15,
             repeats: true
         ) { _ in
             relay.accept(())
