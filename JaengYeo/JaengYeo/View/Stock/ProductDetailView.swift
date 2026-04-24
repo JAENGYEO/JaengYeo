@@ -28,18 +28,24 @@ final class ProductDetailView: UIView {
         $0.text = "상품명"
         $0.numberOfLines = 1
         $0.lineBreakMode = .byTruncatingTail
+        $0.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
+        $0.setContentHuggingPriority(.defaultLow, for: .horizontal)
     }
     
     let countLabel = StyledLabel(
         config: LabelConfiguration.titleBold28.updatingColor(color: .accent)
     ).then {
         $0.text = "00"
+        $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+        $0.setContentHuggingPriority(.required, for: .horizontal)
     }
     
     let countTitleLabel = StyledLabel(
         config: LabelConfiguration.titleSemi20.updatingColor(color: .gray500))
         .then {
             $0.text = "개"
+            $0.setContentCompressionResistancePriority(.required, for: .horizontal)
+            $0.setContentHuggingPriority(.required, for: .horizontal)
         }
 
     let scrollView = UIScrollView().then {
@@ -235,7 +241,7 @@ extension ProductDetailView {
         productNameLabel.snp.makeConstraints {
             $0.centerY.equalToSuperview()
             $0.leading.equalTo(productImageView.snp.trailing).offset(8)
-            $0.trailing.lessThanOrEqualTo(countLabel.snp.leading).offset(-8)
+            $0.trailing.lessThanOrEqualTo(countLabel.snp.leading).offset(-8).priority(999)
         }
         
         countTitleLabel.snp.makeConstraints {
