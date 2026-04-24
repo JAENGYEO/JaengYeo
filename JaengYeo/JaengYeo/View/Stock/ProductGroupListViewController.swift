@@ -113,6 +113,8 @@ private extension ProductGroupListViewController {
 private extension ProductGroupListViewController {
     /// 상품 수량 증가
     func increaseItem(_ item: ProductCellItem) {
+        guard item.product.quantity < Product.maxQuantity else { return }
+
         let updatedProduct = item.product.increasedQuantity()
         onIncrease?(updatedProduct)
         updateItem(productID: item.product.id, product: updatedProduct)
