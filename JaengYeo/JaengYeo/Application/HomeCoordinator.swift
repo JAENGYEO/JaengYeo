@@ -109,7 +109,7 @@ extension HomeCoordinator {
     
     private func pushMyPage() {
         let viewController = MyPageViewController(
-            viewModel: MyPageViewModel(authManager: authManager)
+            viewModel: MyPageViewModel(authManager: authManager, coreDataManager: coreDataManager)
         )
         viewController.delegate = self
         navigationController.pushViewController(viewController, animated: true)

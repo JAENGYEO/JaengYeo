@@ -13,4 +13,5 @@ protocol AuthManagerProtocol {
     func restoreSession() async -> Bool
     func signInWithApple(idToken: String, nonce: String) async throws
     func signOut() async throws
+    func deleteAccount() async throws
 }
