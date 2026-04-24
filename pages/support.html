@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>쟁여 - 내 손 안에 작은 우리 집</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 560px;
+            width: 100%;
+            padding: 48px 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .app-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 26px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .app-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+        }
+
+        .app-tagline {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .section {
+            background: #fff;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 16px;
+        }
+
+        .section p {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .section h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #555;
+            padding: 3px 0;
+            padding-left: 12px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "·";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: 700;
+        }
+
+        .feature-group {
+            margin-bottom: 20px;
+        }
+
+        .feature-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .feature-group h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .link-button {
+            display: block;
+            padding: 14px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            text-align: center;
+            transition: opacity 0.2s;
+        }
+
+        .link-button:hover {
+            opacity: 0.85;
+        }
+
+        .link-primary {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+
+        .link-secondary {
+            background-color: #fff;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            font-size: 13px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://raw.githubusercontent.com/JAENGYEO/JaengYeo/main/JaengYeo/JaengYeo/Assets.xcassets/AppIcon.appiconset/4%20%E2%80%93%20Layer.png" alt="쟁여 앱 아이콘" class="app-icon">
+            <h1 class="app-name">쟁여</h1>
+            <p class="app-tagline">내 손 안에 작은 우리 집</p>
+        </div>
+
+        <div class="section">
+            <p>
+                집에 뭐가 있는지 몰라 같은 물건을 또 산 적 있나요?<br>
+                냉장고 속 식재료의 소비기한을 놓치거나, 생활용품이 떨어진 뒤에야 알게 된 적 있나요?<br><br>
+                쟁여는 식재료와 생활용품을 쉽고 빠르게 등록하고, 한눈에 확인할 수 있도록 도와주는 통합 재고 관리 앱입니다.<br><br>
+                바코드 스캔, 영수증 인식, AI 이미지 분석을 통해 상품을 빠르게 등록할 수 있으며, 등록 전 상품 정보를 직접 확인하고 수정할 수 있습니다. 등록한 상품은 식재료와 생활용품으로 나누어 관리하고, 소비기한과 재고 수량, 분류 정보를 기준으로 필요한 물건을 쉽게 찾을 수 있습니다.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>주요 기능</h2>
+
+            <div class="feature-group">
+                <h3>빠른 상품 등록</h3>
+                <ul class="feature-list">
+                    <li>바코드 스캔으로 상품 정보 자동 입력</li>
+                    <li>영수증 촬영으로 여러 상품 한 번에 등록</li>
+                    <li>AI 사물인식으로 간편한 식재료 등록</li>
+                    <li>등록 전 상품 정보 확인 및 수정</li>
+                </ul>
+            </div>
+
+            <div class="feature-group">
+                <h3>식재료 / 생활용품 통합 재고 관리</h3>
+                <ul class="feature-list">
+                    <li>식재료와 생활용품을 한 앱에서 분리 관리</li>
+                    <li>소비기한과 재고 수량을 함께 확인</li>
+                    <li>최신순, 소비기한순, 재고순 정렬</li>
+                </ul>
+            </div>
+
+            <div class="feature-group">
+                <h3>같은 상품 그룹 관리</h3>
+                <ul class="feature-list">
+                    <li>같은 이름의 상품 자동 그룹화</li>
+                    <li>소비기한이 가장 가까운 상품을 대표로 표시</li>
+                    <li>그룹 내 개별 상품을 소비기한 순으로 확인</li>
+                </ul>
+            </div>
+
+            <div class="feature-group">
+                <h3>맞춤 분류 관리</h3>
+                <ul class="feature-list">
+                    <li>중분류 / 소분류 기반 상품 정리</li>
+                    <li>사용자 지정 분류 추가 및 수정</li>
+                    <li>분류별 아이콘 설정</li>
+                </ul>
+            </div>
+
+            <div class="feature-group">
+                <h3>알림 지원</h3>
+                <ul class="feature-list">
+                    <li>소비기한 임박 알림으로 식재료 낭비 방지</li>
+                    <li>재고 부족 알림으로 필요한 물건 놓치지 않기</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>이런 분께 추천합니다</h2>
+            <ul class="feature-list">
+                <li>장보기 전에 집에 있는 물건을 빠르게 확인하고 싶은 분</li>
+                <li>냉장고 속 식재료의 소비기한을 자주 놓치는 분</li>
+                <li>생필품이 떨어져서 급하게 사러 가는 분</li>
+                <li>같은 상품을 여러 번 구매해 재고가 헷갈리는 분</li>
+                <li>식재료와 생활용품을 한 곳에서 체계적으로 관리하고 싶은 분</li>
+            </ul>
+        </div>
+
+        <div class="links">
+            <a href="https://jaengyeo.github.io/JaengYeo/pages/privacy-policy" class="link-button link-secondary">
+                개인정보 처리방침
+            </a>
+            <a href="mailto:sonyoungbin2@naver.com" class="link-button link-primary">
+                문의하기
+            </a>
+        </div>
+
+        <p class="footer">&copy; 2026 쟁여. All rights reserved.</p>
+    </div>
+</body>
+</html>
