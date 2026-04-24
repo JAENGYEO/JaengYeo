@@ -118,7 +118,7 @@ final class MyPageViewModel: ViewModelProtocol {
 
     //MARK: - Properties
     private let disposeBag = DisposeBag()
-    private let supportEmail = "your@email.com"
+    private let supportEmail = "jaengyeo09@gmail.com"
     private let authManager: AuthManagerProtocol
     
     init(authManager: AuthManagerProtocol) {
