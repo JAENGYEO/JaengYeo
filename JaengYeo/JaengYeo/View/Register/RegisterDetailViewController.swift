@@ -21,6 +21,15 @@ protocol RegisterDetailViewControllerDelegate: AnyObject {
 
 final class RegisterDetailViewController: BaseViewController {
 
+    //MARK: - Input Limit
+    private enum InputLimit {
+        static let productName = 20
+        static let brand = 20
+        static let caution = 100
+        static let memo = 100
+        static let quantity = 999
+    }
+
     override var handlesKeyboardInset: Bool { false }
 
     weak var delegate: RegisterDetailViewControllerDelegate?
@@ -73,11 +82,20 @@ final class RegisterDetailViewController: BaseViewController {
         configNavigationBar()
         restoreFields()
         configPhotoButton()
+        configureInputValidation()
         bind()
     }
 }
 
 extension RegisterDetailViewController {
+    private func configureInputValidation() {
+        mainView.nameField.delegate = self
+        mainView.quantityField.delegate = self
+        mainView.cautionField.delegate = self
+        mainView.brandField.delegate = self
+        mainView.memoField.delegate = self
+    }
+
     private func configNavigationBar() {
         navigationItem.title = viewModel.item.name ?? "상세 입력"
         let appearance = UINavigationBarAppearance()
@@ -108,6 +126,111 @@ extension RegisterDetailViewController {
             mainView.photoButton.clipsToBounds = true
             mainView.photoButton.layer.cornerRadius = 8
         }
+    }
+}
+
+//MARK: - UITextFieldDelegate
+extension RegisterDetailViewController: UITextFieldDelegate {
+    func textField(
+        _ textField: UITextField,
+        shouldChangeCharactersIn range: NSRange,
+        replacementString string: String
+    ) -> Bool {
+        if textField == mainView.quantityField {
+            return validateNumericInput(
+                currentText: textField.text,
+                range: range,
+                replacementString: string
+            )
+        }
+
+        if textField == mainView.nameField {
+            return validateTextLength(
+                currentText: textField.text,
+                range: range,
+                replacementString: string,
+                maxLength: InputLimit.productName
+            )
+        }
+
+        if textField == mainView.brandField {
+            return validateTextLength(
+                currentText: textField.text,
+                range: range,
+                replacementString: string,
+                maxLength: InputLimit.brand
+            )
+        }
+
+        if textField == mainView.cautionField {
+            return validateTextLength(
+                currentText: textField.text,
+                range: range,
+                replacementString: string,
+                maxLength: InputLimit.caution
+            )
+        }
+
+        if textField == mainView.memoField {
+            return validateTextLength(
+                currentText: textField.text,
+                range: range,
+                replacementString: string,
+                maxLength: InputLimit.memo
+            )
+        }
+
+        return true
+    }
+
+    private func validateTextLength(
+        currentText: String?,
+        range: NSRange,
+        replacementString string: String,
+        maxLength: Int
+    ) -> Bool {
+        guard let currentText else { return string.count <= maxLength }
+
+        let updatedText = (currentText as NSString).replacingCharacters(
+            in: range,
+            with: string
+        )
+        return updatedText.count <= maxLength
+    }
+
+    private func validateNumericInput(
+        currentText: String?,
+        range: NSRange,
+        replacementString string: String
+    ) -> Bool {
+        if string.isEmpty {
+            return true
+        }
+
+        // Prevent pasting into numeric-only input.
+        if string.count > 1 {
+            return false
+        }
+
+        let allowedCharacterSet = CharacterSet.decimalDigits
+        guard string.rangeOfCharacter(from: allowedCharacterSet.inverted) == nil else {
+            return false
+        }
+
+        guard let currentText else { return true }
+        let updatedText = (currentText as NSString).replacingCharacters(
+            in: range,
+            with: string
+        )
+        guard updatedText.rangeOfCharacter(from: allowedCharacterSet.inverted) == nil else {
+            return false
+        }
+
+        guard let value = Int(updatedText) else {
+            return false
+        }
+
+        return value <= InputLimit.quantity
     }
 }
 

@@ -13,6 +13,11 @@ import RxSwift
 
 final class CategoryEditDetailViewController: BaseViewController {
 
+    //MARK: - Input Limit
+    private enum InputLimit {
+        static let categoryName = 10
+    }
+
     //MARK: - Properties
     /// 편집 모드
     private let mode: CategoryEditMode
@@ -42,7 +47,7 @@ final class CategoryEditDetailViewController: BaseViewController {
     private let nameTextField = UITextField().then {
         $0.font = LabelConfiguration.bodyMedium14.font
         $0.textColor = .gray800
-        $0.placeholder = "분류 이름을 입력해주세요"
+        $0.placeholder = "분류 이름을 입력해주세요. (최대 10자)"
     }
 
     /// 입력 필드 하단 라인
@@ -83,6 +88,7 @@ final class CategoryEditDetailViewController: BaseViewController {
         configureNavigationBar()
         configureUI()
         configureData()
+        configureInputValidation()
         configureKeyboardDismiss()
         bind()
     }
@@ -90,6 +96,11 @@ final class CategoryEditDetailViewController: BaseViewController {
 
 //MARK: - Bind
 private extension CategoryEditDetailViewController {
+    /// 입력 제한 설정
+    func configureInputValidation() {
+        nameTextField.delegate = self
+    }
+
     func bind() {
         let confirmRelay = PublishRelay<Void>()
         let deleteConfirmedRelay = PublishRelay<Void>()
@@ -161,6 +172,25 @@ private extension CategoryEditDetailViewController {
                 self?.presentCategoryIcons()
             })
             .disposed(by: disposeBag)
+    }
+}
+
+//MARK: - UITextFieldDelegate
+extension CategoryEditDetailViewController: UITextFieldDelegate {
+    func textField(
+        _ textField: UITextField,
+        shouldChangeCharactersIn range: NSRange,
+        replacementString string: String
+    ) -> Bool {
+        guard textField == nameTextField else { return true }
+
+        let currentText = textField.text ?? ""
+        let updatedText = (currentText as NSString).replacingCharacters(
+            in: range,
+            with: string
+        )
+
+        return updatedText.count <= InputLimit.categoryName
     }
 }
 

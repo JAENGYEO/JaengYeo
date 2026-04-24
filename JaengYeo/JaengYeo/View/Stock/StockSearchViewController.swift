@@ -20,6 +20,11 @@ protocol StockSearchViewControllerDelegate: AnyObject {
 
 final class StockSearchViewController: BaseViewController {
 
+    //MARK: - Input Limit
+    private enum InputLimit {
+        static let searchKeyword = 20
+    }
+
     //MARK: - Enum
     private enum Section {
         case recentSearch
@@ -60,7 +65,7 @@ final class StockSearchViewController: BaseViewController {
 
     /// 검색바
     private let searchBar = UISearchBar().then {
-        $0.placeholder = "키워드 입력"
+        $0.placeholder = "키워드 입력 (최대 20자)"
         $0.searchBarStyle = .minimal
         $0.returnKeyType = .search
         $0.backgroundImage = UIImage()
@@ -99,6 +104,7 @@ final class StockSearchViewController: BaseViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
+        configureInputValidation()
         bind()
     }
 
@@ -120,6 +126,10 @@ final class StockSearchViewController: BaseViewController {
 
 //MARK: - Binding
 private extension StockSearchViewController {
+    func configureInputValidation() {
+        searchBar.delegate = self
+    }
+
     func bind() {
         
         let searchText = searchBar.rx.text.orEmpty
@@ -177,6 +187,23 @@ private extension StockSearchViewController {
                 self?.selectProduct(item)
             })
             .disposed(by: disposeBag)
+    }
+}
+
+//MARK: - UISearchBarDelegate
+extension StockSearchViewController: UISearchBarDelegate {
+    func searchBar(
+        _ searchBar: UISearchBar,
+        shouldChangeTextIn range: NSRange,
+        replacementText text: String
+    ) -> Bool {
+        let currentText = searchBar.text ?? ""
+        let updatedText = (currentText as NSString).replacingCharacters(
+            in: range,
+            with: text
+        )
+
+        return updatedText.count <= InputLimit.searchKeyword
     }
 }
 
@@ -336,15 +363,15 @@ private extension StockSearchViewController {
 
         return AlertController.rx.alert(
             on: self,
-            image: UIImage(named: "alertRed") ?? UIImage(),
-            title: "재고 차감",
-            message: "재고가 0이 되면 상품은 삭제됩니다.\n삭제하시겠습니까?",
+            image: UIImage(named: "alertBlue") ?? UIImage(),
+            title: "재고가 0개 입니다.",
+            message: "확인을 누르시면 해당 물품이 삭제됩니다.",
             actions: [
                 .cancel("취소"),
-                .destructive("삭제")
+                .default("확인")
             ]
         )
-        .filter { $0.title == "삭제" }
+        .filter { $0.title == "확인" }
         .map { _ in .delete([item.product.id]) }
         .asObservable()
     }
