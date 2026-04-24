@@ -35,6 +35,8 @@ struct Product: Hashable {
 
 //MARK: - Method
 extension Product {
+    static let maxQuantity = 999
+
     /// Product -> ProductPayload 변환 메소드
     func toPayload() -> ProductPayload {
         ProductPayload(
@@ -72,7 +74,7 @@ extension Product {
             id: id,
             userId: userId,
             name: name,
-            quantity: quantity + 1,
+            quantity: min(quantity + 1, Self.maxQuantity),
             quantityUnit: quantityUnit,
             mainCategory: mainCategory,
             midCategoryId: midCategoryId,

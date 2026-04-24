@@ -111,6 +111,11 @@ final class CategoryEditViewController: BaseViewController {
 //MARK: - Bind
 private extension CategoryEditViewController {
     func bind() {
+        let mainCategorySelected = mainCategorySegment.rx.selectedSegmentIndex
+            .asObservable()
+            .filter { $0 >= 0 }
+            .distinctUntilChanged()
+
         let input = CategoryEditViewModel.Input(
             viewDidLoad: Observable.just(()),
             viewWillAppear: viewWillAppearRelay
@@ -118,9 +123,7 @@ private extension CategoryEditViewController {
                     self?.mainCategorySegment.selectedSegmentIndex ?? 0
                 }
                 .filter { $0 >= 0 },
-            mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
-                .asObservable()
-                .filter { $0 >= 0 },
+            mainCategorySelected: mainCategorySelected,
             deleteItemSelected: deleteItemSelectedRelay.asObservable()
         )
 

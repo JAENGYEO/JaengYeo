@@ -51,8 +51,7 @@ extension StyledLabel{
             string: text,
             attributes: [
                 .font: config.font,
-                .foregroundColor: config.color,
-                .kern: config.kern
+                .foregroundColor: config.color
             ]
         )
     }

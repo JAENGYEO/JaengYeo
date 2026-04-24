@@ -90,8 +90,7 @@ extension StyledButton {
             string: title,
             attributes: [
                 .font: config.font,
-                .foregroundColor: config.normalColor,
-                .kern: config.kern
+                .foregroundColor: config.normalColor
             ]
         )
         
@@ -99,8 +98,7 @@ extension StyledButton {
             string: title,
             attributes: [
                 .font: config.font,
-                .foregroundColor: config.selectedColor,
-                .kern: config.kern
+                .foregroundColor: config.selectedColor
             ]
         )
         
@@ -108,8 +106,7 @@ extension StyledButton {
             string: title,
             attributes: [
                 .font: config.font,
-                .foregroundColor: config.disabledColor,
-                .kern: config.kern
+                .foregroundColor: config.disabledColor
             ]
         )
         

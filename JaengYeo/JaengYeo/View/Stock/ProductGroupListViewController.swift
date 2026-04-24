@@ -113,6 +113,8 @@ private extension ProductGroupListViewController {
 private extension ProductGroupListViewController {
     /// 상품 수량 증가
     func increaseItem(_ item: ProductCellItem) {
+        guard item.product.quantity < Product.maxQuantity else { return }
+
         let updatedProduct = item.product.increasedQuantity()
         onIncrease?(updatedProduct)
         updateItem(productID: item.product.id, product: updatedProduct)
@@ -157,15 +159,15 @@ private extension ProductGroupListViewController {
         
         return AlertController.rx.alert(
             on: self,
-            image: UIImage(named: "alertRed") ?? UIImage(),
-            title: "재고 차감",
-            message: "재고가 0이 되면 상품은 삭제됩니다.\n삭제하시겠습니까?",
+            image: UIImage(named: "alertBlue") ?? UIImage(),
+            title: "재고가 0개 입니다.",
+            message: "확인을 누르시면 해당 물품이 삭제됩니다.",
             actions: [
                 .cancel("취소"),
-                .destructive("삭제")
+                .default("확인")
             ]
         )
-        .filter { $0.title == "삭제" }
+        .filter { $0.title == "확인" }
         .map { _ in item }
         .asObservable()
     }

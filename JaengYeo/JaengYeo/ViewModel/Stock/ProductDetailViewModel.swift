@@ -50,6 +50,7 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
     
     struct Input {
         let viewDidLoad: Observable<Void>
+        let viewWillAppear: Observable<Void>
         let modifyTapped: Observable<Void>
         let deleteTapped: Observable<Void>
     }
@@ -75,7 +76,7 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
         }
         .compactMap { $0 }
         
-        input.viewDidLoad
+        Observable.merge(input.viewDidLoad, input.viewWillAppear)
             .subscribe(onNext: { [weak self] in
                 guard let self else { return }
                 self.bindProduct()

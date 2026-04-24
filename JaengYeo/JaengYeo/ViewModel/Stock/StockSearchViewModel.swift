@@ -108,19 +108,25 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
 
         input.productQuantityIncreased
             .subscribe(onNext: { [weak self] product in
-                self?.increaseProductQuantity(product)
+                guard let self else { return }
+                self.increaseProductQuantity(product)
+                self.refreshProducts()
             })
             .disposed(by: disposeBag)
 
         input.productQuantityDecreased
             .subscribe(onNext: { [weak self] product in
-                self?.decreaseProductQuantity(product)
+                guard let self else { return }
+                self.decreaseProductQuantity(product)
+                self.refreshProducts()
             })
             .disposed(by: disposeBag)
 
         input.productDeleted
             .subscribe(onNext: { [weak self] productIDs in
-                self?.deleteProducts(productIDs)
+                guard let self else { return }
+                self.deleteProducts(productIDs)
+                self.refreshProducts()
             })
             .disposed(by: disposeBag)
 
@@ -220,6 +226,11 @@ private extension StockSearchViewModel {
         let searches = (try? coreDataManager.fetchRecentSearches(limit: 10)) ?? []
         recentSearchesRelay.accept(searches)
     }
+
+    /// 상품 목록 재조회
+    func refreshProducts() {
+        bindProducts()
+    }
 }
 
 //MARK: - Update Products
@@ -314,6 +325,8 @@ private extension StockSearchViewModel {
 private extension StockSearchViewModel {
     /// 상품 재고 1개 증가
     func increaseProductQuantity(_ product: Product) {
+        guard product.quantity < Product.maxQuantity else { return }
+
         do {
             try coreDataManager.updateProduct(
                 product

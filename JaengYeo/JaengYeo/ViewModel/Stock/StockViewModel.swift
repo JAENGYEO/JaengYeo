@@ -685,6 +685,8 @@ private extension StockViewModel {
 private extension StockViewModel {
     /// 상품 재고 1개 증가
     func increaseProductQuantity(_ product: Product) {
+        guard product.quantity < Product.maxQuantity else { return }
+
         do {
             try coreDataManager.updateProduct(
                 product

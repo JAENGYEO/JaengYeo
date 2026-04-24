@@ -25,7 +25,7 @@ final class RegisterDetailView: UIView {
         $0.font = LabelConfiguration.titleSemi16.font
         $0.textColor = .gray800
         $0.attributedPlaceholder = NSAttributedString(
-            string: "상품명을 입력해주세요.",
+            string: "상품명을 입력해주세요. (최대 20자)",
             attributes: [.foregroundColor: UIColor.gray300, .font: LabelConfiguration.body14.font]
         )
     }
@@ -35,7 +35,7 @@ final class RegisterDetailView: UIView {
         $0.textColor = .gray800
         $0.keyboardType = .numberPad
         $0.attributedPlaceholder = NSAttributedString(
-            string: "수량을 입력해주세요.",
+            string: "수량을 입력해주세요. (최대 999)",
             attributes: [.foregroundColor: UIColor.gray300, .font: LabelConfiguration.body14.font]
         )
     }
@@ -130,7 +130,7 @@ final class RegisterDetailView: UIView {
         $0.font = LabelConfiguration.titleSemi16.font
         $0.textColor = .gray800
         $0.attributedPlaceholder = NSAttributedString(
-            string: "유의사항 / 취급 주의사항을 입력해주세요.",
+            string: "유의사항 / 취급 주의사항을 입력해주세요. (최대 100자)",
             attributes: [.foregroundColor: UIColor.gray300, .font: LabelConfiguration.body14.font]
         )
     }
@@ -139,7 +139,7 @@ final class RegisterDetailView: UIView {
         $0.font = LabelConfiguration.titleSemi16.font
         $0.textColor = .gray800
         $0.attributedPlaceholder = NSAttributedString(
-            string: "구매하신 제품의 브랜드를 입력해주세요.",
+            string: "구매하신 제품의 브랜드를 입력해주세요. (최대 20자)",
             attributes: [.foregroundColor: UIColor.gray300, .font: LabelConfiguration.body14.font]
         )
     }
@@ -165,7 +165,7 @@ final class RegisterDetailView: UIView {
         $0.font = LabelConfiguration.titleSemi16.font
         $0.textColor = .gray800
         $0.attributedPlaceholder = NSAttributedString(
-            string: "자유롭게 메모해주세요.",
+            string: "자유롭게 메모해주세요. (최대 100자)",
             attributes: [.foregroundColor: UIColor.gray300, .font: LabelConfiguration.body14.font]
         )
     }

@@ -23,7 +23,7 @@ final class OnboardingFirstView: UIView {
     private let descriptionLabel = StyledLabel(config: .body14).then {
         $0.numberOfLines = 0
         $0.attributedText = OnboardingFirstView.makeDescription(
-            "쟁여에 물건을 쟁여두면,/n집 안의 재고를 한눈에 확인하고/n깔끔하게 정리할 수 있어요!"
+            "쟁여에 물건을 쟁여두면,\n집 안의 재고를 한눈에 확인하고\n깔끔하게 정리할 수 있어요!"
         )
     }
 
@@ -66,6 +66,7 @@ private extension OnboardingFirstView {
             $0.top.equalTo(descriptionLabel.snp.bottom).offset(72)
             $0.centerX.equalToSuperview()
             $0.size.equalTo(CGSize(width: 285, height: 210))
+            $0.bottom.equalToSuperview().inset(24)
         }
     }
 
@@ -77,8 +78,7 @@ private extension OnboardingFirstView {
             string: "\(primary)\n",
             attributes: [
                 .font: LabelConfiguration.titleSemi20.font,
-                .foregroundColor: UIColor.gray800,
-                .kern: LabelConfiguration.titleSemi20.kern
+                .foregroundColor: UIColor.gray800
             ]
         )
 
@@ -87,8 +87,7 @@ private extension OnboardingFirstView {
                 string: accent,
                 attributes: [
                     .font: LabelConfiguration.titleSemi20.font,
-                    .foregroundColor: UIColor.accent,
-                    .kern: LabelConfiguration.titleSemi20.kern
+                    .foregroundColor: UIColor.accent
                 ]
             )
         )
@@ -101,8 +100,7 @@ private extension OnboardingFirstView {
             string: text,
             attributes: [
                 .font: LabelConfiguration.body14.font,
-                .foregroundColor: UIColor.gray300,
-                .kern: LabelConfiguration.body14.kern
+                .foregroundColor: UIColor.gray300
             ]
         )
     }

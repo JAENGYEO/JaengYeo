@@ -232,6 +232,7 @@ private extension HomeViewModel {
     /// 최근 등록 상품 재고 1개 증가
     func increaseRecentItemQuantity(productID: UUID) {
         guard let product = try? coreDataManager.fetchProduct(of: productID) else { return }
+        guard product.quantity < Product.maxQuantity else { return }
 
         do {
             try coreDataManager.updateProduct(

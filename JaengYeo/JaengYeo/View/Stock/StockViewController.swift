@@ -97,6 +97,11 @@ private extension StockViewController {
         let subCategoryAppliedRelay = PublishRelay<[String]>()
         /// 상품 정렬 선택
         let sortOptionSelectedRelay = PublishRelay<ProductSortOption>()
+        /// 메인 카테고리 선택
+        let mainCategorySelected = mainCategorySegment.rx.selectedSegmentIndex
+            .asObservable()
+            .filter { $0 >= 0 }
+            .distinctUntilChanged()
         
         productCollectionView.configureSortMenu { sortOption in
             sortOptionSelectedRelay.accept(sortOption)
@@ -146,9 +151,7 @@ private extension StockViewController {
         let input = StockViewModel.Input(
             viewDidLoad: Observable.just(()),
             viewWillAppear: viewWillAppearRelay.asObservable(),
-            mainCategorySelected: mainCategorySegment.rx.selectedSegmentIndex
-                .asObservable()
-                .filter { $0 >= 0 },
+            mainCategorySelected: mainCategorySelected,
             midCategoryTapped: categoryFilterView.midCategoryButton.rx.tap.asObservable(),
             subCategoryTapped: categoryFilterView.subCategoryButton.rx.tap.asObservable(),
             midCategoryApplied: midCategoryAppliedRelay.asObservable(),
@@ -334,15 +337,15 @@ private extension StockViewController {
         
         return AlertController.rx.alert(
             on: self,
-            image: UIImage(named: "alertRed") ?? UIImage(),
-            title: "재고 차감",
-            message: "재고가 0이 되면 상품은 삭제됩니다.\n삭제하시겠습니까?",
+            image: UIImage(named: "alertBlue") ?? UIImage(),
+            title: "재고가 0개 입니다.",
+            message: "확인을 누르시면 해당 물품이 삭제됩니다.",
             actions: [
                 .cancel("취소"),
-                .destructive("삭제")
+                .default("확인")
             ]
         )
-        .filter { $0.title == "삭제" }
+        .filter { $0.title == "확인" }
         .map { _ in .delete([targetProduct.id]) }
         .asObservable()
     }

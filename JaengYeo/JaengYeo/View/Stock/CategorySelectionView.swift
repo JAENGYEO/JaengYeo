@@ -53,13 +53,19 @@ final class CategorySelectionView: UIView {
     }
 
     /// 초기화 버튼
-    let resetButton = StyledButton(
-        title: "초기화",
-        titleConfiguration: .resetTitle,
-        appearanceConfiguration: .textAppearance
-    ).then {
-        $0.setImage(UIImage(systemName: "arrow.counterclockwise"), for: .normal)
-        $0.tintColor = .gray300
+    let resetButton = UIButton().then {
+        var config = UIButton.Configuration.plain()
+        config.image = UIImage(systemName: "arrow.counterclockwise")
+        config.title = "초기화"
+        config.imagePadding = 4
+        config.baseForegroundColor = .gray300
+        config.contentInsets = .zero
+        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var output = attributes
+            output.font = ButtonTitleConfiguration.resetTitle.font
+            return output
+        }
+        $0.configuration = config
     }
 
     /// 필터 적용 버튼

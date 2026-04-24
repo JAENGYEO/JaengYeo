@@ -66,6 +66,7 @@ private extension OnboardingFourthView {
             $0.top.equalTo(descriptionLabel.snp.bottom).offset(40)
             $0.centerX.equalToSuperview()
             $0.size.equalTo(CGSize(width: 160, height: 346))
+            $0.bottom.equalToSuperview().inset(24)
         }
     }
 
@@ -77,8 +78,7 @@ private extension OnboardingFourthView {
             string: "\(primary)\n",
             attributes: [
                 .font: LabelConfiguration.titleSemi20.font,
-                .foregroundColor: UIColor.gray800,
-                .kern: LabelConfiguration.titleSemi20.kern
+                .foregroundColor: UIColor.gray800
             ]
         )
 
@@ -87,8 +87,7 @@ private extension OnboardingFourthView {
                 string: accent,
                 attributes: [
                     .font: LabelConfiguration.titleSemi20.font,
-                    .foregroundColor: UIColor.accent,
-                    .kern: LabelConfiguration.titleSemi20.kern
+                    .foregroundColor: UIColor.accent
                 ]
             )
         )
@@ -101,8 +100,7 @@ private extension OnboardingFourthView {
             string: text,
             attributes: [
                 .font: LabelConfiguration.body14.font,
-                .foregroundColor: UIColor.gray300,
-                .kern: LabelConfiguration.body14.kern
+                .foregroundColor: UIColor.gray300
             ]
         )
     }
