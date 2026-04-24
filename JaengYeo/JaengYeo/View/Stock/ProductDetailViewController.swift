@@ -26,6 +26,7 @@ final class ProductDetailViewController: BaseViewController {
     let viewModel: ProductDetailViewModel
 
     let disposeBag = DisposeBag()
+    private let viewWillAppearRelay = PublishRelay<Void>()
 
     let productDetailView = ProductDetailView()
 
@@ -44,6 +45,11 @@ final class ProductDetailViewController: BaseViewController {
         super.viewDidLoad()
         configureUI()
         bind()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewWillAppearRelay.accept(())
     }
 }
 
@@ -69,6 +75,7 @@ extension ProductDetailViewController {
         
         let input = ProductDetailViewModel.Input(
             viewDidLoad: Observable.just(()),
+            viewWillAppear: viewWillAppearRelay.asObservable(),
             modifyTapped: productDetailView.modifyButton.rx.tap.asObservable(),
             deleteTapped: deleteTap
         )
