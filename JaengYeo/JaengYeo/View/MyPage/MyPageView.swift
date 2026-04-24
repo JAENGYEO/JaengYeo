@@ -148,7 +148,7 @@ extension MyPageView {
 
             let section = NSCollectionLayoutSection(group: group)
             section.boundarySupplementaryItems = [header]
-            section.interGroupSpacing = 8
+            section.interGroupSpacing = 16
             section.contentInsets = NSDirectionalEdgeInsets(
                 top: 8,
                 leading: 16,
