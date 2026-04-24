@@ -26,6 +26,8 @@ final class ProductDetailView: UIView {
     
     let productNameLabel = StyledLabel(config: .titleBold24).then {
         $0.text = "상품명"
+        $0.numberOfLines = 1
+        $0.lineBreakMode = .byTruncatingTail
     }
     
     let countLabel = StyledLabel(
@@ -233,6 +235,7 @@ extension ProductDetailView {
         productNameLabel.snp.makeConstraints {
             $0.centerY.equalToSuperview()
             $0.leading.equalTo(productImageView.snp.trailing).offset(8)
+            $0.trailing.lessThanOrEqualTo(countLabel.snp.leading).offset(-8)
         }
         
         countTitleLabel.snp.makeConstraints {

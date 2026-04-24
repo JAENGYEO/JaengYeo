@@ -79,7 +79,7 @@ extension ProductDetailViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] displayModel in
                 guard let self else { return }
-                self.title = displayModel.productName
+                self.title = "상세 정보"
                 self.productDetailView.updateUI(displayModel: displayModel)
             })
             .disposed(by: disposeBag)
