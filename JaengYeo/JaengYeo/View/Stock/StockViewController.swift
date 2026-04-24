@@ -102,11 +102,6 @@ private extension StockViewController {
             .asObservable()
             .filter { $0 >= 0 }
             .distinctUntilChanged()
-            .throttle(
-                .milliseconds(250),
-                latest: false,
-                scheduler: MainScheduler.instance
-            )
         
         productCollectionView.configureSortMenu { sortOption in
             sortOptionSelectedRelay.accept(sortOption)

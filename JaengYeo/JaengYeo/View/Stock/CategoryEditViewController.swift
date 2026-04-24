@@ -115,11 +115,6 @@ private extension CategoryEditViewController {
             .asObservable()
             .filter { $0 >= 0 }
             .distinctUntilChanged()
-            .throttle(
-                .milliseconds(250),
-                latest: false,
-                scheduler: MainScheduler.instance
-            )
 
         let input = CategoryEditViewModel.Input(
             viewDidLoad: Observable.just(()),
