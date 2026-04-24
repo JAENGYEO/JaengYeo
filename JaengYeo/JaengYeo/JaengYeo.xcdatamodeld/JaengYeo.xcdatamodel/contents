@@ -12,6 +12,8 @@
         <attribute name="userId" optional="YES" attributeType="String"/>
     </entity>
     <entity name="ProductEntity" representedClassName="ProductEntity" syncable="YES">
+        <attribute name="brand" optional="YES" attributeType="String"/>
+        <attribute name="caution" optional="YES" attributeType="String"/>
         <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="expiryDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
@@ -20,7 +22,7 @@
         <attribute name="isFavorite" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="isLowStockNotificationEnabled" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="locationMemo" optional="YES" attributeType="String"/>
-        <attribute name="lowStockThreshold" attributeType="Integer 32" defaultValueString="1" usesScalarValueType="YES"/>
+        <attribute name="lowStockThreshold" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="mainCategory" attributeType="String"/>
         <attribute name="memo" optional="YES" attributeType="String"/>
         <attribute name="midCategoryId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
@@ -33,6 +35,11 @@
         <attribute name="syncStatus" attributeType="String"/>
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="userId" attributeType="String"/>
+    </entity>
+    <entity name="RecentSearchEntity" representedClassName="RecentSearchEntity" syncable="YES">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="keyword" attributeType="String"/>
+        <attribute name="searchedAt" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="SubCategoryEntity" representedClassName="SubCategoryEntity" syncable="YES">
         <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>

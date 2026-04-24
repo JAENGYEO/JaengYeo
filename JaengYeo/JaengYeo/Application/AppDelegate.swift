@@ -7,6 +7,8 @@
 
 import UIKit
 import CoreData
+import UserNotifications
+import os
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -14,7 +16,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        UNUserNotificationCenter.current().delegate = self // 포그라운드 알림 처리용
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
+            guard granted else { return }
+            DispatchQueue.main.async {
+                UIApplication.shared.registerForRemoteNotifications() // APNs 토큰 요청
+            }
+        }
         return true
     }
 
@@ -76,6 +84,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
     }
+    
+    // APNs 토큰: 재설치, 업데이트, 기기교체시 변경 가능 -> 앱 실행마다 해당 메서드 호출로 최신 토근 저장
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        NotificationManager.shared.syncDeviceToken(tokenData: deviceToken)
+    }
+    
+    // APNs 토큰 요청 실패
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: any Error) {
+        Logger().error("APNs 등록 실패: \(error.localizedDescription)")
+    }
+}
 
+// 포그라운드 시에도 알림 허용
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+            completionHandler([.banner, .sound, .badge])
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+        NotificationManager.shared.handleNotificationTapped(userInfo: userInfo)
+        completionHandler()
+    }
 }
 
