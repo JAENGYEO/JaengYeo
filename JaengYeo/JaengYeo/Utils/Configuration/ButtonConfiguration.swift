@@ -12,7 +12,6 @@ struct ButtonTitleConfiguration {
     let normalColor: UIColor
     let selectedColor: UIColor
     let disabledColor: UIColor
-    let kern: CGFloat
     
     /// 색상 변환 메소드
     func updatingColor(
@@ -24,8 +23,7 @@ struct ButtonTitleConfiguration {
                font: font,
                normalColor: normalColor ?? self.normalColor,
                selectedColor: selectedColor ?? self.selectedColor,
-               disabledColor: disabledColor ?? self.disabledColor,
-               kern: kern
+               disabledColor: disabledColor ?? self.disabledColor
            )
        }
 }
@@ -70,40 +68,35 @@ extension ButtonTitleConfiguration {
         font: .systemFont(ofSize: 14, weight: .bold),
         normalColor: .accent,
         selectedColor: .white,
-        disabledColor: .gray500,
-        kern: -0.15
+        disabledColor: .gray500
     )
     
     static let textTitle12 = ButtonTitleConfiguration (
         font: .systemFont(ofSize: 12, weight: .regular),
         normalColor: .accent,
         selectedColor: .white,
-        disabledColor: .gray500,
-        kern: -0.15
+        disabledColor: .gray500
     )
     
     static let textGrayTitle12 = ButtonTitleConfiguration (
         font: .systemFont(ofSize: 12, weight: .regular),
         normalColor: .gray800,
         selectedColor: .white,
-        disabledColor: .gray800,
-        kern: -0.15
+        disabledColor: .gray800
     )
 
     static let resetTitle = ButtonTitleConfiguration(
         font: .systemFont(ofSize: 14, weight: .medium),
         normalColor: .gray300,
         selectedColor: .gray300,
-        disabledColor: .gray300,
-        kern: -0.15
+        disabledColor: .gray300
     )
     
     static let defaultTitle = ButtonTitleConfiguration (
         font: .systemFont(ofSize: 14, weight: .medium),
         normalColor: .white,
         selectedColor: .white,
-        disabledColor: .gray500,
-        kern: -0.15
+        disabledColor: .gray500
     )
     
     /// 메인 컬러 텍스트 설정
@@ -111,32 +104,28 @@ extension ButtonTitleConfiguration {
         font: .systemFont(ofSize: 14, weight: .bold),
         normalColor: .gray500,
         selectedColor: .accent,
-        disabledColor: .white,
-        kern: -0.15
+        disabledColor: .white
     )
     
     static let redTitle = ButtonTitleConfiguration (
         font: .systemFont(ofSize: 14, weight: .medium),
         normalColor: .primaryRed,
         selectedColor: .white,
-        disabledColor: .gray500,
-        kern: -0.15
+        disabledColor: .gray500
     )
     
     static let categoryTitle = ButtonTitleConfiguration (
         font: .systemFont(ofSize: 12, weight: .regular),
         normalColor: .gray800,
         selectedColor: .accent,
-        disabledColor: .white,
-        kern: -0.15
+        disabledColor: .white
     )
     
     static let cancelTitle = ButtonTitleConfiguration (
         font: .systemFont(ofSize: 12, weight: .regular),
         normalColor: .gray800,
         selectedColor: .gray300,
-        disabledColor: .white,
-        kern: -0.15
+        disabledColor: .white
     )
 }
 

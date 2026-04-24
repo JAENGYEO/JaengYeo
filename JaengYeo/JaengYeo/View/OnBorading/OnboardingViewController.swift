@@ -23,6 +23,7 @@ final class OnboardingViewController: BaseViewController {
     private let scrollView = UIScrollView().then {
         $0.backgroundColor = .white
         $0.isPagingEnabled = true
+        $0.isDirectionalLockEnabled = true
         $0.showsHorizontalScrollIndicator = false
         $0.contentInsetAdjustmentBehavior = .never
     }
@@ -133,9 +134,10 @@ private extension OnboardingViewController {
         }
 
         makeStepViews().forEach { stepView in
-            contentStackView.addArrangedSubview(stepView)
+            let pageScrollView = makePageScrollView(stepView: stepView)
+            contentStackView.addArrangedSubview(pageScrollView)
 
-            stepView.snp.makeConstraints {
+            pageScrollView.snp.makeConstraints {
                 $0.width.equalTo(scrollView.frameLayoutGuide)
             }
         }
@@ -144,6 +146,35 @@ private extension OnboardingViewController {
 
 //MARK: - Data
 private extension OnboardingViewController {
+    func makePageScrollView(stepView: UIView) -> UIScrollView {
+        let pageScrollView = UIScrollView().then {
+            $0.backgroundColor = .white
+            $0.alwaysBounceVertical = true
+            $0.showsVerticalScrollIndicator = false
+            $0.contentInsetAdjustmentBehavior = .never
+            $0.isDirectionalLockEnabled = true
+        }
+
+        let contentView = UIView().then {
+            $0.backgroundColor = .white
+        }
+
+        pageScrollView.addSubview(contentView)
+        contentView.addSubview(stepView)
+
+        contentView.snp.makeConstraints {
+            $0.edges.equalTo(pageScrollView.contentLayoutGuide)
+            $0.width.equalTo(pageScrollView.frameLayoutGuide)
+        }
+
+        stepView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+            $0.width.equalToSuperview()
+        }
+
+        return pageScrollView
+    }
+
     func makeStepViews() -> [UIView] {
         [
             OnboardingFirstView(),

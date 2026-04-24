@@ -43,8 +43,7 @@ final class OnboardingThirdView: UIView {
             string: "빠른 등록?",
             attributes: [
                 .font: LabelConfiguration.bodyMedium14.font,
-                .foregroundColor: UIColor.accent,
-                .kern: LabelConfiguration.bodyMedium14.kern
+                .foregroundColor: UIColor.accent
             ]
         )
     }
@@ -109,6 +108,7 @@ private extension OnboardingThirdView {
         bottomDescriptionLabel.snp.makeConstraints {
             $0.top.equalTo(bottomTitleLabel.snp.bottom).offset(2)
             $0.leading.trailing.equalToSuperview().inset(16)
+            $0.bottom.equalToSuperview().inset(24)
         }
     }
 
@@ -120,8 +120,7 @@ private extension OnboardingThirdView {
             string: "\(primary)\n",
             attributes: [
                 .font: LabelConfiguration.titleSemi20.font,
-                .foregroundColor: UIColor.gray800,
-                .kern: LabelConfiguration.titleSemi20.kern
+                .foregroundColor: UIColor.gray800
             ]
         )
 
@@ -130,8 +129,7 @@ private extension OnboardingThirdView {
                 string: accent,
                 attributes: [
                     .font: LabelConfiguration.titleSemi20.font,
-                    .foregroundColor: UIColor.accent,
-                    .kern: LabelConfiguration.titleSemi20.kern
+                    .foregroundColor: UIColor.accent
                 ]
             )
         )
@@ -144,8 +142,7 @@ private extension OnboardingThirdView {
             string: text,
             attributes: [
                 .font: LabelConfiguration.body14.font,
-                .foregroundColor: UIColor.gray300,
-                .kern: LabelConfiguration.body14.kern
+                .foregroundColor: UIColor.gray300
             ]
         )
     }

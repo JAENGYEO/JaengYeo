@@ -78,6 +78,7 @@ private extension OnboardingFifthView {
             $0.top.equalTo(firstImageView.snp.bottom).offset(72)
             $0.centerX.equalToSuperview()
             $0.size.equalTo(CGSize(width: 343, height: 88))
+            $0.bottom.equalToSuperview().inset(24)
         }
     }
 
@@ -89,8 +90,7 @@ private extension OnboardingFifthView {
             string: "\(primary)\n",
             attributes: [
                 .font: LabelConfiguration.titleSemi20.font,
-                .foregroundColor: UIColor.gray800,
-                .kern: LabelConfiguration.titleSemi20.kern
+                .foregroundColor: UIColor.gray800
             ]
         )
 
@@ -99,8 +99,7 @@ private extension OnboardingFifthView {
                 string: accent,
                 attributes: [
                     .font: LabelConfiguration.titleSemi20.font,
-                    .foregroundColor: UIColor.accent,
-                    .kern: LabelConfiguration.titleSemi20.kern
+                    .foregroundColor: UIColor.accent
                 ]
             )
         )
@@ -113,8 +112,7 @@ private extension OnboardingFifthView {
             string: text,
             attributes: [
                 .font: LabelConfiguration.body14.font,
-                .foregroundColor: UIColor.gray300,
-                .kern: LabelConfiguration.body14.kern
+                .foregroundColor: UIColor.gray300
             ]
         )
     }

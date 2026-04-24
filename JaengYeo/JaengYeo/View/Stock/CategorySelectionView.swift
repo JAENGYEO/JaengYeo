@@ -63,7 +63,6 @@ final class CategorySelectionView: UIView {
         config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
             var output = attributes
             output.font = ButtonTitleConfiguration.resetTitle.font
-            output.kern = ButtonTitleConfiguration.resetTitle.kern
             return output
         }
         $0.configuration = config

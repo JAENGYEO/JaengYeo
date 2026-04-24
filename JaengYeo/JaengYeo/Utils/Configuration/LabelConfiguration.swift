@@ -16,16 +16,13 @@ struct LabelConfiguration {
     let color: UIColor
     /// 라인갯수
     let lines: Int
-    /// 텍스트 자간 값
-    let kern: CGFloat
     
     /// 색상 변경 메소드
     func updatingColor(color: UIColor) -> LabelConfiguration {
         .init(
             font: font,
             color: color,
-            lines: lines,
-            kern: kern
+            lines: lines
         )
     }
 }
@@ -42,43 +39,37 @@ extension LabelConfiguration {
     static let titleBold28 = LabelConfiguration(
         font: .systemFont(ofSize: 28, weight: .bold),
         color: .gray800,
-        lines: 0,
-        kern: -0.15
+        lines: 0
     )
     
     static let titleBold24 = LabelConfiguration(
         font: .systemFont(ofSize: 24, weight: .bold),
         color: .gray800,
-        lines: 0,
-        kern: -0.15
+        lines: 0
     )
  
     static let titleBold20 = LabelConfiguration(
         font: .systemFont(ofSize: 20, weight: .bold),
         color: .gray800,
-        lines: 0,
-        kern: -0.15
+        lines: 0
     )
  
     static let titleSemi20 = LabelConfiguration(
         font: .systemFont(ofSize: 20, weight: .semibold),
         color: .gray800,
-        lines: 0,
-        kern: -0.15
+        lines: 0
     )
 
     static let titleSemi18 = LabelConfiguration(
         font: .systemFont(ofSize: 18, weight: .semibold),
         color: .gray800,
-        lines: 0,
-        kern: -0.15
+        lines: 0
     )
 
     static let titleSemi16 = LabelConfiguration(
         font: .systemFont(ofSize: 16, weight: .semibold),
         color: .gray800,
-        lines: 0,
-        kern: -0.15
+        lines: 0
     )
 }
 
@@ -88,28 +79,24 @@ extension LabelConfiguration {
     static let bodyMedium14 = LabelConfiguration(
         font: .systemFont(ofSize: 14, weight: .medium),
         color: .gray800,
-        lines: 0,
-        kern: -0.15
+        lines: 0
     )
     
     static let bodyMedium12 = LabelConfiguration(
         font: .systemFont(ofSize: 12, weight: .medium),
         color: .gray800,
-        lines: 0,
-        kern: -0.15
+        lines: 0
     )
  
     static let body14 = LabelConfiguration(
         font: .systemFont(ofSize: 14, weight: .regular),
         color: .gray800,
-        lines: 0,
-        kern: -0.15
+        lines: 0
     )
  
     static let body12 = LabelConfiguration(
         font: .systemFont(ofSize: 12, weight: .regular),
         color: .gray800,
-        lines: 0,
-        kern: -0.15
+        lines: 0
     )
 }
