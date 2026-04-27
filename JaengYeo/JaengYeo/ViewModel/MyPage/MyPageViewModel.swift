@@ -139,7 +139,7 @@ final class MyPageViewModel: ViewModelProtocol {
         let itemSelected: Observable<MyPageItem>
         
         let logoutConfirmed: Observable<Void>
-        let deleteAccountConfirmed: Observable<Void>
+        let deleteAccountConfirmed: Observable<String>
     }
 
     struct Output {
@@ -234,12 +234,12 @@ final class MyPageViewModel: ViewModelProtocol {
             .disposed(by: disposeBag)
 
         input.deleteAccountConfirmed
-            .flatMapLatest { [weak self] _ -> Observable<Void> in
+            .flatMapLatest { [weak self] code -> Observable<Void> in
                 guard let self else { return .empty() }
                 return Observable.create { observer in
                     Task {
                         do {
-                            try await self.authManager.deleteAccount()
+                            try await self.authManager.deleteAccount(authorizationCode: code)
                             try? self.coreDataManager.deleteAllUserData()
                             await MainActor.run {
                                 observer.onNext(())
