@@ -5,6 +5,7 @@
 //  Created by Codex on 4/20/26.
 //
 
+import AuthenticationServices
 import MessageUI
 import RxCocoa
 import RxSwift
@@ -29,7 +30,7 @@ final class MyPageViewController: BaseViewController {
     
     weak var delegate: MyPageViewControllerDelegate?
     private let logoutConfirmRelay = PublishRelay<Void>()
-    private let deleteAccountConfirmRelay = PublishRelay<Void>()
+    private let deleteAccountConfirmRelay = PublishRelay<String>()
 
     //MARK: - Init
     init(viewModel: MyPageViewModel) {
@@ -249,9 +250,43 @@ extension MyPageViewController {
         )
         .subscribe(onNext: { [weak self] action in
             if action.style == .destructive {
-                self?.deleteAccountConfirmRelay.accept(())
+                self?.requestAppleAuthorizationCode()
             }
         })
         .disposed(by: disposeBag)
+    }
+
+    private func requestAppleAuthorizationCode() {
+        let provider = ASAuthorizationAppleIDProvider()
+        let request = provider.createRequest()
+        request.requestedScopes = []
+
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        controller.performRequests()
+    }
+}
+
+extension MyPageViewController: ASAuthorizationControllerDelegate {
+    func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithAuthorization authorization: ASAuthorization
+    ) {
+        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+              let codeData = credential.authorizationCode,
+              let code = String(data: codeData, encoding: .utf8) else { return }
+        deleteAccountConfirmRelay.accept(code)
+    }
+
+    func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithError error: any Error
+    ) {}
+}
+
+extension MyPageViewController: ASAuthorizationControllerPresentationContextProviding {
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        view.window!
     }
 }
