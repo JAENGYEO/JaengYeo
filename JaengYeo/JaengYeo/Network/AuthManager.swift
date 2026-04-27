@@ -46,9 +46,9 @@ final class AuthManager: AuthManagerProtocol {
         try await client.auth.signOut()
     }
     
-    func deleteAccount() async throws {
+    func deleteAccount(authorizationCode: String) async throws {
         let accessToken = try await client.auth.session.accessToken
-        
+
         guard let url = URL(string: "\(Constants.Supabase.url)/functions/v1/delete-account") else {
             throw NSError(domain: "AuthManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "잘못된 URL"])
         }
@@ -56,9 +56,12 @@ final class AuthManager: AuthManagerProtocol {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        
+        request.httpBody = try JSONSerialization.data(
+            withJSONObject: ["authorizationCode": authorizationCode]
+        )
+
         let (_, response) = try await URLSession.shared.data(for: request)
-        
+
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
             throw NSError(domain: "AuthManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "계정 삭제 실패"])
