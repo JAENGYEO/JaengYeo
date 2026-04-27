@@ -13,5 +13,5 @@ public typealias RecentSearchEntityCoreDataClassSet = NSSet
 
 @objc(RecentSearchEntity)
 public class RecentSearchEntity: NSManagedObject {
-
+    static let className = "RecentSearchEntity"
 }

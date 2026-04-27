@@ -926,6 +926,27 @@ extension CoreDataManager {
         }
     }
     
+    func deleteAllUserData() throws {
+        let entityNames = [
+            ProductEntity.className,
+            MidCategoryEntity.className,
+            SubCategoryEntity.className,
+            RecentSearchEntity.className
+        ]
+        for name in entityNames {
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+            let batchDelete = NSBatchDeleteRequest(fetchRequest: request)
+            batchDelete.resultType = .resultTypeObjectIDs
+            let result = try context.execute(batchDelete) as? NSBatchDeleteResult
+            if let objectIDs = result?.result as? [NSManagedObjectID] {
+                NSManagedObjectContext.mergeChanges(
+                    fromRemoteContextSave: [NSDeletedObjectsKey: objectIDs],
+                    into: [context]
+                )
+            }
+        }
+    }
+
     // 최대 보관 개수 초과 시 오래된 항목 삭제용 -> 내부호출용으로 protocol 추상화 x
     private func trimRecentSearches(limit: Int) throws {
         let request = RecentSearchEntity.fetchRequest()

@@ -26,6 +26,7 @@ enum MyPageMenu: CaseIterable {
     case appVersion
     case iconCopyright
     case logout
+    case deleteAccount
 
     /// 섹션 타이틀
     var section: MyPageMenuSection {
@@ -35,6 +36,8 @@ enum MyPageMenu: CaseIterable {
         case .feedback, .appVersion, .iconCopyright:
             return .appInfo
         case .logout:
+            return .account
+        case .deleteAccount:
             return .account
         }
     }
@@ -56,13 +59,15 @@ enum MyPageMenu: CaseIterable {
             return "아이콘 저작권 : icons8"
         case .logout:
             return "로그아웃"
+        case .deleteAccount:
+            return "회원 탈퇴"
         }
     }
 
     /// 화살표 표시 여부
     var showsArrow: Bool {
         switch self {
-        case .logout:
+        case .logout, .deleteAccount:
             return false
         default:
             return true
@@ -120,9 +125,11 @@ final class MyPageViewModel: ViewModelProtocol {
     private let disposeBag = DisposeBag()
     private let supportEmail = "jaengyeo09@gmail.com"
     private let authManager: AuthManagerProtocol
-    
-    init(authManager: AuthManagerProtocol) {
+    private let coreDataManager: CoreDataManagerProtocol
+
+    init(authManager: AuthManagerProtocol, coreDataManager: CoreDataManagerProtocol) {
         self.authManager = authManager
+        self.coreDataManager = coreDataManager
     }
 
     struct Input {
@@ -132,6 +139,7 @@ final class MyPageViewModel: ViewModelProtocol {
         let itemSelected: Observable<MyPageItem>
         
         let logoutConfirmed: Observable<Void>
+        let deleteAccountConfirmed: Observable<String>
     }
 
     struct Output {
@@ -150,6 +158,8 @@ final class MyPageViewModel: ViewModelProtocol {
         
         let showLogoutConfirm: Observable<Void>
         let logoutCompleted: Observable<Void>
+        let showDeleteAccountConfirm: Observable<Void>
+        let deleteAccountCompleted: Observable<Void>
     }
 
     func transform(_ input: Input) -> Output {
@@ -160,6 +170,8 @@ final class MyPageViewModel: ViewModelProtocol {
         let openExternalURLRelay = PublishRelay<URL>()
         let showLogoutConfirmRelay = PublishRelay<Void>()
         let logoutCompletedRelay = PublishRelay<Void>()
+        let showDeleteAccountConfirmRelay = PublishRelay<Void>()
+        let deleteAccountCompletedRelay = PublishRelay<Void>()
 
         let sections = input.viewDidLoad
             .map { [weak self] in
@@ -194,7 +206,8 @@ final class MyPageViewModel: ViewModelProtocol {
                     }
                 case .logout:
                     showLogoutConfirmRelay.accept(())
-                
+                case .deleteAccount:
+                    showDeleteAccountConfirmRelay.accept(())
                 }
             })
             .disposed(by: disposeBag)
@@ -220,6 +233,28 @@ final class MyPageViewModel: ViewModelProtocol {
             .bind(to: logoutCompletedRelay)
             .disposed(by: disposeBag)
 
+        input.deleteAccountConfirmed
+            .flatMapLatest { [weak self] code -> Observable<Void> in
+                guard let self else { return .empty() }
+                return Observable.create { observer in
+                    Task {
+                        do {
+                            try await self.authManager.deleteAccount(authorizationCode: code)
+                            try? self.coreDataManager.deleteAllUserData()
+                            await MainActor.run {
+                                observer.onNext(())
+                                observer.onCompleted()
+                            }
+                        } catch {
+                            observer.onCompleted()
+                        }
+                    }
+                    return Disposables.create()
+                }
+            }
+            .bind(to: deleteAccountCompletedRelay)
+            .disposed(by: disposeBag)
+
         return Output(
             sections: sections,
             showGuide: showGuideRelay.asObservable(),
@@ -228,7 +263,9 @@ final class MyPageViewModel: ViewModelProtocol {
             composeFeedbackMail: composeFeedbackMailRelay.asObservable(),
             openExternalURL: openExternalURLRelay.asObservable(),
             showLogoutConfirm: showLogoutConfirmRelay.asObservable(),
-            logoutCompleted: logoutCompletedRelay.asObservable()
+            logoutCompleted: logoutCompletedRelay.asObservable(),
+            showDeleteAccountConfirm: showDeleteAccountConfirmRelay.asObservable(),
+            deleteAccountCompleted: deleteAccountCompletedRelay.asObservable()
         )
     }
 }

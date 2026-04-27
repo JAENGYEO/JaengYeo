@@ -74,4 +74,7 @@ protocol CoreDataManagerProtocol {
     func fetchRecentSearches(limit: Int) throws -> [RecentSearchPayload]
     func deleteRecentSearch(id: UUID) throws
     func deleteAllRecentSearches() throws
+
+    //MARK: - 계정 삭제
+    func deleteAllUserData() throws
 }
