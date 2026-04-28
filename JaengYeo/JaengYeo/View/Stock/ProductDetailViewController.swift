@@ -34,7 +34,9 @@ final class ProductDetailViewController: BaseViewController {
     init(viewModel: ProductDetailViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
-        overrideUserInterfaceStyle = .light
+        overrideUserInterfaceStyle = .light         
+        title = "상세 정보"
+        hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) {
@@ -43,6 +45,7 @@ final class ProductDetailViewController: BaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        configureNavigationBar()
         configureUI()
         bind()
     }
@@ -86,7 +89,6 @@ extension ProductDetailViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] displayModel in
                 guard let self else { return }
-                self.title = "상세 정보"
                 self.productDetailView.updateUI(displayModel: displayModel)
             })
             .disposed(by: disposeBag)
@@ -139,6 +141,24 @@ extension ProductDetailViewController {
 
 extension ProductDetailViewController {
 
+    func configureNavigationBar() {
+        title = "상세 정보"
+
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .white
+        appearance.shadowColor = .clear
+        appearance.titleTextAttributes = [
+            .font: LabelConfiguration.titleSemi18.font,
+            .foregroundColor: UIColor.gray800
+        ]
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        navigationController?.navigationBar.tintColor = .gray800
+    }
+    
     private func configureUI() {
         view.backgroundColor = .white
         view.addSubview(productDetailView)

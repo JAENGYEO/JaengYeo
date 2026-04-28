@@ -392,6 +392,7 @@ private extension StockViewController {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = .white
+        appearance.shadowColor = .clear
         appearance.titleTextAttributes = [
             .font: LabelConfiguration.titleSemi18.font,
             .foregroundColor: UIColor.gray800

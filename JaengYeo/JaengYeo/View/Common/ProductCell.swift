@@ -55,7 +55,7 @@ final class ProductCell: UICollectionViewListCell{
                 upDownCountView.isHidden = true
             
             case .homeType:
-                productSubDescriptionStack.isHidden = true
+                productSubDescriptionStack.isHidden = false
                 productCountView.isHidden = true
                 upDownCountView.isHidden = false
                 var config = backgroundConfiguration ?? UIBackgroundConfiguration.clear()
@@ -231,7 +231,7 @@ extension ProductCell {
             }
         }
         
-        if cellType == .detailType || cellType == .registType {
+        if cellType == .detailType || cellType == .registType || cellType == .homeType {
             updateDescriptionStack(
                 stackView: productSubDescriptionStack,
                 freshness: nil,

@@ -35,7 +35,7 @@ final class CategorySelectionItemCell: UICollectionViewCell {
     }
 
     private let imageView = UIImageView().then {
-        $0.contentMode = .scaleAspectFit
+        $0.contentMode = .scaleAspectFill
     }
 
     private let titleLabel = StyledLabel(config: .body12).then {
@@ -133,7 +133,7 @@ private extension CategorySelectionItemCell {
 
         imageView.snp.makeConstraints {
             $0.center.equalToSuperview()
-            $0.size.equalTo(24)
+            $0.size.equalTo(40)
         }
 
         titleLabel.snp.makeConstraints {

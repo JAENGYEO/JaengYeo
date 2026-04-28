@@ -183,13 +183,12 @@ extension HomeViewController {
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ProductCell.id, for: indexPath) as? ProductCell else { return UICollectionViewCell() }
                 var descriptions = [summary.mainCategory]
                 if let midCategory = summary.midCategoryName { descriptions.append(midCategory) }
-                descriptions.append(self.dateFormatter.string(from: summary.createdAt))
                 cell.updateUI(
                     type: .homeType,
                     title: summary.name,
                     freshness: nil,
                     descriptions: descriptions,
-                    subdescriptions: nil,
+                    subdescriptions: [self.dateFormatter.string(from: summary.createdAt)],
                     count: summary.quantity,
                     image: summary.image ?? summary.subCategoryIconName.flatMap { UIImage(named: $0) } //TODO: 추후에 수정 필요
                 )

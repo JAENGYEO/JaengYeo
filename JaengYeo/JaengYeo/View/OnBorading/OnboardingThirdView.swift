@@ -29,12 +29,12 @@ final class OnboardingThirdView: UIView {
 
     private let firstImageView = UIImageView().then {
         $0.image = UIImage(named: "Onbording3-1")
-        $0.contentMode = .scaleAspectFit
+        $0.contentMode = .scaleAspectFill
     }
 
     private let secondImageView = UIImageView().then {
         $0.image = UIImage(named: "Onbording3-2")
-        $0.contentMode = .scaleAspectFit
+        $0.contentMode = .scaleAspectFill
     }
 
     private let bottomTitleLabel = StyledLabel(config: .bodyMedium14).then {
@@ -91,13 +91,17 @@ private extension OnboardingThirdView {
         firstImageView.snp.makeConstraints {
             $0.top.equalTo(descriptionLabel.snp.bottom).offset(72)
             $0.centerX.equalToSuperview()
-            $0.size.equalTo(CGSize(width: 343, height: 75))
+            $0.height.equalTo(75)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalToSuperview().inset(16)
         }
 
         secondImageView.snp.makeConstraints {
             $0.top.equalTo(firstImageView.snp.bottom).offset(72)
             $0.centerX.equalToSuperview()
-            $0.size.equalTo(CGSize(width: 343, height: 87))
+            $0.height.equalTo(87)
+            $0.leading.equalToSuperview().offset(16)
+            $0.trailing.equalToSuperview().inset(16)
         }
 
         bottomTitleLabel.snp.makeConstraints {

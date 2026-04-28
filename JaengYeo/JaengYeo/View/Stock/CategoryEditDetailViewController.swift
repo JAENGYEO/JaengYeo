@@ -77,6 +77,7 @@ final class CategoryEditDetailViewController: BaseViewController {
         self.mode = mode
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) {
@@ -233,6 +234,18 @@ private extension CategoryEditDetailViewController {
     /// 네비게이션 바 설정
     func configureNavigationBar() {
         title = mode.navigationTitle
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .white
+        appearance.shadowColor = .clear
+        appearance.titleTextAttributes = [
+            .font: LabelConfiguration.titleSemi18.font,
+            .foregroundColor: UIColor.gray800
+        ]
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
         navigationController?.navigationBar.tintColor = .gray800
     }
 

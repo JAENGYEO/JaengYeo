@@ -85,11 +85,11 @@ extension AlertController {
       self.buttons = actions.map {
         let configurations: (title: ButtonTitleConfiguration, appearance: ButtonAppearanceConfiguration) = switch $0.style {
         case .default:
-          (.defaultTitle, .defaultAppearance)
+          (.defaultTitle, .buttonNormalAppearance)
         case .destructive:
-            (.redTitle, .redAppearance)
+            (.redTitle, .buttonDeleteAppearance)
         case .cancel:
-            (.cancelTitle, .cancelAppearance)
+            (.cancelTitle, .buttonCancelAppearance)
         }
         return StyledButton(
           title: $0.title,
@@ -118,6 +118,7 @@ extension AlertController {
 
       let titleLabel = StyledLabel(config: .titleSemi16).then {
         $0.text = title
+        $0.textAlignment = .center
       }
       addSubview(titleLabel)
       titleLabel.snp.makeConstraints {
