@@ -113,7 +113,7 @@ extension AlertController {
       addSubview(imageView)
       imageView.snp.makeConstraints {
         $0.top.centerX.equalTo(contentLayoutGuide).inset(5)
-        $0.size.equalTo(30)
+        $0.size.equalTo(40)
       }
 
       let titleLabel = StyledLabel(config: .titleSemi16).then {
@@ -121,7 +121,7 @@ extension AlertController {
       }
       addSubview(titleLabel)
       titleLabel.snp.makeConstraints {
-        $0.top.equalTo(imageView.snp.bottom).offset(13)
+        $0.top.equalTo(imageView.snp.bottom).offset(8)
         $0.centerX.equalTo(contentLayoutGuide)
         $0.leading.greaterThanOrEqualTo(contentLayoutGuide)
         $0.trailing.lessThanOrEqualTo(contentLayoutGuide)
@@ -149,7 +149,7 @@ extension AlertController {
     buttons.forEach {
       $0.snp.makeConstraints {
         $0.width.equalTo(70)
-        $0.height.greaterThanOrEqualTo(44)
+        $0.height.equalTo(30)
       }
     }
       buttonStackView.snp.makeConstraints {
