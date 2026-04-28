@@ -213,3 +213,22 @@ extension AppCoordinator: OnboardingViewControllerDelegate {
         showMain()
     }
 }
+
+extension AppCoordinator {
+    func handle(deepLink: DeepLink) {
+        switch deepLink {
+        case .product(let id):
+            break
+        case .confirmDelete(let id):
+            break
+        case .lowStockList:
+            break
+        case .expiryList:
+            break
+        case .camera(let mode):
+            break
+        case .widgetSettings:
+            break
+        }
+    }
+}
