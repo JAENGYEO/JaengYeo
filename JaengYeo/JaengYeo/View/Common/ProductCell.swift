@@ -231,8 +231,7 @@ extension ProductCell {
             }
         }
         
-        if cellType == .detailType || cellType == .registType || cellType == .homeType
-        {
+        if cellType == .detailType || cellType == .registType || cellType == .homeType {
             updateDescriptionStack(
                 stackView: productSubDescriptionStack,
                 freshness: nil,

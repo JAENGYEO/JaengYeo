@@ -34,7 +34,8 @@ final class ProductDetailViewController: BaseViewController {
     init(viewModel: ProductDetailViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
-        overrideUserInterfaceStyle = .light
+        overrideUserInterfaceStyle = .light         
+        title = "상세 정보"
         hidesBottomBarWhenPushed = true
     }
 
@@ -142,7 +143,6 @@ extension ProductDetailViewController {
 
     func configureNavigationBar() {
         title = "상세 정보"
-        hidesBottomBarWhenPushed = true
 
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
