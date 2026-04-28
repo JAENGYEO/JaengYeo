@@ -114,6 +114,16 @@ extension HomeViewController {
             }
             .asObservable()
         
+        let recentItemTapped = mainView.collectionView.rx.itemSelected
+            .filter { [weak self] indexPath in
+                self?.dataSource?.sectionIdentifier(for: indexPath.section) == .recentItems
+            }
+            .compactMap { [weak self] indexPath -> UUID? in
+                guard case .recentItem(let summary) = self?.dataSource?.itemIdentifier(for: indexPath) else { return nil }
+                return summary.id
+            }
+            .asObservable()
+        
         let input = HomeViewModel.Input(
             viewWillAppear: viewWillAppearRelay.asObservable(),
             unclassifiedTapped: mainView.collectionView.rx.itemSelected
@@ -123,6 +133,7 @@ extension HomeViewController {
                 .map { _ in },
             categoryCardTapped: categoryCardTapped,
             statusAlertTapped: statusAlertTapped,
+            recentItemTapped: recentItemTapped,
             recentItemQuantityIncreased: recentItemQuantityIncreasedRelay.asObservable(),
             recentItemQuantityDecreased: recentItemQuantityDecreasedRelay.asObservable(),
             recentItemDeleted: recentItemDeletedRelay.asObservable()
