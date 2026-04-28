@@ -66,6 +66,21 @@
 			);
 			target = 8A9168A62FA0A06900C50335 /* JaengYeoWidgetExtension */;
 		};
+		8A9168C52FA0CB1700C50335 /* Exceptions for "JaengYeoWidget" folder in "JaengYeo" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CameraShortcutWidget.swift,
+			);
+			target = 8AB417702F7E321D002B7DAB /* JaengYeo */;
+		};
+		8A9168C72FA0CB4100C50335 /* Exceptions for "JaengYeo" folder in "JaengYeoWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Application/DeepLink.swift,
+				Model/Domain/Register/CameraMode.swift,
+			);
+			target = 8A9168A62FA0A06900C50335 /* JaengYeoWidgetExtension */;
+		};
 		8AB417862F7E321E002B7DAB /* Exceptions for "JaengYeo" folder in "JaengYeo" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -83,6 +98,7 @@
 		8A9168AD2FA0A06900C50335 /* JaengYeoWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				8A9168C52FA0CB1700C50335 /* Exceptions for "JaengYeoWidget" folder in "JaengYeo" target */,
 				8A9168BE2FA0A06B00C50335 /* Exceptions for "JaengYeoWidget" folder in "JaengYeoWidgetExtension" target */,
 			);
 			path = JaengYeoWidget;
@@ -92,6 +108,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				8AB417862F7E321E002B7DAB /* Exceptions for "JaengYeo" folder in "JaengYeo" target */,
+				8A9168C72FA0CB4100C50335 /* Exceptions for "JaengYeo" folder in "JaengYeoWidgetExtension" target */,
 			);
 			path = JaengYeo;
 			sourceTree = "<group>";
