@@ -95,6 +95,7 @@ final class StockSearchViewController: BaseViewController {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         overrideUserInterfaceStyle = .light
+        hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) {
