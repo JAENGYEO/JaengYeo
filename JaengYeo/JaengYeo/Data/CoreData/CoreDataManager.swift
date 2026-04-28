@@ -931,7 +931,8 @@ extension CoreDataManager {
             ProductEntity.className,
             MidCategoryEntity.className,
             SubCategoryEntity.className,
-            RecentSearchEntity.className
+            RecentSearchEntity.className,
+            CartItemEntity.className
         ]
         for name in entityNames {
             let request = NSFetchRequest<NSFetchRequestResult>(entityName: name)
@@ -960,5 +961,107 @@ extension CoreDataManager {
         toDelete.forEach { context.delete($0) }
         
         try context.save()
+    }
+}
+
+//MARK: - CartItem CRUD
+extension CoreDataManager {
+    // MARK: CartItem Create
+    func createCartItem(_ payload: CartItemPayload) throws {
+        let request = CartItemEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", payload.id as CVarArg)
+
+        let count = (try? context.count(for: request)) ?? 0
+        guard count == 0 else { return }
+
+        let entity = CartItemEntity(context: context)
+        entity.id = payload.id
+        entity.referenceId = payload.referenceId
+        entity.name = payload.name
+        entity.mainCategory = payload.mainCategory
+        entity.createDate = payload.createdAt
+
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+
+    // MARK: CartItem Read
+    func fetchCartItem(of id: UUID) throws -> CartItemPayload {
+        let entity = try fetchCartItemEntity(of: id)
+
+        return makeCartItemPayload(entity)
+    }
+
+    func fetchAllCartItems() throws -> [CartItemPayload] {
+        let request: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "createDate", ascending: false)
+        ]
+
+        do {
+            return try context.fetch(request).map {
+                makeCartItemPayload($0)
+            }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+
+    // MARK: CartItem Update
+    func updateCartItem(_ payload: CartItemPayload) throws {
+        let entity = try fetchCartItemEntity(of: payload.id)
+
+        entity.referenceId = payload.referenceId
+        entity.name = payload.name
+        entity.mainCategory = payload.mainCategory
+        entity.createDate = payload.createdAt
+
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+
+    // MARK: CartItem Delete
+    func deleteCartItem(id: UUID) throws {
+        let entity = try fetchCartItemEntity(of: id)
+        context.delete(entity)
+
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.contextSaveFailed(error)
+        }
+    }
+
+    // MARK: CartItem Private Fetch
+    private func fetchCartItemEntity(of id: UUID) throws -> CartItemEntity {
+        let request: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+
+        do {
+            guard let entity = try context.fetch(request).first else {
+                throw CoreDataError.empty
+            }
+            return entity
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+
+    /// CartItemEntity를 Payload로 변환
+    private func makeCartItemPayload(_ entity: CartItemEntity) -> CartItemPayload {
+        CartItemPayload(
+            id: entity.id ?? UUID(),
+            referenceId: entity.referenceId,
+            name: entity.name ?? "",
+            mainCategory: entity.mainCategory ?? "",
+            createdAt: entity.createDate ?? Date()
+        )
     }
 }
