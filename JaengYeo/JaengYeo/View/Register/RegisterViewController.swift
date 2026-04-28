@@ -39,6 +39,7 @@ final class RegisterViewController: UIViewController {
     private let sessionQueue = DispatchQueue(label: "com.jaengyeo.sessionQueue")
     
     private var currentMode: CameraMode = .barcode
+    var pendingMode: CameraMode?
     
     private var frozenImageView: UIImageView?
     
@@ -75,7 +76,8 @@ final class RegisterViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.navigationBar.isHidden = true
-        currentMode = .barcode
+        currentMode = pendingMode ?? .barcode
+        pendingMode = nil
         mainView.updateModeSelection(cameraMode: currentMode)
         sessionQueue.async {
             self.captureSession.startRunning()
@@ -228,7 +230,7 @@ extension RegisterViewController {
         
     }
     
-    private func switchMode(mode: CameraMode) {
+    func switchMode(mode: CameraMode) {
         currentMode = mode
         mainView.updateModeSelection(cameraMode: mode)
     }
