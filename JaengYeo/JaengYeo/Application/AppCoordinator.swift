@@ -27,6 +27,9 @@ final class AppCoordinator {
     private let authManager: AuthManagerProtocol
     private var syncManager: SyncManagerProtocol?
     private var childCoordinators: [Any] = []
+    private weak var mainController: MainController?
+    private weak var registerCoordinator: RegisterCoordinator?
+    private var pendingDeepLink: DeepLink?
     private let disposeBag = DisposeBag()
     
     init(window: UIWindow) {
@@ -153,6 +156,7 @@ final class AppCoordinator {
             client: client,
             authManager: authManager
         )
+        self.registerCoordinator = registerCoordinator
         
         let stockCoordinator = StockCoordinator(
             productManager: productManager,
@@ -166,6 +170,7 @@ final class AppCoordinator {
             registerNavigationController: registerCoordinator.navigationController,
             stockNavigationController: stockCoordinator.navigationController
         )
+        self.mainController = mainController
         
         homeCoordinator.navigateToCategory
             .observe(on: MainScheduler.instance)
@@ -204,6 +209,10 @@ final class AppCoordinator {
             .disposed(by: disposeBag)
         
         window.rootViewController = mainController
+        if let deepLink = pendingDeepLink {
+            pendingDeepLink = nil
+            handle(deepLink: deepLink)
+        }
     }
 }
 
@@ -216,6 +225,10 @@ extension AppCoordinator: OnboardingViewControllerDelegate {
 
 extension AppCoordinator {
     func handle(deepLink: DeepLink) {
+        guard mainController != nil else {
+            pendingDeepLink = deepLink
+            return
+        }
         switch deepLink {
         case .product(let id):
             break
@@ -226,7 +239,8 @@ extension AppCoordinator {
         case .expiryList:
             break
         case .camera(let mode):
-            break
+            mainController?.selectedIndex = Tab.register.rawValue
+            registerCoordinator?.switchCameraMode(mode: mode)
         case .widgetSettings:
             break
         }
