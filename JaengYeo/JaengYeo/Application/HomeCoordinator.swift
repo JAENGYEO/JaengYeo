@@ -68,6 +68,12 @@ final class HomeCoordinator {
             })
             .disposed(by: disposeBag)
         
+        viewModel.navigateToProductDetail
+            .bind(onNext: { [weak self] productId in
+                self?.pushProductDetail(productId: productId)
+            })
+            .disposed(by: disposeBag)
+        
         NotificationManager.shared.notificationTapped
             .bind(onNext: { [weak self] type in
                 self?.pushItemList(type: type)
@@ -110,6 +116,17 @@ extension HomeCoordinator {
     private func pushMyPage() {
         let viewController = MyPageViewController(
             viewModel: MyPageViewModel(authManager: authManager, coreDataManager: coreDataManager)
+        )
+        viewController.delegate = self
+        navigationController.pushViewController(viewController, animated: true)
+    }
+    
+    private func pushProductDetail(productId: UUID) {
+        let viewController = ProductDetailViewController(
+            viewModel: ProductDetailViewModel(
+                productID: productId,
+                coreDataManager: coreDataManager
+            )
         )
         viewController.delegate = self
         navigationController.pushViewController(viewController, animated: true)
@@ -194,5 +211,16 @@ extension HomeCoordinator: RegisterDetailViewControllerDelegate {
 extension HomeCoordinator: MyPageViewControllerDelegate {
     func didLogout() {
         logoutCompleted.onNext(())
+    }
+}
+
+extension HomeCoordinator: ProductDetailViewControllerDelegate {
+    func productDetailViewController(_ viewController: ProductDetailViewController, didTapModify formData: RegisterFormData, originalPayload: ProductPayload) {
+        currentProductPayload = originalPayload
+        let viewModel = RegisterDetailViewModel(item: formData)
+        let viewController = RegisterDetailViewController(viewModel: viewModel)
+        viewController.delegate = self
+        currentDetailViewController = viewController
+        navigationController.pushViewController(viewController, animated: true)
     }
 }

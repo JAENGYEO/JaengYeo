@@ -49,6 +49,7 @@ final class HomeViewModel: ViewModelProtocol {
     let navigateToRegister = PublishSubject<Void>()
     let navigateToExpiryImminent = PublishSubject<Void>()
     let navigateToLowStock = PublishSubject<Void>()
+    let navigateToProductDetail = PublishSubject<UUID>()
     
     init(coreDataManager: CoreDataManagerProtocol) {
         self.coreDataManager = coreDataManager
@@ -59,6 +60,7 @@ final class HomeViewModel: ViewModelProtocol {
         let unclassifiedTapped: Observable<Void>
         let categoryCardTapped: Observable<String>
         let statusAlertTapped: Observable<AlertType>
+        let recentItemTapped: Observable<UUID>
         let recentItemQuantityIncreased: Observable<UUID>
         let recentItemQuantityDecreased: Observable<UUID>
         let recentItemDeleted: Observable<[UUID]>
@@ -216,6 +218,10 @@ final class HomeViewModel: ViewModelProtocol {
                     self?.navigateToLowStock.onNext(())
                 }
             })
+            .disposed(by: disposeBag)
+        
+        input.recentItemTapped
+            .bind(to: navigateToProductDetail)
             .disposed(by: disposeBag)
         
         return Output(
