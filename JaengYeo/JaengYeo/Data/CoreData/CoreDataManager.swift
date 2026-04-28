@@ -26,13 +26,79 @@ final class CoreDataManager: CoreDataManagerProtocol {
     
     init() {
         persistentContainer = NSPersistentContainer(name: "JaengYeo")
-        persistentContainer.loadPersistentStores { _, error in
+        
+        let storeURL = Self.sharedStoreURL()
+        
+        Self.migrateStoreToAppGroupIfNeeded(url: storeURL)
+        
+        let description = NSPersistentStoreDescription(url: storeURL)
+        persistentContainer.persistentStoreDescriptions = [description]
+        
+        persistentContainer.loadPersistentStores { [weak self] _, error in
             if let error {
-                self.loadError = .storeLoadFailed(error)
+                self?.loadError = .storeLoadFailed(error)
             }
         }
+        
+        persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+        persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
     
+    // MARK: App Group / 마이그레이션 헬퍼
+    private static let appGroupIdentifier = "group.com.jaengyoeo.JaengYeo"
+    private static let migrationCompletedKey = "CoreData.AppGroupMigrationCompleted"
+    
+    // MARK: App Group 공유 컨테이너 안의 store URL
+    private static func sharedStoreURL() -> URL {
+        guard let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: appGroupIdentifier
+        ) else {
+            fatalError("App Group Container URL을 얻지 못했습니다")
+        }
+        return containerURL.appendingPathComponent("JaengYeo.sqlite")
+    }
+    
+    //MARK: 기존 앱 샌드박스 store -> App Group 컨테이너로 마이그레이션 (1회용)
+    private static func migrateStoreToAppGroupIfNeeded(url: URL) {
+        let defaults = UserDefaults.standard
+        
+        // 이미 완료된 경우
+        guard !defaults.bool(forKey: migrationCompletedKey) else { return }
+        let fileManager = FileManager.default
+        
+        // 기존 store 위치
+        let oldStoreURL = NSPersistentContainer
+            .defaultDirectoryURL()
+            .appendingPathComponent("JaengYeo.sqlite")
+        
+        // 기존 store 없을 경우 -> 마이그레이션 불필요
+        guard fileManager.fileExists(atPath: oldStoreURL.path) else {
+            defaults.set(true, forKey: migrationCompletedKey)
+            return
+        }
+        
+        let suffixes = ["", "-shm", "-wal"]
+        
+        for suffix in suffixes {
+            let source = URL(fileURLWithPath: oldStoreURL.path + suffix)
+            let destination = URL(fileURLWithPath: url.path + suffix)
+            
+            guard fileManager.fileExists(atPath: source.path) else { continue }
+            
+            if fileManager.fileExists(atPath: destination.path) {
+                try? fileManager.removeItem(at: destination)
+            }
+            
+            do {
+                try fileManager.copyItem(at: source, to: destination)
+            } catch {
+                Self.logger.error("Failed to migrate store: \(error.localizedDescription)")
+                return
+            }
+        }
+        
+        defaults.set(true, forKey: migrationCompletedKey)
+    }
     
     // MARK: Custom 설정
     var context: NSManagedObjectContext {
