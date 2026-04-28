@@ -92,7 +92,6 @@ final class CoreDataManager: CoreDataManagerProtocol {
             do {
                 try fileManager.copyItem(at: source, to: destination)
             } catch {
-                Self.logger.error("Failed to migrate store: \(error.localizedDescription)")
                 return
             }
         }
