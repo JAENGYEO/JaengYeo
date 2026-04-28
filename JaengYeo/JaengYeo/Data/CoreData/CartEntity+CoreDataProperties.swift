@@ -29,3 +29,15 @@ extension CartEntity {
 extension CartEntity : Identifiable {
 
 }
+
+extension CartEntity {
+    var toDomain: Cart {
+        Cart(
+            id: id ?? UUID(),
+            referenceId: referenceId,
+            name: name ?? "",
+            mainCategory: mainCategory ?? "",
+            createdAt: createDate
+        )
+    }
+}
