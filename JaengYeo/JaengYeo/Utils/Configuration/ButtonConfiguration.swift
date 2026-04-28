@@ -127,6 +127,13 @@ extension ButtonTitleConfiguration {
         selectedColor: .gray300,
         disabledColor: .white
     )
+    
+    static let buttonNormalTitle = ButtonTitleConfiguration (
+        font: .systemFont(ofSize: 12, weight: .regular),
+        normalColor: .white,
+        selectedColor: .gray300,
+        disabledColor: .white
+    )
 }
 
 
@@ -151,7 +158,6 @@ extension ButtonAppearanceConfiguration {
         cornerRadius: 12,
         borderWidth: 0,
         borderColor: UIColor.clear
-
     )
     
     static let textEdgeAppearance = ButtonAppearanceConfiguration(
@@ -194,12 +200,32 @@ extension ButtonAppearanceConfiguration {
         borderColor: UIColor.clear
     )
     
-    static let cancelAppearance = ButtonAppearanceConfiguration(
+    static let buttonCancelAppearance = ButtonAppearanceConfiguration(
         backgroundColor: .gray50,
         selectedBackgroundColor: .gray100,
         highlightedBackgroundColor: .gray100,
         disabledBackgroundColor: .gray300,
-        cornerRadius: 12,
+        cornerRadius: 8,
+        borderWidth: 0,
+        borderColor: UIColor.clear
+    )
+    
+    static let buttonNormalAppearance = ButtonAppearanceConfiguration (
+        backgroundColor: .accent,
+        selectedBackgroundColor: .accent,
+        highlightedBackgroundColor: .primary700,
+        disabledBackgroundColor: UIColor.clear,
+        cornerRadius: 8,
+        borderWidth: 0,
+        borderColor: UIColor.clear
+    )
+    
+    static let buttonDeleteAppearance = ButtonAppearanceConfiguration(
+        backgroundColor: .primaryLightRed,
+        selectedBackgroundColor: .primary700,
+        highlightedBackgroundColor: UIColor.clear,
+        disabledBackgroundColor: UIColor.clear,
+        cornerRadius: 8,
         borderWidth: 0,
         borderColor: UIColor.clear
     )

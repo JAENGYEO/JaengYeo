@@ -89,6 +89,7 @@ final class CategoryEditViewController: BaseViewController {
     init(viewModel: CategoryEditViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) {

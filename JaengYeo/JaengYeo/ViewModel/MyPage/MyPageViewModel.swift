@@ -80,7 +80,7 @@ enum MyPageMenu: CaseIterable {
         case .appPermission:
             return URL(string: UIApplication.openSettingsURLString)
         case .appVersion:
-            return URL(string: "https://apps.apple.com/app/id0000000000")
+            return URL(string: "https://apps.apple.com/kr/app/쟁여/id6763179807")
         case .iconCopyright:
             return URL(string: "https://icons8.com")
         default:
