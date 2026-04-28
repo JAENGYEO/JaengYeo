@@ -375,7 +375,7 @@ extension RegisterViewController: AVCapturePhotoCaptureDelegate {
 extension RegisterViewController {
     private func showErrorAlert(title: String, message: String) {
         let alert = AlertController(
-            image: .warningIcon,
+            image: .alertBlue,
             title: title,
             message: message,
             actions: [.default("확인")]
