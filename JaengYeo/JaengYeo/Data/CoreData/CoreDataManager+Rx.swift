@@ -52,6 +52,15 @@ extension CoreDataManager {
         return observe(request)
     }
 
+    /// 장바구니 아이템 변경 관찰
+    func observeCartItems(
+        sortDescriptors: [NSSortDescriptor]
+    ) -> Observable<[CartItemEntity]> {
+        let request = CartItemEntity.fetchRequest()
+        request.sortDescriptors = sortDescriptors
+        return observe(request)
+    }
+
     /// FetchRequest를 Rx 스트림으로 변환
     func observe<R: NSFetchRequestResult>(
         _ request: NSFetchRequest<R>

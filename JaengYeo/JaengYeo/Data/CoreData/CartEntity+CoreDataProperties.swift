@@ -1,5 +1,5 @@
 //
-//  CartEntity+CoreDataProperties.swift
+//  CartItemEntity+CoreDataProperties.swift
 //  JaengYeo
 //
 //  Created by Hanjuheon on 4/28/26.
@@ -10,12 +10,12 @@ import Foundation
 import CoreData
 
 
-public typealias CartEntityCoreDataPropertiesSet = NSSet
+public typealias CartItemEntityCoreDataPropertiesSet = NSSet
 
-extension CartEntity {
+extension CartItemEntity {
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<CartEntity> {
-        return NSFetchRequest<CartEntity>(entityName: "CartEntity")
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CartItemEntity> {
+        return NSFetchRequest<CartItemEntity>(entityName: "CartItemEntity")
     }
 
     @NSManaged public var id: UUID?
@@ -26,13 +26,13 @@ extension CartEntity {
 
 }
 
-extension CartEntity : Identifiable {
+extension CartItemEntity : Identifiable {
 
 }
 
-extension CartEntity {
-    var toDomain: Cart {
-        Cart(
+extension CartItemEntity {
+    var toDomain: CartItem {
+        CartItem(
             id: id ?? UUID(),
             referenceId: referenceId,
             name: name ?? "",

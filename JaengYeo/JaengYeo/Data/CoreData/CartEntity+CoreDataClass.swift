@@ -1,5 +1,5 @@
 //
-//  CartEntity+CoreDataClass.swift
+//  CartItemEntity+CoreDataClass.swift
 //  JaengYeo
 //
 //  Created by Hanjuheon on 4/28/26.
@@ -9,9 +9,10 @@
 import Foundation
 import CoreData
 
-public typealias CartEntityCoreDataClassSet = NSSet
+public typealias CartItemEntityCoreDataClassSet = NSSet
 
-@objc(CartEntity)
-public class CartEntity: NSManagedObject {
+@objc(CartItemEntity)
+public class CartItemEntity: NSManagedObject {
+    static let className = "CartItemEntity"
 
 }
