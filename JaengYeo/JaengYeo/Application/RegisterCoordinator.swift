@@ -26,6 +26,7 @@ final class RegisterCoordinator {
     
     private weak var listViewModel: RegisterItemListViewModel?
     private weak var detailViewController: RegisterDetailViewController?
+    private weak var registerViewController: RegisterViewController?
     
     let navigateToStock = PublishSubject<Void>()
     
@@ -48,6 +49,7 @@ final class RegisterCoordinator {
         
         let viewModel = RegisterViewModel(client: client, receiptAnalyzer: receiptAnalyzer)
         let viewController = RegisterViewController(viewModel: viewModel)
+        self.registerViewController = viewController
         navigationController = BaseNavigationController(rootViewController: viewController)
         navigationController.tabBarItem = UITabBarItem(
             title: "등록",
@@ -184,5 +186,22 @@ extension RegisterCoordinator: RegisterDetailViewControllerDelegate {
             self?.detailViewController?.didSelectSubCategory(id: selectedItem?.id, name: selectedItem?.name, iconName: selectedItem?.iconName)
         }
         navigationController.present(viewController, animated: false)
+    }
+}
+
+extension RegisterCoordinator {
+    func switchCameraMode(mode: CameraMode) {
+        registerViewController?.pendingMode = mode
+        navigationController.popToRootViewController(animated: true)
+        registerViewController?.switchMode(mode: mode)
+        
+        if mode == .manual {
+            pushItemListView(
+                items: [],
+                pageTitle: "직접 입력",
+                infoLabel: "제품을 등록하고 쟁여를 시작해요!"
+            )
+            registerViewController?.pendingMode = nil
+        }
     }
 }
