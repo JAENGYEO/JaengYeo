@@ -33,6 +33,7 @@ extension BaseViewController {
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tap.cancelsTouchesInView = false
+        tap.delegate = self
         view.addGestureRecognizer(tap)
     }
     
@@ -81,5 +82,16 @@ extension UIView {
             if let responder = subview.findFirstResponder() { return responder }
         }
         return nil
+    }
+}
+
+extension BaseViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        var view: UIView? = touch.view
+        while let current = view {
+            if current is UIControl { return false}
+            view = current.superview
+        }
+        return true
     }
 }

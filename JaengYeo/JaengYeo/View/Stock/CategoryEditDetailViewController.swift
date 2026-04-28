@@ -89,7 +89,6 @@ final class CategoryEditDetailViewController: BaseViewController {
         configureUI()
         configureData()
         configureInputValidation()
-        configureKeyboardDismiss()
         bind()
     }
 }
@@ -230,18 +229,6 @@ private extension CategoryEditDetailViewController {
 
 //MARK: - Configure
 private extension CategoryEditDetailViewController {
-    /// 키보드 닫기 설정
-    func configureKeyboardDismiss() {
-        let tap = UITapGestureRecognizer()
-        tap.cancelsTouchesInView = false
-        view.addGestureRecognizer(tap)
-        
-        tap.rx.event
-            .bind(onNext: { [weak self] _ in
-                self?.view.endEditing(true)
-            })
-            .disposed(by: disposeBag)
-    }
 
     /// 네비게이션 바 설정
     func configureNavigationBar() {
