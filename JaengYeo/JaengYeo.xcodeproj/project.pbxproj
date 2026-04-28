@@ -54,6 +54,7 @@
 		8A9168A72FA0A06900C50335 /* JaengYeoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = JaengYeoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A9168A92FA0A06900C50335 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		8A9168AB2FA0A06900C50335 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		8A9168BF2FA0A9CC00C50335 /* JaengYeoWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JaengYeoWidgetExtension.entitlements; sourceTree = "<group>"; };
 		8AB417712F7E321D002B7DAB /* JaengYeo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JaengYeo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -141,6 +142,7 @@
 		8AB417682F7E321D002B7DAB = {
 			isa = PBXGroup;
 			children = (
+				8A9168BF2FA0A9CC00C50335 /* JaengYeoWidgetExtension.entitlements */,
 				8A73A1D72F83C312007C2A21 /* Config.xcconfig */,
 				8AB417732F7E321D002B7DAB /* JaengYeo */,
 				8A9168AD2FA0A06900C50335 /* JaengYeoWidget */,
@@ -338,6 +340,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = JaengYeoWidgetExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -378,6 +381,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = JaengYeoWidgetExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
