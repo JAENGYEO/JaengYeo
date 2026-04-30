@@ -24,8 +24,9 @@ final class WidgetPresetCell: UICollectionViewCell {
     }
     private let chevronImageView = UIImageView().then {
         $0.image = .arrowIcon
-        $0.tintColor = .gray400
+        $0.tintColor = .gray300
         $0.contentMode = .scaleAspectFit
+        $0.transform = CGAffineTransform(scaleX: -1, y: 1)
     }
     
     override init(frame: CGRect) {
