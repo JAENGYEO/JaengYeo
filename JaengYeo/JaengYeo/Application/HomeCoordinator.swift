@@ -212,6 +212,9 @@ extension HomeCoordinator: MyPageViewControllerDelegate {
     func didLogout() {
         logoutCompleted.onNext(())
     }
+    func didTapWidgetSetting() {
+        pushWidgetSetting()
+    }
 }
 
 extension HomeCoordinator: ProductDetailViewControllerDelegate {
@@ -221,6 +224,14 @@ extension HomeCoordinator: ProductDetailViewControllerDelegate {
         let viewController = RegisterDetailViewController(viewModel: viewModel)
         viewController.delegate = self
         currentDetailViewController = viewController
+        navigationController.pushViewController(viewController, animated: true)
+    }
+}
+
+extension HomeCoordinator {
+    private func pushWidgetSetting() {
+        let viewModel = WidgetPresetViewModel(coreDataManager: coreDataManager)
+        let viewController = WidgetPresetViewController(viewModel: viewModel)
         navigationController.pushViewController(viewController, animated: true)
     }
 }
