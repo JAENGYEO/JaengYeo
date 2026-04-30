@@ -77,7 +77,11 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Application/DeepLink.swift,
+				"Data/CoreData/WidgetPresetEntity+CoreDataClass.swift",
+				"Data/CoreData/WidgetPresetEntity+CoreDataProperties.swift",
+				JaengYeo.xcdatamodeld,
 				Model/Domain/Register/CameraMode.swift,
+				Model/DTO/CoreData/WidgetPresetPayload.swift,
 			);
 			target = 8A9168A62FA0A06900C50335 /* JaengYeoWidgetExtension */;
 		};
