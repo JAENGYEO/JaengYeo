@@ -112,6 +112,7 @@ final class CoreDataManager: CoreDataManagerProtocol {
         case saveFailed
         case loadFailed
         case empty
+        case widgetPresetLimitExceeded
     }
 }
 
@@ -996,7 +997,8 @@ extension CoreDataManager {
             ProductEntity.className,
             MidCategoryEntity.className,
             SubCategoryEntity.className,
-            RecentSearchEntity.className
+            RecentSearchEntity.className,
+            WidgetPresetEntity.className
         ]
         for name in entityNames {
             let request = NSFetchRequest<NSFetchRequestResult>(entityName: name)
@@ -1025,5 +1027,100 @@ extension CoreDataManager {
         toDelete.forEach { context.delete($0) }
         
         try context.save()
+    }
+}
+
+extension CoreDataManager {
+    private static let widgetPresetLimit = 5
+    func createWidgetPreset(payload: WidgetPresetPayload) throws {
+        let countRequest = WidgetPresetEntity.fetchRequest()
+        let count = (try? context.count(for: countRequest)) ?? 0
+        guard count < Self.widgetPresetLimit else {
+            throw CoreDataError.widgetPresetLimitExceeded
+        }
+        
+        let entity = WidgetPresetEntity(context: context)
+        entity.id = payload.id
+        entity.name = payload.name
+        entity.productIDsData = try encodeProductIDs(ids: payload.productIDs)
+        entity.createdAt = payload.createdAt
+        entity.updatedAt = payload.updatedAt
+        
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+    
+    func fetchAllWidgetPresets() throws -> [WidgetPresetPayload] {
+        let request = WidgetPresetEntity.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "createdAt", ascending: true)
+        ]
+        do {
+            return try context.fetch(request).map { entity in
+                WidgetPresetPayload(
+                    id: entity.id,
+                    name: entity.name,
+                    productIDs: (try? decodeProductIDs(data: entity.productIDsData)) ?? [],
+                    createdAt: entity.createdAt,
+                    updatedAt: entity.updatedAt
+                )
+            }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+    
+    func fetchWidgetPreset(id: UUID) throws -> WidgetPresetPayload? {
+        let request = WidgetPresetEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        guard let entity = try context.fetch(request).first else { return nil }
+        return WidgetPresetPayload(
+            id: entity.id,
+            name: entity.name,
+            productIDs: (try? decodeProductIDs(data: entity.productIDsData)) ?? [],
+            createdAt: entity.createdAt,
+            updatedAt: entity.updatedAt
+        )
+    }
+    
+    func updateWidgetPreset(payload: WidgetPresetPayload) throws {
+        let request = WidgetPresetEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", payload.id as CVarArg)
+        request.fetchLimit = 1
+        guard let entity = try context.fetch(request).first else {
+            throw CoreDataError.empty
+        }
+        entity.name = payload.name
+        entity.productIDsData = try encodeProductIDs(ids: payload.productIDs)
+        entity.updatedAt = payload.updatedAt
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+    
+    func deleteWidgetPreset(id: UUID) throws {
+        let request = WidgetPresetEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        guard let entity = try context.fetch(request).first else { return }
+        context.delete(entity)
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.contextSaveFailed(error)
+        }
+    }
+    
+    private func encodeProductIDs(ids: [UUID]) throws -> Data {
+        try JSONEncoder().encode(ids)
+    }
+    private func decodeProductIDs(data: Data) throws -> [UUID] {
+        try JSONDecoder().decode([UUID].self, from: data)
     }
 }
