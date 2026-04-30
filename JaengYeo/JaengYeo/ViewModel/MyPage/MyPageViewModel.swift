@@ -22,6 +22,7 @@ enum MyPageMenu: CaseIterable {
     case guide
     case privacyPolicy
     case appPermission
+    case widgetSetting
     case feedback
     case appVersion
     case iconCopyright
@@ -31,7 +32,7 @@ enum MyPageMenu: CaseIterable {
     /// 섹션 타이틀
     var section: MyPageMenuSection {
         switch self {
-        case .guide, .privacyPolicy, .appPermission:
+        case .guide, .privacyPolicy, .appPermission, .widgetSetting:
             return .support
         case .feedback, .appVersion, .iconCopyright:
             return .appInfo
@@ -51,6 +52,8 @@ enum MyPageMenu: CaseIterable {
             return "개인정보 처리 방침"
         case .appPermission:
             return "앱 사용 권한 확인"
+        case .widgetSetting:
+            return "위젯 설정"
         case .feedback:
             return "앱 의견 보내기"
         case .appVersion:
@@ -160,6 +163,7 @@ final class MyPageViewModel: ViewModelProtocol {
         let logoutCompleted: Observable<Void>
         let showDeleteAccountConfirm: Observable<Void>
         let deleteAccountCompleted: Observable<Void>
+        let presentWidgetSetting: Observable<Void>
     }
 
     func transform(_ input: Input) -> Output {
@@ -172,6 +176,7 @@ final class MyPageViewModel: ViewModelProtocol {
         let logoutCompletedRelay = PublishRelay<Void>()
         let showDeleteAccountConfirmRelay = PublishRelay<Void>()
         let deleteAccountCompletedRelay = PublishRelay<Void>()
+        let presentWidgetSettingRelay = PublishRelay<Void>()
 
         let sections = input.viewDidLoad
             .map { [weak self] in
@@ -191,6 +196,9 @@ final class MyPageViewModel: ViewModelProtocol {
 
                 case .appPermission:
                     presentPermissionRelay.accept(())
+                    
+                case .widgetSetting:
+                    presentWidgetSettingRelay.accept(())
 
                 case .feedback:
                     composeFeedbackMailRelay.accept(makeFeedbackMailContent())
@@ -265,7 +273,8 @@ final class MyPageViewModel: ViewModelProtocol {
             showLogoutConfirm: showLogoutConfirmRelay.asObservable(),
             logoutCompleted: logoutCompletedRelay.asObservable(),
             showDeleteAccountConfirm: showDeleteAccountConfirmRelay.asObservable(),
-            deleteAccountCompleted: deleteAccountCompletedRelay.asObservable()
+            deleteAccountCompleted: deleteAccountCompletedRelay.asObservable(),
+            presentWidgetSetting: presentWidgetSettingRelay.asObservable()
         )
     }
 }
