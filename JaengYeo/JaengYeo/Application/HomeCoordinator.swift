@@ -25,6 +25,7 @@ final class HomeCoordinator {
     
     private var currentProductPayload: ProductPayload?
     private weak var currentDetailViewController: RegisterDetailViewController?
+    private weak var widgetPresetEditViewController: WidgetPresetEditViewController?
     
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, authManager: AuthManagerProtocol) {
         self.productManager = productManager
@@ -232,6 +233,55 @@ extension HomeCoordinator {
     private func pushWidgetSetting() {
         let viewModel = WidgetPresetViewModel(coreDataManager: coreDataManager)
         let viewController = WidgetPresetViewController(viewModel: viewModel)
+        
+        viewModel.navigateToCreate
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] in
+                self?.pushWidgetPresetEdit(mode: .create)
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.navigateToEdit
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] presetID in
+                guard let self,
+                      let payload = try? self.coreDataManager.fetchWidgetPreset(id: presetID) else { return }
+                self.pushWidgetPresetEdit(mode: .edit(payload))
+            })
+            .disposed(by: disposeBag)
         navigationController.pushViewController(viewController, animated: true)
+    }
+    
+    private func pushWidgetPresetEdit(mode: WidgetPresetEditViewModel.Mode) {
+        let viewModel = WidgetPresetEditViewModel(coreDataManager: coreDataManager, mode: mode)
+        let viewController = WidgetPresetEditViewController(viewModel: viewModel)
+        viewController.delegate = self
+        widgetPresetEditViewController = viewController
+        navigationController.pushViewController(viewController, animated: true)
+    }
+}
+
+extension HomeCoordinator: WidgetPresetEditViewControllerDelegate {
+    func widgetPresetEditViewControllerDidRequestProductSelection(currentSelectedIDs: [UUID]) {
+        let viewModel = ProductSelectionViewModel(coreDataManager: coreDataManager, initialSelectedIDs: currentSelectedIDs)
+        let viewController = ProductSelectionViewController(viewModel: viewModel)
+        viewController.delegate = self
+        let navController = BaseNavigationController(rootViewController: viewController)
+        navController.modalPresentationStyle = .pageSheet
+        navigationController.present(navController, animated: true)
+    }
+    func widgetPresetEditViewControllerDidSave() {
+        navigationController.popViewController(animated: true)
+    }
+    func widgetPresetEditViewControllerDidDelete() {
+        navigationController.popViewController(animated: true)
+    }
+}
+
+extension HomeCoordinator: ProductSelectionViewControllerDelegate {
+    func productSelectionViewController(_ viewController: ProductSelectionViewController, didConfirmWith ids: [UUID]) {
+        viewController.dismiss(animated: true) { [weak self] in
+            self?.widgetPresetEditViewController?.didCompleteProductSelection(ids: ids)
+        }
     }
 }
