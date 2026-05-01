@@ -29,6 +29,7 @@ final class AppCoordinator {
     private var childCoordinators: [Any] = []
     private weak var mainController: MainController?
     private weak var registerCoordinator: RegisterCoordinator?
+    private weak var homeCoordinator: HomeCoordinator?
     private var pendingDeepLink: DeepLink?
     private let disposeBag = DisposeBag()
     
@@ -147,6 +148,7 @@ final class AppCoordinator {
             coreDataManager: coreDataManager,
             authManager: authManager
         )
+        self.homeCoordinator = homeCoordinator
         
         let registerCoordinator = RegisterCoordinator(
             productManager: productManager,
@@ -242,7 +244,8 @@ extension AppCoordinator {
             mainController?.selectedIndex = Tab.register.rawValue
             registerCoordinator?.switchCameraMode(mode: mode)
         case .widgetSettings:
-            break
+            mainController?.selectedIndex = Tab.home.rawValue
+            homeCoordinator?.showWidgetSettings()
         }
     }
 }
