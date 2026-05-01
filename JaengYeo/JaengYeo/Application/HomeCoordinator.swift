@@ -59,7 +59,7 @@ final class HomeCoordinator {
         
         viewModel.navigateToExpiryImminent
             .bind(onNext: { [weak self] _ in
-                self?.pushItemList(type: .expiryImminent(day: 1))
+                self?.pushItemList(type: .expiryImminent(day: 3))
             })
             .disposed(by: disposeBag)
         
@@ -263,6 +263,40 @@ extension HomeCoordinator {
     func showWidgetSettings() {
         navigationController.popToRootViewController(animated: false)
         pushWidgetSetting()
+    }
+    
+    func showLowStockList() {
+        navigationController.popToRootViewController(animated: false)
+        pushItemList(type: .lowStock)
+    }
+    
+    func showExpiryImminentList() {
+        navigationController.popToRootViewController(animated: false)
+        pushItemList(type: .expiryImminent(day: 3))
+    }
+
+    func showConfirmDelete(productID: UUID) {
+        navigationController.popToRootViewController(animated: false)
+        guard let topVC = navigationController.topViewController else { return }
+        AlertController.rx.alert(
+            on: topVC,
+            image: UIImage(named: "alertRed") ?? UIImage(),
+            title: "재고 차감",
+            message: "재고가 0이 되면 상품은 삭제됩니다.\n삭제하시겠습니까?",
+            actions: [
+                .cancel("취소"),
+                .destructive("삭제")
+            ]
+        )
+        .filter { $0.title == "삭제" }
+        .subscribe(onNext: { [weak self] _ in
+            guard let self,
+                  let payload = try? self.coreDataManager.fetchProduct(of: productID) else { return }
+            try? self.coreDataManager.updateProduct(
+                payload.toDomain().decreasedQuantity().toPayload()
+            )
+        })
+        .disposed(by: disposeBag)
     }
 }
 
