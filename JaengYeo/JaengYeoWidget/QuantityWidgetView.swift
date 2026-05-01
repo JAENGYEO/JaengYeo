@@ -7,6 +7,7 @@
 
 import WidgetKit
 import SwiftUI
+import AppIntents
 
 struct QuantityWidgetView: View {
     let entry: QuantityWidgetEntry
@@ -32,15 +33,17 @@ struct QuantityWidgetView: View {
     }
     
     private var headerView: some View {
-        HStack {
-            Text(entry.presetName)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(textColor)
-            Spacer()
-            Image("widgetLogo")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 22)
+        Link(destination: URL(string: "jaengyeo://widget-settings")!) {
+            HStack {
+                Text(entry.presetName)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(textColor)
+                Spacer()
+                Image("widgetLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 22)
+            }
         }
     }
     
@@ -52,12 +55,24 @@ struct QuantityWidgetView: View {
                 .lineLimit(1)
             Spacer()
             HStack(spacing: 8) {
-                circleIcon(systemName: "minus")
+                if product.quantity <= 1 {
+                    Link(destination: URL(string: "jaengyeo://product/\(product.id.uuidString)/confirm-delete")!) {
+                        circleIcon(systemName: "minus")
+                    }
+                } else {
+                    Button(intent: DecreaseQuantityIntent(productID: product.id)) {
+                        circleIcon(systemName: "minus")
+                    }
+                    .buttonStyle(.plain)
+                }
                 Text("\(product.quantity)")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 18, weight: .semibold).monospacedDigit())
                     .foregroundColor(textColor)
-                    .frame(minWidth: 16)
-                circleIcon(systemName: "plus")
+                    .frame(width: 36, alignment: .center)
+                Button(intent: IncreaseQuantityIntent(productID: product.id)) {
+                    circleIcon(systemName: "plus")
+                }
+                .buttonStyle(.plain)
             }
         }
     }
