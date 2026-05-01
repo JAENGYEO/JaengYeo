@@ -13,5 +13,7 @@ struct JaengYeoWidgetBundle: WidgetBundle {
     var body: some Widget {
         CameraShortcutWidget()
         QuantityWidget()
+        LowStockWidget()
+        ExpiryWidget()
     }
 }
