@@ -8,6 +8,7 @@
 
 import CoreData
 import Foundation
+import WidgetKit
 
 /// DB 싱크 여부 타입
 enum SyncStatus: String {
@@ -42,6 +43,14 @@ final class CoreDataManager: CoreDataManagerProtocol {
         
         persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
         persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        
+        NotificationCenter.default.addObserver(
+            forName: .NSManagedObjectContextDidSave,
+            object: persistentContainer.viewContext,
+            queue: .main
+        ) { _ in
+            WidgetCenter.shared.reloadAllTimelines()
+        }
     }
     
     // MARK: App Group / 마이그레이션 헬퍼
