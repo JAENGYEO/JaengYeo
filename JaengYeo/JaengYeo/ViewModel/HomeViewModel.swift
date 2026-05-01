@@ -139,7 +139,7 @@ final class HomeViewModel: ViewModelProtocol {
             .map { [weak self] _ -> [StatusSummary] in
                 guard let self else { return [] }
                 do {
-                    let expiryImminent = try self.coreDataManager.fetchExpiryImminent(day: 1)
+                    let expiryImminent = try self.coreDataManager.fetchExpiryImminent(day: 3)
                     let expiryTotal = try self.coreDataManager.fetchWithExpiryDate()
                     let lowStockImminent = try self.coreDataManager.fetchLowStock()
                     let lowStockTotal = try self.coreDataManager.fetchLowStockEnabled()
