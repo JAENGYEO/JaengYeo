@@ -23,9 +23,6 @@ final class WidgetPresetEditViewController: BaseViewController {
     private let mainView = WidgetPresetEditView()
     private let disposeBag = DisposeBag()
 
-    private let saveButton = UIBarButtonItem(title: "저장", style: .plain, target: nil, action: nil)
-
-    private let removeProductRelay = PublishRelay<UUID>()
     private let productSelectionResultRelay = PublishRelay<[UUID]>()
     private let deleteConfirmedRelay = PublishRelay<Void>()
     
@@ -49,7 +46,6 @@ final class WidgetPresetEditViewController: BaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        configNavigationBar()
         bind()
     }
 }
@@ -61,19 +57,18 @@ extension WidgetPresetEditViewController {
 }
 
 extension WidgetPresetEditViewController {
-    private func configNavigationBar() {
-        navigationItem.rightBarButtonItem = saveButton
-        saveButton.tintColor = .gray800
-    }
-}
-
-extension WidgetPresetEditViewController {
     private func bind() {
+        let removeProduct = mainView.swipeDeleteRelay
+            .compactMap { [weak self] indexPath -> UUID? in
+                self?.dataSource.itemIdentifier(for: indexPath)?.id
+            }
+            .asObservable()
+        
         let input = WidgetPresetEditViewModel.Input(
             nameChanged: mainView.nameTextField.rx.text.orEmpty.asObservable(),
             addButtonTapped: mainView.addButton.rx.tap.asObservable(),
-            removeProduct: removeProductRelay.asObservable(),
-            saveButtonTapped: saveButton.rx.tap.asObservable(),
+            removeProduct: removeProduct,
+            saveButtonTapped: mainView.saveButton.rx.tap.asObservable(),
             deleteButtonTapped: deleteConfirmedRelay.asObservable(),
             productSelectionResult: productSelectionResultRelay.asObservable()
         )
@@ -103,13 +98,17 @@ extension WidgetPresetEditViewController {
 
         output.canSave
             .observe(on: MainScheduler.instance)
-            .bind(to: saveButton.rx.isEnabled)
+            .bind(onNext: { [weak self] canSave in
+                self?.mainView.saveButton.isEnabled = canSave
+                self?.mainView.saveButton.alpha = canSave ? 1.0 : 0.5
+            })
             .disposed(by: disposeBag)
 
         output.selectedProducts
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] products in
                 self?.mainView.updateCountLabel(count: products.count)
+                self?.mainView.updateProductsVisibility(isEmpty: products.isEmpty)
                 self?.applySnapshot(products: products)
             })
             .disposed(by: disposeBag)
@@ -145,17 +144,25 @@ extension WidgetPresetEditViewController {
 
 extension WidgetPresetEditViewController {
     private func makeDataSource() -> UICollectionViewDiffableDataSource<WidgetPresetEditSection, WidgetPresetEditViewModel.SelectedProduct> {
-        UICollectionViewDiffableDataSource(collectionView: mainView.collectionView) { [weak self] collectionView, indexPath, product in
+        UICollectionViewDiffableDataSource(collectionView: mainView.collectionView) { collectionView, indexPath, product in
             guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: SelectedProductCell.id,
+                withReuseIdentifier: ProductCell.id,
                 for: indexPath
-            ) as? SelectedProductCell else {
+            ) as? ProductCell else {
                 return UICollectionViewCell()
             }
-            cell.config(title: product.name, category: product.mainCategory)
-            cell.bindRemoveButtonTap { [weak self] in
-                self?.removeProductRelay.accept(product.id)
-            }
+            var descriptions: [String] = []
+            if let mid = product.midCategoryName { descriptions.append(mid) }
+            if let sub = product.subCategoryName { descriptions.append(sub) }
+            cell.updateUI(
+                type: .detailType,
+                title: product.name,
+                freshness: product.expiryDaysLeft,
+                descriptions: descriptions,
+                subdescriptions: nil,
+                count: product.quantity,
+                image: product.image ?? product.subCategoryIconName.flatMap { UIImage(named: $0) }
+            )
             return cell
         }
     }
