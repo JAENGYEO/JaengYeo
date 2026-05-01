@@ -40,6 +40,10 @@ final class WidgetPresetViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        mainView.emptyPresetView.config(
+            title: "등록된 프리셋이 없어요",
+            description: "프리셋을 등록해서 위젯을 만들어보세요!"
+        )
         configNavigationBar()
         bind()
     }
@@ -74,6 +78,7 @@ extension WidgetPresetViewController {
         output.presets
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] presets in
+                self?.mainView.emptyPresetView.isHidden = !presets.isEmpty
                 self?.applySnapshot(presets: presets)
             })
             .disposed(by: disposeBag)
