@@ -8,13 +8,15 @@
 import UIKit
 import SnapKit
 import Then
+import RxSwift
+import RxCocoa
 
 enum WidgetPresetSection: Int, CaseIterable {
     case main
 }
 
 final class WidgetPresetView: UIView {
-    lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout()).then {
+    lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewLayout()).then {
         $0.backgroundColor = .white
         $0.showsVerticalScrollIndicator = false
         $0.register(WidgetPresetCell.self, forCellWithReuseIdentifier: WidgetPresetCell.id)
@@ -24,9 +26,12 @@ final class WidgetPresetView: UIView {
         $0.isHidden = true
     }
     
+    let swipeDeleteRelay = PublishRelay<IndexPath>()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .white
+        configCollectionViewLayout()
         setLayout()
     }
     
@@ -51,18 +56,24 @@ extension WidgetPresetView {
 }
 
 extension WidgetPresetView {
-    private func createLayout() -> UICollectionViewLayout {
-        UICollectionViewCompositionalLayout { _, _ in
-            let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(56))
-            let item = NSCollectionLayoutItem(layoutSize: itemSize)
-            
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(56))
-            let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
-            
-            let section = NSCollectionLayoutSection(group: group)
+    private func configCollectionViewLayout() {
+        let layout = UICollectionViewCompositionalLayout { _, environment in
+            var config = UICollectionLayoutListConfiguration(appearance: .plain)
+            config.showsSeparators = false
+            config.backgroundColor = .clear
+            config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
+                let deleteAction = UIContextualAction(style: .destructive, title: nil) { [weak self] _, _, completion in
+                    self?.swipeDeleteRelay.accept(indexPath)
+                    completion(true)
+                }
+                deleteAction.image = UIImage(systemName: "trash")
+                return UISwipeActionsConfiguration(actions: [deleteAction])
+            }
+            let section = NSCollectionLayoutSection.list(using: config, layoutEnvironment: environment)
             section.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 16, trailing: 16)
             section.interGroupSpacing = 8
             return section
         }
+        collectionView.setCollectionViewLayout(layout, animated: false)
     }
 }
