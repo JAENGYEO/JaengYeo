@@ -20,6 +20,10 @@ final class WidgetPresetView: UIView {
         $0.register(WidgetPresetCell.self, forCellWithReuseIdentifier: WidgetPresetCell.id)
     }
     
+    let emptyPresetView = EmptyStateView().then {
+        $0.isHidden = true
+    }
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .white
@@ -33,11 +37,15 @@ final class WidgetPresetView: UIView {
 
 extension WidgetPresetView {
     private func setLayout() {
-        addSubview(collectionView)
+        [collectionView, emptyPresetView].forEach { addSubview($0) }
         
         collectionView.snp.makeConstraints {
             $0.top.equalTo(safeAreaLayoutGuide)
             $0.leading.trailing.bottom.equalToSuperview()
+        }
+        
+        emptyPresetView.snp.makeConstraints {
+            $0.edges.equalTo(safeAreaLayoutGuide)
         }
     }
 }
