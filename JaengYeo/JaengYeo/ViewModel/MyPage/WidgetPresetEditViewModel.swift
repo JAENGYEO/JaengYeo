@@ -8,6 +8,7 @@
 import Foundation
 import RxSwift
 import RxCocoa
+import UIKit
 
 final class WidgetPresetEditViewModel: ViewModelProtocol {
     enum Mode {
@@ -23,7 +24,12 @@ final class WidgetPresetEditViewModel: ViewModelProtocol {
     struct SelectedProduct: Hashable {
         let id: UUID
         let name: String
-        let mainCategory: String
+        let image: UIImage?
+        let subCategoryIconName: String?
+        let expiryDaysLeft: Int?
+        let midCategoryName: String?
+        let subCategoryName: String?
+        let quantity: Int
     }
     
     private let disposeBag = DisposeBag()
@@ -139,9 +145,42 @@ final class WidgetPresetEditViewModel: ViewModelProtocol {
                 guard let self else { return [] }
                 return ids.compactMap { id in
                     guard let payload = try? self.coreDataManager.fetchProduct(of: id) else { return nil }
-                    return SelectedProduct(id: payload.id, name: payload.name, mainCategory: payload.mainCategory)
+                    let image = ImageUtils.loadImage(fileName: payload.imageUrl)
+                    let iconName: String?
+                    if image == nil,
+                       let subCategoryId = payload.subCategoryId,
+                       let subCategory = try? self.coreDataManager.fetchSubCategory(of: subCategoryId) {
+                        iconName = subCategory.iconName
+                    } else {
+                        iconName = nil
+                    }
+                    let expiryDaysLeft: Int?
+                    if let expiryDate = payload.expiryDate {
+                        let today = Calendar.current.startOfDay(for: Date())
+                        let expiryDay = Calendar.current.startOfDay(for: expiryDate)
+                        expiryDaysLeft = Calendar.current.dateComponents([.day], from: today, to: expiryDay).day
+                    } else {
+                        expiryDaysLeft = nil
+                    }
+                    let midCategoryName = payload.midCategoryId.flatMap {
+                        try? self.coreDataManager.fetchMidCategory(of: $0).name
+                    }
+                    let subCategoryName = payload.subCategoryId.flatMap {
+                        try? self.coreDataManager.fetchSubCategory(of: $0).name
+                    }
+                    return SelectedProduct(
+                        id: payload.id,
+                        name: payload.name,
+                        image: image,
+                        subCategoryIconName: iconName,
+                        expiryDaysLeft: expiryDaysLeft,
+                        midCategoryName: midCategoryName,
+                        subCategoryName: subCategoryName,
+                        quantity: Int(payload.quantity)
+                    )
                 }
             }
+        
         let canSave = Observable.combineLatest(nameSubject, selectedIDsSubject) { name, ids in
             !name.trimmingCharacters(in: .whitespaces).isEmpty && !ids.isEmpty
         }
