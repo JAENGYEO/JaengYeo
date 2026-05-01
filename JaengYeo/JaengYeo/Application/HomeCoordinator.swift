@@ -174,7 +174,7 @@ extension HomeCoordinator: RegisterDetailViewControllerDelegate {
             CategorySelectionItem(
                 id: $0.id.uuidString,
                 title: $0.name,
-                image: nil,
+                image: UIImage(named: $0.iconName ?? ""),
                 isSelect: $0.id == midCategory
             )
         }
@@ -196,7 +196,7 @@ extension HomeCoordinator: RegisterDetailViewControllerDelegate {
             CategorySelectionItem(
                 id: $0.id.uuidString,
                 title: $0.name,
-                image: nil,
+                image: UIImage(named: $0.iconName ?? ""),
                 isSelect: $0.id == subCategory
             )
         }
@@ -271,9 +271,7 @@ extension HomeCoordinator: WidgetPresetEditViewControllerDelegate {
         let viewModel = ProductSelectionViewModel(coreDataManager: coreDataManager, initialSelectedIDs: currentSelectedIDs)
         let viewController = ProductSelectionViewController(viewModel: viewModel)
         viewController.delegate = self
-        let navController = BaseNavigationController(rootViewController: viewController)
-        navController.modalPresentationStyle = .pageSheet
-        navigationController.present(navController, animated: true)
+        navigationController.pushViewController(viewController, animated: true)
     }
     func widgetPresetEditViewControllerDidSave() {
         navigationController.popViewController(animated: true)
@@ -285,8 +283,7 @@ extension HomeCoordinator: WidgetPresetEditViewControllerDelegate {
 
 extension HomeCoordinator: ProductSelectionViewControllerDelegate {
     func productSelectionViewController(_ viewController: ProductSelectionViewController, didConfirmWith ids: [UUID]) {
-        viewController.dismiss(animated: true) { [weak self] in
-            self?.widgetPresetEditViewController?.didCompleteProductSelection(ids: ids)
-        }
+        navigationController.popViewController(animated: true)
+        widgetPresetEditViewController?.didCompleteProductSelection(ids: ids)
     }
 }
