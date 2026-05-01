@@ -259,6 +259,11 @@ extension HomeCoordinator {
         widgetPresetEditViewController = viewController
         navigationController.pushViewController(viewController, animated: true)
     }
+    
+    func showWidgetSettings() {
+        navigationController.popToRootViewController(animated: false)
+        pushWidgetSetting()
+    }
 }
 
 extension HomeCoordinator: WidgetPresetEditViewControllerDelegate {
