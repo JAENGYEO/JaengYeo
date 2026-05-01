@@ -235,11 +235,14 @@ extension AppCoordinator {
         case .product(let id):
             break
         case .confirmDelete(let id):
-            break
+            mainController?.selectedIndex = Tab.home.rawValue
+            homeCoordinator?.showConfirmDelete(productID: id)
         case .lowStockList:
-            break
+            mainController?.selectedIndex = Tab.home.rawValue
+            homeCoordinator?.showLowStockList()
         case .expiryList:
-            break
+            mainController?.selectedIndex = Tab.home.rawValue
+            homeCoordinator?.showExpiryImminentList()
         case .camera(let mode):
             mainController?.selectedIndex = Tab.register.rawValue
             registerCoordinator?.switchCameraMode(mode: mode)
