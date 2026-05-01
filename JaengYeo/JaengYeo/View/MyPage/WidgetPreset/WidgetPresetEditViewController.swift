@@ -163,6 +163,10 @@ extension WidgetPresetEditViewController {
                 count: product.quantity,
                 image: product.image ?? product.subCategoryIconName.flatMap { UIImage(named: $0) }
             )
+            var bgConfig = cell.backgroundConfiguration ?? UIBackgroundConfiguration.clear()
+            bgConfig.strokeColor = .gray100
+            bgConfig.strokeWidth = 1
+            cell.backgroundConfiguration = bgConfig
             return cell
         }
     }
