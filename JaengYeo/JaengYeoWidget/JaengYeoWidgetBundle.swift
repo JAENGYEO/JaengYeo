@@ -12,5 +12,6 @@ import SwiftUI
 struct JaengYeoWidgetBundle: WidgetBundle {
     var body: some Widget {
         CameraShortcutWidget()
+        QuantityWidget()
     }
 }
