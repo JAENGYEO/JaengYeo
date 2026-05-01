@@ -11,6 +11,7 @@ import CoreData
 import UIKit
 import RxSwift
 import RxRelay
+import UIKit
 
 /// 상세화면 전용 구조체
 struct ProductDetailDisplayModel {
@@ -189,10 +190,16 @@ private extension ProductDetailViewModel {
         subCategory: SubCategory?
     ) -> (formData: RegisterFormData, originalPayload: ProductPayload) {
         let payload = product.toPayload()
-        let formData = payload.toRegisterFormData(
+        var formData = payload.toRegisterFormData(
             midCategoryName: midCategory?.name,
             subCategoryData: subCategory?.toPayload()
         )
+        if let imageUrl = payload.imageUrl {
+            formData.image = ImageUtils.loadImage(fileName: imageUrl)
+        }
+        if formData.image == nil, let iconName = formData.subCategoryIconName {
+            formData.image = UIImage(named: iconName)
+        }
 
         return (
             formData: formData,
