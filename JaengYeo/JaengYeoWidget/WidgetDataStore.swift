@@ -21,6 +21,12 @@ struct WidgetProductInfo {
     let imageUrl: String?
 }
 
+struct WidgetExpiryItem {
+    let id: UUID
+    let name: String
+    let daysLeft: Int
+}
+
 final class WidgetDataStore {
     private static let container: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "JaengYeo")
@@ -36,7 +42,7 @@ final class WidgetDataStore {
         guard let url = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: "group.com.jaengyoeo.JaengYeo"
         ) else {
-            fatalError()
+            fatalError("Unable to get the shared container URL")
         }
         return url.appendingPathComponent("JaengYeo.sqlite")
     }
@@ -78,6 +84,40 @@ extension WidgetDataStore {
         }
         let idOrder = Dictionary(uniqueKeysWithValues: ids.enumerated().map { ($1, $0) })
         return mapped.sorted { (idOrder[$0.id] ?? 0) < (idOrder[$1.id] ?? 0 )}
+    }
+    
+    func fetchLowStockProducts(limit: Int = 6) -> [WidgetProductInfo] {
+        let request = NSFetchRequest<NSManagedObject>(entityName: ProductEntity.className)
+        request.predicate = NSPredicate(format: "isLowStockNotificationEnabled == true AND quantity <= lowStockThreshold AND syncStatus != %@", "pendingDelete")
+        request.sortDescriptors = [NSSortDescriptor(key: "quantity", ascending: true)]
+        request.fetchLimit = limit
+        let results = (try? context.fetch(request)) ?? []
+        return results.compactMap { obj in
+            guard let id = obj.value(forKey: ProductEntity.Keys.id) as? UUID,
+                  let name = obj.value(forKey: ProductEntity.Keys.name) as? String else { return nil }
+            let quantity = obj.value(forKey: ProductEntity.Keys.quantity) as? Int32 ?? 0
+            return WidgetProductInfo(id: id, name: name, quantity: Int(quantity), imageUrl: nil)
+        }
+    }
+    
+    func fetchExpiryImminentProducts(days: Int = 3, limit: Int = 6) -> [WidgetExpiryItem] {
+        let today = Calendar.current.startOfDay(for: Date())
+        guard let deadline = Calendar.current.date(byAdding: .day, value: days + 1, to: today) else { return [] }
+        let request = NSFetchRequest<NSManagedObject>(entityName: ProductEntity.className)
+        request.predicate = NSPredicate(
+            format: "expiryDate >= %@ AND expiryDate < %@ AND syncStatus != %@",
+            today as NSDate, deadline as NSDate, "pendingDelete"
+        )
+        request.sortDescriptors = [NSSortDescriptor(key: "expiryDate", ascending: true)]
+        request.fetchLimit = limit
+        let results = (try? context.fetch(request)) ?? []
+        return results.compactMap { obj in
+            guard let id = obj.value(forKey: ProductEntity.Keys.id) as? UUID,
+                  let name = obj.value(forKey: ProductEntity.Keys.name) as? String,
+                  let expiryDate = obj.value(forKey: ProductEntity.Keys.expiryDate) as? Date else { return nil }
+            let daysLeft = Calendar.current.dateComponents([.day], from: today, to: Calendar.current.startOfDay(for: expiryDate)).day ?? 0
+            return WidgetExpiryItem(id: id, name: name, daysLeft: daysLeft)
+        }
     }
 }
 
