@@ -12,13 +12,15 @@ class MainController: UITabBarController {
     init(
         homeNavigationController: UINavigationController,
         registerNavigationController: UINavigationController,
-        stockNavigationController: UINavigationController
+        stockNavigationController: UINavigationController,
+        cartNavigationController: UINavigationController
     ) {
         super.init(nibName: nil, bundle: nil)
         viewControllers = [
             homeNavigationController,
             registerNavigationController,
-            stockNavigationController
+            stockNavigationController,
+            cartNavigationController
         ]
     }
     
