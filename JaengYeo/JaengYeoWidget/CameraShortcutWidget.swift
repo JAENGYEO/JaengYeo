@@ -28,13 +28,12 @@ struct CameraShortcutProvider: TimelineProvider {
 
 struct CameraShortcutWidget: Widget {
     let kind: String = "CameraShortcutWidget"
-    
+
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CameraShortcutProvider()) { entry in
             CameraShortcutWidgetView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("카메라 바로가기")
+        .configurationDisplayName("물품 등록")
         .description("탭으로 등록 화면 진입")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
@@ -42,66 +41,128 @@ struct CameraShortcutWidget: Widget {
 
 struct CameraShortcutWidgetView: View {
     @Environment(\.widgetFamily) var family
+    @Environment(\.colorScheme) var colorScheme
     let entry: CameraShortcutEntry
+
+    private var textColor: Color {
+        colorScheme == .dark ? .white : Color(red: 0.2, green: 0.2, blue: 0.2)
+    }
+
     var body: some View {
-        switch family {
-        case .systemSmall:
-            CameraShortcutSmallView()
-        case .systemMedium:
-            CameraShortcutMediumView()
-        default:
-            CameraShortcutSmallView()
+        Group {
+            switch family {
+            case .systemSmall:
+                CameraShortcutSmallView(textColor: textColor)
+            case .systemMedium:
+                CameraShortcutMediumView(textColor: textColor)
+            default:
+                CameraShortcutSmallView(textColor: textColor)
+            }
+        }
+        .containerBackground(for: .widget) {
+            colorScheme == .dark ? Color(red: 0.1, green: 0.1, blue: 0.1) : Color.white
         }
     }
 }
 
 struct CameraShortcutSmallView: View {
+    let textColor: Color
+
     var body: some View {
         Link(destination: cameraURL(mode: .barcode)) {
-            VStack(spacing: 8) {
-                Image("barcodeIcon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 48, height: 48)
-                Text("바코드 스캔")
-                    .font(.caption)
-                    .fontWeight(.medium)
+            VStack(spacing: 16) {
+                HStack {
+                    Text("물품 등록")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(textColor)
+                    Spacer()
+                    Image("CameraLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 22)
+                }
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.gray.opacity(0.2))
+                    Image("CameraIcon")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 36, height: 36)
+                        .foregroundColor(textColor)
+                }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(16)
         }
     }
 }
 
 struct CameraShortcutMediumView: View {
+    let textColor: Color
+
     var body: some View {
-        HStack(spacing: 4) {
-            CameraModeShortcut(mode: .barcode, iconName: "barcodeIcon", title: "바코드")
-            CameraModeShortcut(mode: .receipt, iconName: "receiptIcon", title: "영수증")
-            CameraModeShortcut(mode: .aiVision, iconName: "aiIcon", title: "AI인식")
-            CameraModeShortcut(mode: .manual, iconName: "editIcon", title: "직접입력")
+        VStack(spacing: 6) {
+            HStack {
+                Text("물품 등록")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(textColor)
+                Spacer()
+                Image("widgetLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 22)
+            }
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    CameraModeButton(mode: .barcode, iconName: "barcodeIcon", title: "바코드", textColor: textColor)
+                    CameraModeButton(mode: .receipt, iconName: "receiptIcon", title: "영수증", textColor: textColor)
+                    CameraModeButton(mode: .aiVision, iconName: "aiIcon", title: "AI인식", textColor: textColor)
+                }
+                Link(destination: cameraURL(mode: .manual)) {
+                    HStack(spacing: 4) {
+                        Image("editIcon")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                        Text("직접입력")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(textColor)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(Color.gray.opacity(0.2))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+            }
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 16)
     }
 }
 
-struct CameraModeShortcut: View {
+struct CameraModeButton: View {
     let mode: CameraMode
     let iconName: String
     let title: String
+    let textColor: Color
+
     var body: some View {
         Link(destination: cameraURL(mode: mode)) {
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 Image(iconName)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 32, height: 32)
+                    .frame(width: 24, height: 24)
                 Text(title)
-                    .font(.caption2)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(textColor)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(Color.gray.opacity(0.2))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
 }
-
 
 private func cameraURL(mode: CameraMode) -> URL {
     var components = URLComponents()
