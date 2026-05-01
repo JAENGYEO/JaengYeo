@@ -30,6 +30,7 @@ final class WidgetPresetViewModel: ViewModelProtocol {
         let viewWillAppear: Observable<Void>
         let itemSelected: Observable<UUID>
         let addButtonTapped: Observable<Void>
+        let deletePreset: Observable<UUID>
     }
     
     struct Output {
@@ -38,7 +39,13 @@ final class WidgetPresetViewModel: ViewModelProtocol {
     }
     
     func transform(_ input: Input) -> Output {
-        let presets = input.viewWillAppear
+        let deletePreset = input.deletePreset
+            .do(onNext: { [weak self] id in
+                try? self?.coreDataManager.deleteWidgetPreset(id: id)
+            })
+            .map { _ in () }
+        
+        let presets = Observable.merge(input.viewWillAppear, deletePreset)
             .map { [weak self] _ -> [PresetSummary] in
                 guard let self else { return [] }
                 do {
