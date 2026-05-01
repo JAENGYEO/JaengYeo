@@ -30,6 +30,7 @@ final class ProductSelectionViewController: BaseViewController {
     init(viewModel: ProductSelectionViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        hidesBottomBarWhenPushed = true
     }
 
     required init?(coder: NSCoder) {
@@ -42,14 +43,17 @@ final class ProductSelectionViewController: BaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        configNavigationBar()
         bind()
     }
-}
 
-extension ProductSelectionViewController {
-    private func configNavigationBar() {
-        title = "상품 선택"
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 }
 
@@ -70,13 +74,25 @@ extension ProductSelectionViewController {
             .bind(to: itemTappedRelay)
             .disposed(by: disposeBag)
 
+        mainView.backButton.rx.tap
+            .bind(onNext: { [weak self] in
+                self?.navigationController?.popViewController(animated: true)
+            })
+            .disposed(by: disposeBag)
+
         let viewWillAppear = rx.methodInvoked(#selector(viewWillAppear(_:)))
             .map { _ in }
+        
+        let searchKeyword = mainView.searchBar.rx.text.orEmpty
+            .debounce(.milliseconds(200), scheduler: MainScheduler.instance)
+            .distinctUntilChanged()
+            .asObservable()
 
         let input = ProductSelectionViewModel.Input(
             viewWillAppear: viewWillAppear,
             itemTapped: itemTappedRelay.asObservable(),
-            confirmButtonTapped: mainView.confirmButton.rx.tap.asObservable()
+            confirmButtonTapped: mainView.confirmButton.rx.tap.asObservable(),
+            searchKeyword: searchKeyword
         )
 
         let output = viewModel.transform(input)
@@ -91,9 +107,7 @@ extension ProductSelectionViewController {
         output.counterText
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] text in
-                self?.navigationItem.rightBarButtonItem = UIBarButtonItem(title: text, style: .plain, target: nil, action: nil)
-                self?.navigationItem.rightBarButtonItem?.isEnabled = false
-                self?.navigationItem.rightBarButtonItem?.tintColor = .gray500
+                self?.mainView.counterLabel.text = text
             })
             .disposed(by: disposeBag)
 
@@ -111,17 +125,40 @@ extension ProductSelectionViewController {
     private func makeDataSource() -> UICollectionViewDiffableDataSource<ProductSelectionSection, ProductSelectionViewModel.ProductItem> {
         UICollectionViewDiffableDataSource(collectionView: mainView.collectionView) { collectionView, indexPath, item in
             guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: ProductSelectionCell.id,
+                withReuseIdentifier: ProductCell.id,
                 for: indexPath
-            ) as? ProductSelectionCell else {
+            ) as? ProductCell else {
                 return UICollectionViewCell()
             }
-            cell.config(
+            var descriptions: [String] = []
+            if let midCategory = item.midCategoryName { descriptions.append(midCategory) }
+            if let subCategory = item.subCategoryName { descriptions.append(subCategory) }
+            cell.updateUI(
+                type: .detailType,
                 title: item.name,
-                category: item.mainCategory,
-                isSelected: item.isSelected,
-                isEnabled: item.isEnabled
+                freshness: item.expiryDaysLeft,
+                descriptions: descriptions,
+                subdescriptions: nil,
+                count: item.quantity,
+                image: item.image ?? item.subCategoryIconName.flatMap { UIImage(named: $0) }
             )
+            var bgConfig = cell.backgroundConfiguration ?? UIBackgroundConfiguration.clear()
+            bgConfig.strokeColor = .gray100
+            bgConfig.strokeWidth = 1
+            cell.backgroundConfiguration = bgConfig
+            let checkImage = UIImageView().then {
+                $0.image = UIImage(systemName: item.isSelected ? "checkmark.circle.fill" : "circle")
+                $0.tintColor = item.isSelected ? .accent : .gray300
+                $0.contentMode = .scaleAspectFit
+                $0.frame = CGRect(x: 0, y: 0, width: 24, height: 24)
+            }
+            let checkConfig = UICellAccessory.CustomViewConfiguration(
+                customView: checkImage,
+                placement: .leading(displayed: .always)
+            )
+            cell.accessories = [.customView(configuration: checkConfig)]
+            cell.contentView.alpha = item.isEnabled ? 1 : 0.4
+            cell.isUserInteractionEnabled = item.isEnabled
             return cell
         }
     }
