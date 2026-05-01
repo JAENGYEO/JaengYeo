@@ -69,10 +69,17 @@ extension WidgetPresetViewController {
             }
             .asObservable()
         
+        let deletePreset = mainView.swipeDeleteRelay
+            .compactMap { [weak self] indexPath -> UUID? in
+                self?.dataSource.itemIdentifier(for: indexPath)?.id
+            }
+            .asObservable()
+        
         let input = WidgetPresetViewModel.Input(
             viewWillAppear: viewWillAppear,
             itemSelected: itemSelected,
-            addButtonTapped: addButton.rx.tap.asObservable()
+            addButtonTapped: addButton.rx.tap.asObservable(),
+            deletePreset: deletePreset
         )
         let output = viewModel.transform(input)
         output.presets
