@@ -46,10 +46,6 @@ final class CartViewModel: ViewModelProtocol {
     struct Output {
         /// 장바구니 아이템 목록
         let cartItems: Observable<[CartItem]>
-        /// 장바구니 비어있는지 여부
-        let isEmpty: Observable<Bool>
-        /// 장바구니 아이템 개수
-        let totalCountText: Observable<Int>
         /// 선택된 정렬 타이틀
         let selectedSortTitle: Observable<String>
     }
@@ -99,12 +95,6 @@ final class CartViewModel: ViewModelProtocol {
         
         return Output(
             cartItems: cartItemsRelay.asObservable(),
-            isEmpty: cartItemsRelay
-                .map { $0.isEmpty }
-                .asObservable(),
-            totalCountText: cartItemsRelay
-                .map { $0.count }
-                .asObservable(),
             selectedSortTitle: selectedSortOptionRelay
                 .map { $0.rawValue }
                 .asObservable()
@@ -153,7 +143,11 @@ private extension CartViewModel {
         items[index] = updatedItem
         applySortedItems(items)
 
-        try? coreDataManager.updateCartItem(updatedItem.toPayload)
+        do {
+            try coreDataManager.updateCartItem(updatedItem.toPayload)
+        } catch {
+            return
+        }
     }
 
     /// 장바구니 아이템 삭제
@@ -172,11 +166,12 @@ private extension CartViewModel {
 
     /// 장바구니 목록 재조회
     func fetchCartItems() {
-        guard let items = try? coreDataManager.fetchAllCartItems() else {
+        do {
+            let items = try coreDataManager.fetchAllCartItems()
+            applySortedItems(items.map { $0.toDomain() })
+        } catch {
             return
         }
-
-        applySortedItems(items.map { $0.toDomain() })
     }
 
     /// 정렬 적용

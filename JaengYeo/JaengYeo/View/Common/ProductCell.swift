@@ -255,7 +255,7 @@ extension ProductCell {
             upDownCountView.updateUI(count: count)
         } else {
             switch cellType {
-            case .detailType:
+            case .detailType, .searchType:
                 productCountLabel.text = count.map { String($0) } ?? "0"
                 productCountView.isHidden = false
                 upDownCountView.isHidden = true
@@ -264,7 +264,7 @@ extension ProductCell {
                 productCountView.isHidden = true
                 upDownCountView.isHidden = true
 
-            case .defaultType, .homeType, .searchType:
+            case .defaultType, .homeType:
                 break
             }
         }
@@ -298,9 +298,9 @@ extension ProductCell {
     /// 수량 증감 뷰 사용 여부
     private var usesUpDownCountView: Bool {
         switch cellType {
-        case .defaultType, .homeType, .searchType:
+        case .defaultType, .homeType:
             return true
-        case .detailType, .registType, .unclassifiedType:
+        case .detailType, .registType, .unclassifiedType, .searchType:
             return false
         }
     }

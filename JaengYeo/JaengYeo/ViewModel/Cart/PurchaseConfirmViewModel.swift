@@ -27,8 +27,6 @@ final class PurchaseConfirmViewModel: ViewModelProtocol {
 
     //MARK: - Input / Output
     struct Input {
-        /// 화면 로드 이벤트
-        let viewDidLoad: Observable<Void>
         /// 전체 선택/해제 탭 이벤트
         let selectAllTapped: Observable<Void>
         /// 개별 아이템 체크 탭 이벤트

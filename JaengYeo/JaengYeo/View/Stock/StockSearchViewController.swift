@@ -46,6 +46,7 @@ final class StockSearchViewController: BaseViewController {
 
     //MARK: - Properties
     private let disposeBag = DisposeBag()
+    private let viewWillAppearRelay = PublishRelay<Void>()
     private lazy var dataSource = configureDataSource()
     weak var delegate: StockSearchViewControllerDelegate?
 
@@ -113,6 +114,7 @@ final class StockSearchViewController: BaseViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
+        viewWillAppearRelay.accept(())
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -146,6 +148,7 @@ private extension StockSearchViewController {
         
         let input = StockSearchViewModel.Input(
             viewDidLoad: Observable.just(()),
+            viewWillAppear: viewWillAppearRelay.asObservable(),
             searchText: searchText,
             searchButtonTapped: searchButtonTapped,
             deleteRecentSearch: recentSearchDeletedRelay.asObservable(),
