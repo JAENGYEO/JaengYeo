@@ -20,6 +20,8 @@ final class CartViewModel: ViewModelProtocol {
     struct Input {
         /// 화면 로드 이벤트
         let viewDidLoad: Observable<Void>
+        /// 화면 재진입 이벤트
+        let viewWillAppear: Observable<Void>
         /// 장바구니 아이템 삭제 이벤트
         let itemDeleted: Observable<CartItem>
         /// 장바구니 아이템 수량 증가 이벤트
@@ -44,21 +46,31 @@ final class CartViewModel: ViewModelProtocol {
             })
             .disposed(by: disposeBag)
 
+        input.viewWillAppear
+            .subscribe(onNext: { [weak self] in
+                self?.fetchCartItems()
+            })
+            .disposed(by: disposeBag)
+
         input.itemDeleted
             .subscribe(onNext: { [weak self] item in
-                try? self?.coreDataManager.deleteCartItem(id: item.id)
+                self?.deleteCartItem(item)
             })
             .disposed(by: disposeBag)
 
         input.itemQuantityIncreased
             .subscribe(onNext: { [weak self] item in
-                self?.updateCartItem(item.increased())
+                self?.updateCartItem(id: item.id) {
+                    $0.increased()
+                }
             })
             .disposed(by: disposeBag)
 
         input.itemQuantityDecreased
             .subscribe(onNext: { [weak self] item in
-                self?.updateCartItem(item.decreased())
+                self?.updateCartItem(id: item.id) {
+                    $0.decreased()
+                }
             })
             .disposed(by: disposeBag)
         
@@ -99,7 +111,43 @@ private extension CartViewModel {
     }
 
     /// 장바구니 아이템 갱신
-    func updateCartItem(_ item: CartItem) {
-        try? coreDataManager.updateCartItem(item.toPayload)
+    func updateCartItem(
+        id: UUID,
+        transform: (CartItem) -> CartItem
+    ) {
+        var items = cartItemsRelay.value
+
+        guard let index = items.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+
+        let updatedItem = transform(items[index])
+        items[index] = updatedItem
+        cartItemsRelay.accept(items)
+
+        try? coreDataManager.updateCartItem(updatedItem.toPayload)
+    }
+
+    /// 장바구니 아이템 삭제
+    func deleteCartItem(_ item: CartItem) {
+        do {
+            try coreDataManager.deleteCartItem(id: item.id)
+
+            let items = cartItemsRelay.value.filter {
+                $0.id != item.id
+            }
+            cartItemsRelay.accept(items)
+        } catch {
+            return
+        }
+    }
+
+    /// 장바구니 목록 재조회
+    func fetchCartItems() {
+        guard let items = try? coreDataManager.fetchAllCartItems() else {
+            return
+        }
+
+        cartItemsRelay.accept(items.map { $0.toDomain() })
     }
 }

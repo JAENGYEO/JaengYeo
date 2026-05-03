@@ -11,7 +11,9 @@ import RxSwift
 import RxCocoa
 
 protocol CartViewControllerDelegate: AnyObject {
-    func didTapCartAddButton()
+    func didTapExistingProductButton()
+    func didTapNewProductButton()
+    func didSelectCartItem(_ item: CartItem)
 }
 
 final class CartViewController: BaseViewController {
@@ -21,6 +23,7 @@ final class CartViewController: BaseViewController {
     
     //MARK: - Properties
     private let disposeBag = DisposeBag()
+    private let viewWillAppearRelay = PublishRelay<Void>()
     weak var delegate: CartViewControllerDelegate?
 
     //MARK: - Components
@@ -50,22 +53,39 @@ final class CartViewController: BaseViewController {
         configureUI()
         bind()
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewWillAppearRelay.accept(())
+    }
 }
 
 //MARK: - Binding
 private extension CartViewController {
     func bind() {
-        addButton.rx.tap
-            .bind(onNext: { [weak self] in
-                self?.delegate?.didTapCartAddButton()
-            })
-            .disposed(by: disposeBag)
-
         guard let viewModel else { return }
+
+        let itemDeleted = cartView.itemDeleted
+            .flatMapLatest { [weak self] item in
+                AlertController.rx.alert(
+                    on: self,
+                    image: UIImage(named: "alertRed") ?? UIImage(),
+                    title: "항목 삭제",
+                    message: "장바구니 항목을 삭제하시겠습니까?",
+                    actions: [
+                        .cancel("취소"),
+                        .destructive("삭제")
+                    ]
+                )
+                .filter { $0.title == "삭제" }
+                .map { _ in item }
+            }
+            .asObservable()
 
         let input = CartViewModel.Input(
             viewDidLoad: Observable.just(()),
-            itemDeleted: cartView.itemDeleted,
+            viewWillAppear: viewWillAppearRelay.asObservable(),
+            itemDeleted: itemDeleted,
             itemQuantityIncreased: cartView.itemQuantityIncreased,
             itemQuantityDecreased: cartView.itemQuantityDecreased
         )
@@ -75,6 +95,12 @@ private extension CartViewController {
         output.cartItems
             .bind(onNext: { [weak self] items in
                 self?.cartView.applySnapshot(with: items)
+            })
+            .disposed(by: disposeBag)
+
+        cartView.itemSelected
+            .bind(onNext: { [weak self] item in
+                self?.delegate?.didSelectCartItem(item)
             })
             .disposed(by: disposeBag)
     }
@@ -99,6 +125,7 @@ private extension CartViewController {
         navigationController?.navigationBar.compactAppearance = appearance
         navigationController?.navigationBar.tintColor = .gray800
 
+        configureAddMenu()
         navigationItem.rightBarButtonItem = addButton
     }
     
@@ -109,6 +136,23 @@ private extension CartViewController {
             $0.top.equalTo(view.safeAreaLayoutGuide)
             $0.leading.trailing.bottom.equalToSuperview()
         }
+    }
+
+    func configureAddMenu() {
+        let existingProductAction = UIAction(title: "기존제품") { [weak self] _ in
+            self?.delegate?.didTapExistingProductButton()
+        }
+
+        let newProductAction = UIAction(title: "신규등록") { [weak self] _ in
+            self?.delegate?.didTapNewProductButton()
+        }
+
+        addButton.menu = UIMenu(
+            children: [
+                existingProductAction,
+                newProductAction
+            ]
+        )
     }
 }
 

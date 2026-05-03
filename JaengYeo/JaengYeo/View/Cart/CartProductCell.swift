@@ -195,7 +195,7 @@ private extension CartProductCell {
         upDownCountView.snp.makeConstraints {
             $0.trailing.equalToSuperview().inset(6)
             $0.centerY.equalToSuperview()
-            $0.width.equalTo(86)
+            $0.width.equalTo(100)
             $0.height.equalTo(44)
         }
     }

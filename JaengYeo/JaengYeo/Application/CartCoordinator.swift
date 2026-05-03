@@ -14,6 +14,7 @@ final class CartCoordinator {
     let navigateToRegister = PublishSubject<Void>()
     private let coreDataManager: CoreDataManagerProtocol
     private let authManager: AuthManagerProtocol
+    private weak var currentNavigationController: UINavigationController?
     
     init(coreDataManager: CoreDataManagerProtocol, authManager: AuthManagerProtocol) {
         self.coreDataManager = coreDataManager
@@ -24,8 +25,8 @@ final class CartCoordinator {
         navigationController = BaseNavigationController(rootViewController: viewController)
         navigationController.tabBarItem = UITabBarItem(
             title: "목록",
-            image: UIImage(named: "list"),
-            selectedImage: UIImage(named: "list")
+            image: UIImage(named: "List"),
+            selectedImage: UIImage(named: "List")
         )
     }
 }
@@ -36,6 +37,7 @@ extension CartCoordinator {
         guard !(navigationController.topViewController is CartViewController) else {
             return
         }
+        currentNavigationController = navigationController
 
         let viewModel = CartViewModel(coreDataManager: coreDataManager)
         let viewController = CartViewController(viewModel: viewModel)
@@ -47,7 +49,21 @@ extension CartCoordinator {
 }
 
 extension CartCoordinator: CartViewControllerDelegate {
-    func didTapCartAddButton() {
-        navigateToRegister.onNext(())
+    func didTapExistingProductButton() {
+    }
+
+    func didTapNewProductButton() {
+        let viewModel = CartAddItemViewModel(coreDataManager: coreDataManager)
+        let viewController = CartAddItemViewController(viewModel: viewModel)
+        currentNavigationController?.pushViewController(viewController, animated: true)
+    }
+
+    func didSelectCartItem(_ item: CartItem) {
+        let viewModel = CartAddItemViewModel(
+            coreDataManager: coreDataManager,
+            item: item
+        )
+        let viewController = CartAddItemViewController(viewModel: viewModel)
+        currentNavigationController?.pushViewController(viewController, animated: true)
     }
 }
