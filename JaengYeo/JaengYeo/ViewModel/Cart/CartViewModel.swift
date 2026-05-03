@@ -148,6 +148,6 @@ private extension CartViewModel {
             return
         }
 
-        cartItemsRelay.accept(items.map { $0.toDomain })
+        cartItemsRelay.accept(items.map { $0.toDomain() })
     }
 }
