@@ -53,12 +53,14 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
         let viewWillAppear: Observable<Void>
         let modifyTapped: Observable<Void>
         let deleteTapped: Observable<Void>
+        let addToCartTapped: Observable<Void>
     }
-    
+
     struct Output {
         let viewUpdate: Observable<ProductDetailDisplayModel>
         let deleteSuccess: Observable<Bool>
         let modify: Observable<(formData: RegisterFormData, originalPayload: ProductPayload)>
+        let addToCartSuccess: Observable<Void>
     }
     
     func transform(_ input: Input) -> Output {
@@ -75,14 +77,16 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
             )
         }
         .compactMap { $0 }
-        
+
+        let addToCartSuccessSubject = PublishSubject<Void>()
+
         Observable.merge(input.viewDidLoad, input.viewWillAppear)
             .subscribe(onNext: { [weak self] in
                 guard let self else { return }
                 self.bindProduct()
             })
             .disposed(by: disposeBag)
-        
+
         input.deleteTapped
             .subscribe(onNext: { [weak self] _ in
                 guard let self else { return }
@@ -90,7 +94,24 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
                 self.deleteRelay.accept(ok)
             })
             .disposed(by: disposeBag)
-        
+
+        input.addToCartTapped
+            .withLatestFrom(productRelay.compactMap { $0 })
+            .subscribe(onNext: { [weak self] product in
+                guard let self else { return }
+                let payload = CartItemPayload(
+                    id: UUID(),
+                    referenceId: product.id,
+                    name: product.name,
+                    mainCategory: product.mainCategory,
+                    quantity: 1,
+                    createdAt: Date()
+                )
+                try? self.coreDataManager.createCartItem(payload)
+                addToCartSuccessSubject.onNext(())
+            })
+            .disposed(by: disposeBag)
+
         return Output(
             viewUpdate: displayModelRelay
                 .compactMap { $0 },
@@ -98,7 +119,8 @@ final class ProductDetailViewModel: NSObject, ViewModelProtocol {
                 .skip(1)
                 .asObservable(),
             modify: input.modifyTapped
-                .withLatestFrom(modifyData)
+                .withLatestFrom(modifyData),
+            addToCartSuccess: addToCartSuccessSubject.asObservable()
         )
     }
     

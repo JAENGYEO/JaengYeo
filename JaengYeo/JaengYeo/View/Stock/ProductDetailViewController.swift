@@ -27,6 +27,12 @@ final class ProductDetailViewController: BaseViewController {
 
     let disposeBag = DisposeBag()
     private let viewWillAppearRelay = PublishRelay<Void>()
+    private let listAddButton = UIBarButtonItem(
+        image: UIImage(named: "ListAdd"),
+        style: .plain,
+        target: nil,
+        action: nil
+    )
 
     let productDetailView = ProductDetailView()
 
@@ -76,11 +82,29 @@ extension ProductDetailViewController {
             .map { _ in }
             .asObservable()
         
+        let addToCartTapped = listAddButton.rx.tap
+            .flatMapLatest { [weak self] _ in
+                AlertController.rx.alert(
+                    on: self,
+                    image: UIImage(named: "alertBlue") ?? UIImage(),
+                    title: "구매 예정 목록 추가",
+                    message: "구매 예정 목록에 추가하시겠습니까?",
+                    actions: [
+                        .cancel("취소"),
+                        .default("확인")
+                    ]
+                )
+            }
+            .filter { $0.title == "확인" }
+            .map { _ in }
+            .asObservable()
+
         let input = ProductDetailViewModel.Input(
             viewDidLoad: Observable.just(()),
             viewWillAppear: viewWillAppearRelay.asObservable(),
             modifyTapped: productDetailView.modifyButton.rx.tap.asObservable(),
-            deleteTapped: deleteTap
+            deleteTapped: deleteTap,
+            addToCartTapped: addToCartTapped
         )
 
         let output = viewModel.transform(input)
@@ -152,11 +176,13 @@ extension ProductDetailViewController {
             .font: LabelConfiguration.titleSemi18.font,
             .foregroundColor: UIColor.gray800
         ]
-        
+
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         navigationController?.navigationBar.compactAppearance = appearance
         navigationController?.navigationBar.tintColor = .gray800
+
+        navigationItem.rightBarButtonItem = listAddButton
     }
     
     private func configureUI() {
