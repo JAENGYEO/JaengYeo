@@ -9,6 +9,16 @@ import Foundation
 import RxSwift
 import RxRelay
 
+//MARK: - Sort
+enum CartSortOption: String, CaseIterable {
+    case nameAsc = "이름순"
+    case nameDesc = "이름 역순"
+    case createdAtDesc = "등록일 최신순"
+    case createdAtAsc = "등록일 오래된순"
+    case quantityDesc = "수량 많은 순"
+    case quantityAsc = "수량 적은 순"
+}
+
 final class CartViewModel: ViewModelProtocol {
 
     //MARK: - Properties
@@ -16,6 +26,7 @@ final class CartViewModel: ViewModelProtocol {
     private var cartItemObservationDisposeBag = DisposeBag()
     private let coreDataManager: CoreDataManagerProtocol
     private let cartItemsRelay = BehaviorRelay<[CartItem]>(value: [])
+    private let selectedSortOptionRelay = BehaviorRelay<CartSortOption>(value: .createdAtDesc)
     
     struct Input {
         /// 화면 로드 이벤트
@@ -28,6 +39,8 @@ final class CartViewModel: ViewModelProtocol {
         let itemQuantityIncreased: Observable<CartItem>
         /// 장바구니 아이템 수량 감소 이벤트
         let itemQuantityDecreased: Observable<CartItem>
+        /// 정렬 선택 이벤트
+        let sortOptionSelected: Observable<CartSortOption>
     }
     
     struct Output {
@@ -37,6 +50,8 @@ final class CartViewModel: ViewModelProtocol {
         let isEmpty: Observable<Bool>
         /// 장바구니 아이템 개수
         let totalCountText: Observable<Int>
+        /// 선택된 정렬 타이틀
+        let selectedSortTitle: Observable<String>
     }
     
     func transform(_ input: Input) -> Output {
@@ -73,6 +88,14 @@ final class CartViewModel: ViewModelProtocol {
                 }
             })
             .disposed(by: disposeBag)
+
+        input.sortOptionSelected
+            .subscribe(onNext: { [weak self] option in
+                guard let self else { return }
+                self.selectedSortOptionRelay.accept(option)
+                self.applySortedItems(self.cartItemsRelay.value)
+            })
+            .disposed(by: disposeBag)
         
         return Output(
             cartItems: cartItemsRelay.asObservable(),
@@ -81,6 +104,9 @@ final class CartViewModel: ViewModelProtocol {
                 .asObservable(),
             totalCountText: cartItemsRelay
                 .map { $0.count }
+                .asObservable(),
+            selectedSortTitle: selectedSortOptionRelay
+                .map { $0.rawValue }
                 .asObservable()
         )
     }
@@ -106,7 +132,9 @@ private extension CartViewModel {
             ]
         )
         .map { $0.map { $0.toDomain } }
-        .bind(to: cartItemsRelay)
+        .subscribe(onNext: { [weak self] items in
+            self?.applySortedItems(items)
+        })
         .disposed(by: cartItemObservationDisposeBag)
     }
 
@@ -123,7 +151,7 @@ private extension CartViewModel {
 
         let updatedItem = transform(items[index])
         items[index] = updatedItem
-        cartItemsRelay.accept(items)
+        applySortedItems(items)
 
         try? coreDataManager.updateCartItem(updatedItem.toPayload)
     }
@@ -136,7 +164,7 @@ private extension CartViewModel {
             let items = cartItemsRelay.value.filter {
                 $0.id != item.id
             }
-            cartItemsRelay.accept(items)
+            applySortedItems(items)
         } catch {
             return
         }
@@ -148,6 +176,37 @@ private extension CartViewModel {
             return
         }
 
-        cartItemsRelay.accept(items.map { $0.toDomain() })
+        applySortedItems(items.map { $0.toDomain() })
+    }
+
+    /// 정렬 적용
+    func applySortedItems(_ items: [CartItem]) {
+        cartItemsRelay.accept(sortItems(items))
+    }
+
+    /// 장바구니 아이템 정렬
+    func sortItems(_ items: [CartItem]) -> [CartItem] {
+        switch selectedSortOptionRelay.value {
+        case .nameAsc:
+            return items.sorted {
+                $0.name.localizedStandardCompare($1.name) == .orderedAscending
+            }
+        case .nameDesc:
+            return items.sorted {
+                $0.name.localizedStandardCompare($1.name) == .orderedDescending
+            }
+        case .createdAtDesc:
+            return items.sorted {
+                ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast)
+            }
+        case .createdAtAsc:
+            return items.sorted {
+                ($0.createdAt ?? .distantPast) < ($1.createdAt ?? .distantPast)
+            }
+        case .quantityDesc:
+            return items.sorted { $0.quantity > $1.quantity }
+        case .quantityAsc:
+            return items.sorted { $0.quantity < $1.quantity }
+        }
     }
 }

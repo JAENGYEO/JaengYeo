@@ -14,6 +14,7 @@ protocol CartViewControllerDelegate: AnyObject {
     func didTapExistingProductButton()
     func didTapNewProductButton()
     func didSelectCartItem(_ item: CartItem)
+    func didTapConfirmButton(cartItems: [CartItem])
 }
 
 final class CartViewController: BaseViewController {
@@ -24,6 +25,7 @@ final class CartViewController: BaseViewController {
     //MARK: - Properties
     private let disposeBag = DisposeBag()
     private let viewWillAppearRelay = PublishRelay<Void>()
+    private let sortOptionSelectedRelay = PublishRelay<CartSortOption>()
     weak var delegate: CartViewControllerDelegate?
 
     //MARK: - Components
@@ -87,7 +89,8 @@ private extension CartViewController {
             viewWillAppear: viewWillAppearRelay.asObservable(),
             itemDeleted: itemDeleted,
             itemQuantityIncreased: cartView.itemQuantityIncreased,
-            itemQuantityDecreased: cartView.itemQuantityDecreased
+            itemQuantityDecreased: cartView.itemQuantityDecreased,
+            sortOptionSelected: sortOptionSelectedRelay.asObservable()
         )
         
         let output = viewModel.transform(input)
@@ -98,9 +101,22 @@ private extension CartViewController {
             })
             .disposed(by: disposeBag)
 
+        output.selectedSortTitle
+            .bind(onNext: { [weak self] title in
+                self?.cartView.updateSortTitle(title)
+            })
+            .disposed(by: disposeBag)
+
         cartView.itemSelected
             .bind(onNext: { [weak self] item in
                 self?.delegate?.didSelectCartItem(item)
+            })
+            .disposed(by: disposeBag)
+
+        cartView.confirmButtonTap
+            .withLatestFrom(output.cartItems)
+            .bind(onNext: { [weak self] items in
+                self?.delegate?.didTapConfirmButton(cartItems: items)
             })
             .disposed(by: disposeBag)
     }
@@ -130,6 +146,10 @@ private extension CartViewController {
     }
     
     func configureUI() {
+        cartView.configureSortMenu { [weak self] option in
+            self?.sortOptionSelectedRelay.accept(option)
+        }
+
         view.addSubview(cartView)
 
         cartView.snp.makeConstraints {
