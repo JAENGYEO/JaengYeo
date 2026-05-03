@@ -22,10 +22,17 @@ final class CartCoordinator {
         let viewModel = CartViewModel(coreDataManager: coreDataManager)
         let viewController = CartViewController(viewModel: viewModel)
         navigationController = BaseNavigationController(rootViewController: viewController)
+        viewController.delegate = self
         navigationController.tabBarItem = UITabBarItem(
             title: "장바구니",
             image: UIImage(named: "bagIcon"),
             selectedImage: UIImage(named: "bagFillIcon")
         )
+    }
+}
+
+extension CartCoordinator: CartViewControllerDelegate {
+    func didTapCartAddButton() {
+        navigateToRegister.onNext(())
     }
 }

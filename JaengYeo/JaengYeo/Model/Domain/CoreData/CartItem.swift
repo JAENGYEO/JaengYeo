@@ -13,6 +13,7 @@ struct CartItem: Hashable {
     let referenceId: UUID?
     let name: String
     let mainCategory: String
+    let quantity: Int
     let createdAt: Date?
 }
 
@@ -23,9 +24,35 @@ extension CartItem {
         entity.referenceId = referenceId
         entity.name = name
         entity.mainCategory = mainCategory
+        entity.quantity = Int32(quantity)
         entity.createDate = createdAt
 
         return entity
     }
 }
 
+extension CartItem {
+    static let maxQuantity = 999
+
+    func increased() -> CartItem {
+        CartItem(
+            id: id,
+            referenceId: referenceId,
+            name: name,
+            mainCategory: mainCategory,
+            quantity: min(quantity + 1, Self.maxQuantity),
+            createdAt: createdAt
+        )
+    }
+
+    func decreased() -> CartItem {
+        CartItem(
+            id: id,
+            referenceId: referenceId,
+            name: name,
+            mainCategory: mainCategory,
+            quantity: max(quantity - 1, 1),
+            createdAt: createdAt
+        )
+    }
+}

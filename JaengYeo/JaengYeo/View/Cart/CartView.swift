@@ -198,7 +198,7 @@ private extension CartView {
             cell.updateUI(
                 title: item.name,
                 category: item.mainCategory,
-                count: 1,
+                count: item.quantity,
                 isSelected: false,
                 showsCheckBox: false
             )
@@ -327,6 +327,7 @@ private extension CartView {
                 referenceId: nil,
                 name: "토마토",
                 mainCategory: "식재료",
+                quantity: 8,
                 createdAt: Date()
             ),
             CartItem(
@@ -334,6 +335,7 @@ private extension CartView {
                 referenceId: nil,
                 name: "바나나",
                 mainCategory: "식재료",
+                quantity: 3,
                 createdAt: Date()
             )
         ]

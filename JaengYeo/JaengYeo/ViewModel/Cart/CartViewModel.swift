@@ -20,6 +20,12 @@ final class CartViewModel: ViewModelProtocol {
     struct Input {
         /// 화면 로드 이벤트
         let viewDidLoad: Observable<Void>
+        /// 장바구니 아이템 삭제 이벤트
+        let itemDeleted: Observable<CartItem>
+        /// 장바구니 아이템 수량 증가 이벤트
+        let itemQuantityIncreased: Observable<CartItem>
+        /// 장바구니 아이템 수량 감소 이벤트
+        let itemQuantityDecreased: Observable<CartItem>
     }
     
     struct Output {
@@ -35,6 +41,24 @@ final class CartViewModel: ViewModelProtocol {
         input.viewDidLoad
             .subscribe(onNext: { [weak self] in
                 self?.bindCartItems()
+            })
+            .disposed(by: disposeBag)
+
+        input.itemDeleted
+            .subscribe(onNext: { [weak self] item in
+                try? self?.coreDataManager.deleteCartItem(id: item.id)
+            })
+            .disposed(by: disposeBag)
+
+        input.itemQuantityIncreased
+            .subscribe(onNext: { [weak self] item in
+                self?.updateCartItem(item.increased())
+            })
+            .disposed(by: disposeBag)
+
+        input.itemQuantityDecreased
+            .subscribe(onNext: { [weak self] item in
+                self?.updateCartItem(item.decreased())
             })
             .disposed(by: disposeBag)
         
@@ -72,5 +96,10 @@ private extension CartViewModel {
         .map { $0.map { $0.toDomain } }
         .bind(to: cartItemsRelay)
         .disposed(by: cartItemObservationDisposeBag)
+    }
+
+    /// 장바구니 아이템 갱신
+    func updateCartItem(_ item: CartItem) {
+        try? coreDataManager.updateCartItem(item.toPayload)
     }
 }

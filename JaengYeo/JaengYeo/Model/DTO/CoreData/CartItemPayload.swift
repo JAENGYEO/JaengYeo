@@ -13,6 +13,7 @@ struct CartItemPayload {
     let referenceId: UUID?
     let name: String
     let mainCategory: String
+    let quantity: Int
     let createdAt: Date
 }
 
@@ -25,7 +26,21 @@ extension CartItemPayload {
             referenceId: referenceId,
             name: name,
             mainCategory: mainCategory,
+            quantity: quantity,
             createdAt: createdAt
+        )
+    }
+}
+
+extension CartItem {
+    var toPayload: CartItemPayload {
+        CartItemPayload(
+            id: id,
+            referenceId: referenceId,
+            name: name,
+            mainCategory: mainCategory,
+            quantity: quantity,
+            createdAt: createdAt ?? Date()
         )
     }
 }

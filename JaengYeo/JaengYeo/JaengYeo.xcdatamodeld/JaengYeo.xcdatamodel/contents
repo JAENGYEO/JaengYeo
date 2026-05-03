@@ -5,6 +5,7 @@
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="mainCategory" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="quantity" attributeType="Integer 32" defaultValueString="1" usesScalarValueType="YES"/>
         <attribute name="referenceId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
     <entity name="MidCategoryEntity" representedClassName="MidCategoryEntity" syncable="YES">
