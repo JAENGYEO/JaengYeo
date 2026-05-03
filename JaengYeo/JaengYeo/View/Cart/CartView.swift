@@ -30,7 +30,7 @@ final class CartView: UIView {
 
     //MARK: - Components
     private let infoView = UIView().then {
-        $0.backgroundColor = .gray50
+        $0.backgroundColor = .white
     }
 
     private let totalCountLabel = StyledLabel(
@@ -66,7 +66,7 @@ final class CartView: UIView {
         frame: .zero,
         collectionViewLayout: createLayout()
     ).then {
-        $0.backgroundColor = .gray50
+        $0.backgroundColor = .white
         $0.showsVerticalScrollIndicator = false
     }
 
@@ -122,13 +122,12 @@ extension CartView {
 
     /// 정렬 메뉴 설정
     func configureSortMenu(
-        options: [String],
-        onSelect: @escaping (String) -> Void
+        onSelect: @escaping (CartSortOption) -> Void
     ) {
         sortedButton.showsMenuAsPrimaryAction = true
         sortedButton.menu = UIMenu(
-            children: options.map { option in
-                UIAction(title: option) { _ in
+            children: CartSortOption.allCases.map { option in
+                UIAction(title: option.rawValue) { _ in
                     onSelect(option)
                 }
             }
@@ -195,6 +194,7 @@ private extension CartView {
         > { [weak self] cell, _, item in
             guard let self else { return }
 
+            cell.resetExternalBindings()
             cell.updateUI(
                 title: item.name,
                 category: item.mainCategory,
@@ -271,7 +271,7 @@ private extension CartView {
 private extension CartView {
     /// UI 설정
     func configureUI() {
-        backgroundColor = .gray50
+        backgroundColor = .white
 
         addSubview(infoView)
         addSubview(collectionView)

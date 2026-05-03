@@ -12,6 +12,7 @@ import RxRelay
 final class CartCoordinator {
     let navigationController: UINavigationController
     let navigateToRegister = PublishSubject<Void>()
+    let navigateToUnclassified = PublishSubject<Void>()
     private let coreDataManager: CoreDataManagerProtocol
     private let authManager: AuthManagerProtocol
     private weak var currentNavigationController: UINavigationController?
@@ -85,5 +86,34 @@ extension CartCoordinator: CartViewControllerDelegate {
         )
         let viewController = CartAddItemViewController(viewModel: viewModel)
         currentNavigationController?.pushViewController(viewController, animated: true)
+    }
+
+    func didTapConfirmButton(cartItems: [CartItem]) {
+        let viewModel = PurchaseConfirmViewModel(
+            cartItems: cartItems,
+            coreDataManager: coreDataManager,
+            authManager: authManager
+        )
+        let viewController = PurchaseConfirmViewController(viewModel: viewModel)
+        viewController.delegate = self
+        currentNavigationController?.pushViewController(viewController, animated: true)
+    }
+}
+
+extension CartCoordinator: PurchaseConfirmViewControllerDelegate {
+    func purchaseConfirmViewControllerDidFinish(
+        _ viewController: PurchaseConfirmViewController
+    ) {
+        currentNavigationController?.popToViewController(
+            currentNavigationController?.viewControllers.first { $0 is CartViewController } ?? viewController,
+            animated: true
+        )
+    }
+
+    func purchaseConfirmViewControllerDidFinishWithUnclassified(
+        _ viewController: PurchaseConfirmViewController
+    ) {
+        currentNavigationController?.popToRootViewController(animated: false)
+        navigateToUnclassified.onNext(())
     }
 }

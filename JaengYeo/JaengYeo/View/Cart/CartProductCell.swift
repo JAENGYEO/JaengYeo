@@ -106,6 +106,12 @@ extension CartProductCell {
         updateCheckButton(isSelected: isSelected)
     }
 
+    /// 외부 바인딩 초기화 (reconfigureItems 시 중복 구독 방지)
+    func resetExternalBindings() {
+        disposeBag = DisposeBag()
+        bind()
+    }
+
     /// 체크 버튼 선택 바인딩
     func bindCheckButtonTap(onNext: @escaping () -> Void) {
         checkButtonTap
@@ -162,6 +168,7 @@ private extension CartProductCell {
     /// 스타일 설정
     func configureStyle() {
         backgroundColor = .clear
+        backgroundConfiguration = .clear()
         contentView.backgroundColor = .white
         contentView.layer.cornerRadius = 8
         contentView.layer.borderWidth = 1

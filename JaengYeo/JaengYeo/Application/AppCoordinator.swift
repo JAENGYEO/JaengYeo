@@ -231,6 +231,14 @@ final class AppCoordinator {
                 mainController?.selectedIndex = Tab.register.rawValue
             })
             .disposed(by: disposeBag)
+
+        cartCoordinator.navigateToUnclassified
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak mainController, weak homeCoordinator] in
+                mainController?.selectedIndex = Tab.home.rawValue
+                homeCoordinator?.pushUnclassifiedList()
+            })
+            .disposed(by: disposeBag)
         
         window.rootViewController = mainController
     }
