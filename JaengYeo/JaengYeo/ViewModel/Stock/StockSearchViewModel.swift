@@ -278,9 +278,9 @@ private extension StockSearchViewModel {
                 let priority: Int?
                 if nameMatch {
                     priority = 0
-                } else if midMatch {
-                    priority = 1
                 } else if subMatch {
+                    priority = 1
+                } else if midMatch {
                     priority = 2
                 } else {
                     priority = nil

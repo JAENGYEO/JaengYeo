@@ -49,6 +49,7 @@ final class StockSearchViewController: BaseViewController {
     private lazy var dataSource = configureDataSource()
     weak var delegate: StockSearchViewControllerDelegate?
 
+    private var currentKeyword: String = ""
     private let recentSearchDeletedRelay = PublishRelay<UUID>()
     private let deleteAllRecentSearchRelay = PublishRelay<Void>()
     private let productQuantityIncreasedRelay = PublishRelay<Product>()
@@ -159,7 +160,9 @@ private extension StockSearchViewController {
         Observable.combineLatest(searchText, output.recentSearches, output.products)
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak self] text, searches, products in
-                let isEmpty = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                self?.currentKeyword = trimmed
+                let isEmpty = trimmed.isEmpty
                 self?.applySnapshot(
                     recentSearches: isEmpty ? searches : [],
                     products: isEmpty ? [] : products
@@ -214,7 +217,7 @@ private extension StockSearchViewController {
     /// 스냅샷
     func applySnapshot(recentSearches: [RecentSearchPayload], products: [ProductCellItem]) {
         var snapshot = NSDiffableDataSourceSnapshot<Section, SearchItem>()
-        
+
         if !recentSearches.isEmpty {
             snapshot.appendSections([.recentSearch])
             snapshot.appendItems(
@@ -222,14 +225,15 @@ private extension StockSearchViewController {
                 toSection: .recentSearch
             )
         }
-        
+
         if !products.isEmpty {
+            let productItems = products.map { SearchItem.product($0) }
             snapshot.appendSections([.searchResult])
-            snapshot.appendItems(
-                products.map { .product($0) },
-                toSection: .searchResult
-            )
+            snapshot.appendItems(productItems, toSection: .searchResult)
+            /// 아이템이 동일해도 keyword 변경 시 셀 재구성 강제
+            snapshot.reconfigureItems(productItems)
         }
+
         dataSource.apply(snapshot, animatingDifferences: false)
     }
     
@@ -256,19 +260,14 @@ private extension StockSearchViewController {
                 let calendar = Calendar.current
                 let today = calendar.startOfDay(for: Date())
                 let expiryDay = calendar.startOfDay(for: expiryDate)
-                
-                freshness = calendar.dateComponents(
-                    [.day],
-                    from: today,
-                    to: expiryDay
-                ).day
+                freshness = calendar.dateComponents([.day], from: today, to: expiryDay).day
             }
 
             let descriptions = [
                 item.midCategory,
                 item.subCategory
             ].compactMap { $0 }
-            
+
             var image: UIImage?
             if let url = item.product.imageUrl {
                 image = ImageUtils.loadImage(fileName: url)
@@ -277,13 +276,14 @@ private extension StockSearchViewController {
             }
 
             cell.updateUI(
-                type: .homeType,
+                type: .searchType,
                 title: item.product.name,
                 freshness: freshness,
                 descriptions: descriptions,
                 subdescriptions: nil,
                 count: item.product.quantity,
-                image: image
+                image: image,
+                keyword: self?.currentKeyword
             )
 
             cell.bindAddButtonTap { [weak self] in
