@@ -180,6 +180,14 @@ final class AppCoordinator {
             stockNavigationController: stockCoordinator.navigationController,
             cartNavigationController: cartCoordinator.navigationController
         )
+
+        mainController.onCartTabSelected = { [weak mainController, weak cartCoordinator] in
+            guard let navigationController = mainController?.selectedViewController as? UINavigationController else {
+                return
+            }
+
+            cartCoordinator?.pushCartViewController(from: navigationController)
+        }
         
         homeCoordinator.navigateToCategory
             .observe(on: MainScheduler.instance)
@@ -220,7 +228,7 @@ final class AppCoordinator {
         cartCoordinator.navigateToRegister
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak mainController] in
-                mainController?.selectedIndex = Tab.cart.rawValue
+                mainController?.selectedIndex = Tab.register.rawValue
             })
             .disposed(by: disposeBag)
         
