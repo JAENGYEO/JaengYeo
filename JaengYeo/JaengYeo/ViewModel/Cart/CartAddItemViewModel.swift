@@ -101,7 +101,7 @@ final class CartAddItemViewModel: ViewModelProtocol {
                     }
                     didConfirmSubject.onNext(())
                 } catch {
-                    errorSubject.onNext("장바구니 항목을 저장하는 중 오류가 발생했습니다.")
+                    errorSubject.onNext("구매 예정 항목을 저장하는 중 오류가 발생했습니다.")
                 }
             })
             .disposed(by: disposeBag)
@@ -114,7 +114,7 @@ final class CartAddItemViewModel: ViewModelProtocol {
                     try coreDataManager.deleteCartItem(id: item.id)
                     didDeleteSubject.onNext(())
                 } catch {
-                    errorSubject.onNext("장바구니 항목을 삭제하는 중 오류가 발생했습니다.")
+                    errorSubject.onNext("구매 예정 항목을 삭제하는 중 오류가 발생했습니다.")
                 }
             })
             .disposed(by: disposeBag)

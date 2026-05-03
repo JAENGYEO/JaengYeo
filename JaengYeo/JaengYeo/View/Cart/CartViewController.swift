@@ -73,7 +73,7 @@ private extension CartViewController {
                     on: self,
                     image: UIImage(named: "alertRed") ?? UIImage(),
                     title: "항목 삭제",
-                    message: "장바구니 항목을 삭제하시겠습니까?",
+                    message: "구매 예정 항목을 삭제하시겠습니까?",
                     actions: [
                         .cancel("취소"),
                         .destructive("삭제")
