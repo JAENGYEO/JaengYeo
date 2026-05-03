@@ -90,11 +90,6 @@ final class CartView: UIView {
 
 //MARK: - Public
 extension CartView {
-    /// 장바구니 컬렉션 뷰
-    var cartCollectionView: UICollectionView {
-        collectionView
-    }
-
     /// 상품 셀 선택 이벤트
     var itemSelected: Observable<CartItem> {
         itemSelectedRelay.asObservable()

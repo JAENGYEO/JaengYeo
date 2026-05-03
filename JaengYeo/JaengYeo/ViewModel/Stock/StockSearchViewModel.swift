@@ -40,6 +40,8 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
     struct Input {
         /// 화면 진입 이벤트
         let viewDidLoad: Observable<Void>
+        /// 화면 재진입 이벤트
+        let viewWillAppear: Observable<Void>
         /// 검색어 입력 이벤트
         let searchText: Observable<String>
         /// 검색 버튼 선택 이벤트
@@ -71,6 +73,12 @@ final class StockSearchViewModel: NSObject, ViewModelProtocol {
                 self.bindMidCategories()
                 self.bindSubCategories()
                 self.loadRecentSearches()
+            })
+            .disposed(by: disposeBag)
+
+        input.viewWillAppear
+            .subscribe(onNext: { [weak self] in
+                self?.refreshProducts()
             })
             .disposed(by: disposeBag)
 

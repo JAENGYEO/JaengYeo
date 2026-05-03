@@ -12,9 +12,6 @@ import RxSwift
 import RxCocoa
 
 protocol PurchaseConfirmViewControllerDelegate: AnyObject {
-    func purchaseConfirmViewControllerDidFinish(
-        _ viewController: PurchaseConfirmViewController
-    )
     func purchaseConfirmViewControllerDidFinishWithUnclassified(
         _ viewController: PurchaseConfirmViewController
     )
@@ -70,7 +67,6 @@ private extension PurchaseConfirmViewController {
             }
 
         let input = PurchaseConfirmViewModel.Input(
-            viewDidLoad: Observable.just(()),
             selectAllTapped: confirmView.selectAllTap,
             itemCheckTapped: confirmView.itemCheckTap,
             itemQuantityIncreased: confirmView.itemQuantityIncreased,

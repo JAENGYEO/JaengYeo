@@ -101,15 +101,6 @@ extension CartCoordinator: CartViewControllerDelegate {
 }
 
 extension CartCoordinator: PurchaseConfirmViewControllerDelegate {
-    func purchaseConfirmViewControllerDidFinish(
-        _ viewController: PurchaseConfirmViewController
-    ) {
-        currentNavigationController?.popToViewController(
-            currentNavigationController?.viewControllers.first { $0 is CartViewController } ?? viewController,
-            animated: true
-        )
-    }
-
     func purchaseConfirmViewControllerDidFinishWithUnclassified(
         _ viewController: PurchaseConfirmViewController
     ) {
