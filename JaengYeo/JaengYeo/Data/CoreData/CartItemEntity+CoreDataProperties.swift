@@ -22,6 +22,7 @@ extension CartItemEntity {
     @NSManaged public var referenceId: UUID?
     @NSManaged public var name: String?
     @NSManaged public var mainCategory: String?
+    @NSManaged public var quantity: Int32
     @NSManaged public var createDate: Date?
 
 }
@@ -37,6 +38,7 @@ extension CartItemEntity {
             referenceId: referenceId,
             name: name ?? "",
             mainCategory: mainCategory ?? "",
+            quantity: Int(quantity),
             createdAt: createDate
         )
     }

@@ -979,6 +979,7 @@ extension CoreDataManager {
         entity.referenceId = payload.referenceId
         entity.name = payload.name
         entity.mainCategory = payload.mainCategory
+        entity.quantity = Int32(payload.quantity)
         entity.createDate = payload.createdAt
 
         do {
@@ -1017,6 +1018,7 @@ extension CoreDataManager {
         entity.referenceId = payload.referenceId
         entity.name = payload.name
         entity.mainCategory = payload.mainCategory
+        entity.quantity = Int32(payload.quantity)
         entity.createDate = payload.createdAt
 
         do {
@@ -1061,6 +1063,7 @@ extension CoreDataManager {
             referenceId: entity.referenceId,
             name: entity.name ?? "",
             mainCategory: entity.mainCategory ?? "",
+            quantity: Int(entity.quantity),
             createdAt: entity.createDate ?? Date()
         )
     }
