@@ -48,8 +48,28 @@ extension CartCoordinator {
     }
 }
 
+extension CartCoordinator: StockSearchViewControllerDelegate {
+    func stockSearchViewController(
+        _ viewController: StockSearchViewController,
+        didSelectProduct productID: UUID
+    ) {
+        let viewController = ProductDetailViewController(
+            viewModel: ProductDetailViewModel(
+                productID: productID,
+                coreDataManager: coreDataManager
+            )
+        )
+        currentNavigationController?.pushViewController(viewController, animated: true)
+    }
+}
+
 extension CartCoordinator: CartViewControllerDelegate {
     func didTapExistingProductButton() {
+        let viewController = StockSearchViewController(
+            viewModel: StockSearchViewModel(coreDataManager: coreDataManager)
+        )
+        viewController.delegate = self
+        currentNavigationController?.pushViewController(viewController, animated: true)
     }
 
     func didTapNewProductButton() {

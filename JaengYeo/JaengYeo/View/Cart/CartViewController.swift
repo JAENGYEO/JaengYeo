@@ -139,7 +139,7 @@ private extension CartViewController {
     }
 
     func configureAddMenu() {
-        let existingProductAction = UIAction(title: "기존제품") { [weak self] _ in
+        let existingProductAction = UIAction(title: "냠ㄴ") { [weak self] _ in
             self?.delegate?.didTapExistingProductButton()
         }
 
