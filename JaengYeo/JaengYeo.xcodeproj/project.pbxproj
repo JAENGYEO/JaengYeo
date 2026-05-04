@@ -69,7 +69,7 @@
 		8A9168C52FA0CB1700C50335 /* Exceptions for "JaengYeoWidget" folder in "JaengYeo" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				CameraShortcutWidget.swift,
+				Camera/CameraShortcutWidget.swift,
 			);
 			target = 8AB417702F7E321D002B7DAB /* JaengYeo */;
 		};
