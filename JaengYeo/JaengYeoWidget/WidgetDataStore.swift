@@ -119,6 +119,19 @@ extension WidgetDataStore {
             return WidgetExpiryItem(id: id, name: name, daysLeft: daysLeft)
         }
     }
+    
+    func fetchCartItems(limit: Int = 6) -> [InfoListItem] {
+        let request = NSFetchRequest<NSManagedObject>(entityName: CartItemEntity.className)
+        request.sortDescriptors = [NSSortDescriptor(key: "createDate", ascending: false)]
+        request.fetchLimit = limit
+        let results = (try? context.fetch(request)) ?? []
+        return results.compactMap { obj in
+            guard let id = obj.value(forKey: "id") as? UUID,
+                  let name = obj.value(forKey: "name") as? String else { return nil }
+            let quantity = obj.value(forKey: "quantity") as? Int32 ?? 0
+            return InfoListItem(id: id, name: name, value: "\(quantity)", valueSuffix: "개")
+        }
+    }
 }
 
 // MARK: - Write
