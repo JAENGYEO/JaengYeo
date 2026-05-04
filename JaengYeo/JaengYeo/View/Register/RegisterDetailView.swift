@@ -72,36 +72,7 @@ final class RegisterDetailView: UIView {
         )
     }
 
-    // MARK: 삭제 버튼
-    private static func makeDeleteButton() -> UIButton {
-        UIButton().then {
-            $0.setImage(UIImage(systemName: "minus"), for: .normal)
-            $0.tintColor = .gray600
-            $0.backgroundColor = .clear
-        }
-    }
-
-    let subCategoryDeleteButton = makeDeleteButton()
-    let photoDeleteButton = makeDeleteButton()
-    let expiryDateDeleteButton = makeDeleteButton()
-    let cautionDeleteButton = makeDeleteButton()
-    let brandDeleteButton = makeDeleteButton()
-    let stockAlertDeleteButton = makeDeleteButton()
-    let memoDeleteButton = makeDeleteButton()
-
-    // MARK: 추가버튼, 추가 필드
-    let addInfoButton = UIButton().then {
-        let attributed = NSMutableAttributedString(
-            string: "정보 추가하기",
-            attributes: [
-                .foregroundColor: UIColor(named: "Primary300") ?? .systemBlue,
-                .font: LabelConfiguration.body12.font,
-                .underlineStyle: NSUnderlineStyle.single.rawValue
-            ]
-        )
-        $0.setAttributedTitle(attributed, for: .normal)
-    }
-
+    // MARK: 추가 필드
     let subCategoryField = UITextField().then {
         $0.font = LabelConfiguration.titleSemi16.font
         $0.textColor = .gray800
@@ -170,16 +141,15 @@ final class RegisterDetailView: UIView {
         )
     }
 
-    private(set) lazy var midCategoryGroupView = makeFieldGroup(title: "중분류(위치)*", field: midCategoryField)
-    // MARK: 추가 필드 그룹뷰 (show/hide 단위)
-    private(set) lazy var purchaseDateGroupView = makeFieldGroup(title: "구매날짜*", field: purchaseDateField)
-    private(set) lazy var subCategoryGroupView = makeFieldGroup(title: "소분류", field: subCategoryField, deleteButton: subCategoryDeleteButton)
-    private(set) lazy var photoGroupView = makePhotoGroup(deleteButton: photoDeleteButton)
-    private(set) lazy var expiryDateGroupView = makeFieldGroup(title: "유통기한", field: expiryDateField, deleteButton: expiryDateDeleteButton)
-    private(set) lazy var cautionGroupView = makeFieldGroup(title: "유의사항 / 취급 주의사항", field: cautionField, deleteButton: cautionDeleteButton)
-    private(set) lazy var brandGroupView = makeFieldGroup(title: "브랜드", field: brandField, deleteButton: brandDeleteButton)
-    private(set) lazy var stockAlertGroupView = makeStockAlertGroup(deleteButton: stockAlertDeleteButton)
-    private(set) lazy var memoGroupView = makeFieldGroup(title: "메모", field: memoField, deleteButton: memoDeleteButton)
+    private(set) lazy var midCategoryGroupView = makeFieldGroup(title: "보관 위치", field: midCategoryField)
+    private(set) lazy var purchaseDateGroupView = makeFieldGroup(title: "구매날짜", requiredMark: true, field: purchaseDateField)
+    private(set) lazy var subCategoryGroupView = makeFieldGroup(title: "종류", field: subCategoryField)
+    private(set) lazy var photoGroupView = makePhotoGroup()
+    private(set) lazy var expiryDateGroupView = makeFieldGroup(title: "유통기한", field: expiryDateField)
+    private(set) lazy var cautionGroupView = makeFieldGroup(title: "유의사항 / 취급 주의사항", field: cautionField)
+    private(set) lazy var brandGroupView = makeFieldGroup(title: "브랜드", field: brandField)
+    private(set) lazy var stockAlertGroupView = makeStockAlertGroup()
+    private(set) lazy var memoGroupView = makeFieldGroup(title: "메모", field: memoField)
 
     // MARK: 저장 버튼
     private let bottomView = UIView().then {
@@ -206,22 +176,17 @@ extension RegisterDetailView {
     private func setLayout() {
         backgroundColor = .white
 
-        let nameGroup = makeFieldGroup(title: "상품명*", field: nameField)
-        let quantityGroup = makeFieldGroup(title: "수량*", field: quantityField)
+        let nameGroup = makeFieldGroup(title: "상품명", requiredMark: true, field: nameField)
+        let quantityGroup = makeFieldGroup(title: "수량", requiredMark: true, field: quantityField)
         let categoryGroup = makeCategoryGroup()
 
-        [nameGroup, quantityGroup, purchaseDateGroupView, categoryGroup, midCategoryGroupView].forEach {
-            stackView.addArrangedSubview($0)
-        }
-
-        [subCategoryGroupView, photoGroupView, expiryDateGroupView,
-         cautionGroupView, brandGroupView, stockAlertGroupView, memoGroupView].forEach {
-            $0.isHidden = true
+        [nameGroup, quantityGroup, purchaseDateGroupView, categoryGroup, midCategoryGroupView,
+         subCategoryGroupView, photoGroupView, stockAlertGroupView,
+         expiryDateGroupView, cautionGroupView, brandGroupView, memoGroupView].forEach {
             stackView.addArrangedSubview($0)
         }
 
         contentView.addSubview(stackView)
-        contentView.addSubview(addInfoButton)
         scrollView.addSubview(contentView)
 
         [scrollView, bottomView].forEach { addSubview($0) }
@@ -250,10 +215,6 @@ extension RegisterDetailView {
         stackView.snp.makeConstraints {
             $0.top.equalToSuperview().offset(12)
             $0.leading.trailing.equalToSuperview().inset(16)
-        }
-        addInfoButton.snp.makeConstraints {
-            $0.top.equalTo(stackView.snp.bottom).offset(16)
-            $0.centerX.equalToSuperview()
             $0.bottom.equalToSuperview().offset(-16)
         }
     }
@@ -261,35 +222,33 @@ extension RegisterDetailView {
 
 // MARK: 그룹 생성
 extension RegisterDetailView {
-    private func makeFieldGroup(title: String, field: UITextField, deleteButton: UIButton? = nil) -> UIView {
+    private func makeFieldGroup(title: String, requiredMark: Bool = false, field: UITextField) -> UIView {
         let container = UIView()
         let titleLabel = UILabel().then {
-            $0.text = title
-            $0.font = LabelConfiguration.bodyMedium14.font
-            $0.textColor = .gray600
+            if requiredMark {
+                let attr = NSMutableAttributedString(
+                    string: title,
+                    attributes: [.font: LabelConfiguration.bodyMedium14.font, .foregroundColor: UIColor.gray600]
+                )
+                attr.append(NSAttributedString(
+                    string: "*",
+                    attributes: [.font: LabelConfiguration.bodyMedium14.font, .foregroundColor: UIColor.primaryRed]
+                ))
+                $0.attributedText = attr
+            } else {
+                $0.text = title
+                $0.font = LabelConfiguration.bodyMedium14.font
+                $0.textColor = .gray600
+            }
         }
         let separator = UIView().then {
             $0.backgroundColor = .gray100
         }
 
-        if let deleteButton {
-            [titleLabel, deleteButton, field, separator].forEach { container.addSubview($0) }
-            titleLabel.snp.makeConstraints {
-                $0.top.leading.equalToSuperview()
-                $0.trailing.equalTo(deleteButton.snp.leading).offset(-8)
-                $0.height.equalTo(32)
-            }
-            deleteButton.snp.makeConstraints {
-                $0.centerY.equalTo(titleLabel)
-                $0.trailing.equalToSuperview()
-                $0.size.equalTo(24)
-            }
-        } else {
-            [titleLabel, field, separator].forEach { container.addSubview($0) }
-            titleLabel.snp.makeConstraints {
-                $0.top.leading.trailing.equalToSuperview()
-                $0.height.equalTo(32)
-            }
+        [titleLabel, field, separator].forEach { container.addSubview($0) }
+        titleLabel.snp.makeConstraints {
+            $0.top.leading.trailing.equalToSuperview()
+            $0.height.equalTo(32)
         }
 
         field.snp.makeConstraints {
@@ -308,9 +267,15 @@ extension RegisterDetailView {
     private func makeCategoryGroup() -> UIView {
         let container = UIView()
         let titleLabel = UILabel().then {
-            $0.text = "대분류*"
-            $0.font = LabelConfiguration.bodyMedium14.font
-            $0.textColor = .gray600
+            let attr = NSMutableAttributedString(
+                string: "대분류",
+                attributes: [.font: LabelConfiguration.bodyMedium14.font, .foregroundColor: UIColor.gray600]
+            )
+            attr.append(NSAttributedString(
+                string: "*",
+                attributes: [.font: LabelConfiguration.bodyMedium14.font, .foregroundColor: UIColor.primaryRed]
+            ))
+            $0.attributedText = attr
         }
         let buttonStack = UIStackView().then {
             $0.axis = .horizontal
@@ -332,7 +297,7 @@ extension RegisterDetailView {
         return container
     }
 
-    private func makePhotoGroup(deleteButton: UIButton? = nil) -> UIView {
+    private func makePhotoGroup() -> UIView {
         let container = UIView()
         let titleLabel = UILabel().then {
             $0.text = "사진"
@@ -340,24 +305,10 @@ extension RegisterDetailView {
             $0.textColor = .gray600
         }
 
-        if let deleteButton {
-            [titleLabel, deleteButton, photoButton].forEach { container.addSubview($0) }
-            titleLabel.snp.makeConstraints {
-                $0.top.leading.equalToSuperview()
-                $0.trailing.equalTo(deleteButton.snp.leading).offset(-8)
-                $0.height.equalTo(32)
-            }
-            deleteButton.snp.makeConstraints {
-                $0.centerY.equalTo(titleLabel)
-                $0.trailing.equalToSuperview()
-                $0.size.equalTo(24)
-            }
-        } else {
-            [titleLabel, photoButton].forEach { container.addSubview($0) }
-            titleLabel.snp.makeConstraints {
-                $0.top.leading.trailing.equalToSuperview()
-                $0.height.equalTo(32)
-            }
+        [titleLabel, photoButton].forEach { container.addSubview($0) }
+        titleLabel.snp.makeConstraints {
+            $0.top.leading.trailing.equalToSuperview()
+            $0.height.equalTo(32)
         }
 
         photoButton.snp.makeConstraints {
@@ -369,7 +320,7 @@ extension RegisterDetailView {
         return container
     }
 
-    private func makeStockAlertGroup(deleteButton: UIButton? = nil) -> UIView {
+    private func makeStockAlertGroup() -> UIView {
         let container = UIView()
         let titleLabel = UILabel().then {
             $0.text = "알림 재고 수량"
@@ -383,26 +334,11 @@ extension RegisterDetailView {
         }
         [stockMinusButton, stockAlertLabel, stockPlusButton].forEach { stepperContainer.addSubview($0) }
 
-        if let deleteButton {
-            [titleLabel, stepperContainer, deleteButton].forEach { container.addSubview($0) }
-            deleteButton.snp.makeConstraints {
-                $0.trailing.equalToSuperview()
-                $0.centerY.equalTo(stepperContainer)
-                $0.size.equalTo(24)
-            }
-            stepperContainer.snp.makeConstraints {
-                $0.leading.equalTo(titleLabel.snp.trailing).offset(24)
-                $0.trailing.equalTo(deleteButton.snp.leading).offset(-8)
-                $0.centerY.equalTo(titleLabel)
-                $0.height.equalTo(36)
-            }
-        } else {
-            [titleLabel, stepperContainer].forEach { container.addSubview($0) }
-            stepperContainer.snp.makeConstraints {
-                $0.leading.equalTo(titleLabel.snp.trailing).offset(24)
-                $0.centerY.equalTo(titleLabel)
-                $0.height.equalTo(36)
-            }
+        [titleLabel, stepperContainer].forEach { container.addSubview($0) }
+        stepperContainer.snp.makeConstraints {
+            $0.trailing.equalToSuperview()
+            $0.centerY.equalTo(titleLabel)
+            $0.height.equalTo(36)
         }
 
         stockMinusButton.snp.makeConstraints {
