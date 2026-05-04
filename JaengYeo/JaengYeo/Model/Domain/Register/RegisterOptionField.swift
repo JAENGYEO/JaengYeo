@@ -13,7 +13,7 @@ enum RegisterOptionField: CaseIterable,Hashable {
     var title: String {
         switch self {
         case .subCategory:
-            return "소분류 (종류)"
+            return "종류"
         case .photo:
             return "사진"
         case .expiryDate:
