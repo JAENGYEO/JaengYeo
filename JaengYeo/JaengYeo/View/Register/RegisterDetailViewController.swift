@@ -49,7 +49,7 @@ final class RegisterDetailViewController: BaseViewController {
     }
     
     private let viewModel: RegisterDetailViewModel
-    private let fieldsSelectedRelay = PublishRelay<Set<RegisterOptionField>>()
+    private let fieldsSelectedRelay = BehaviorRelay<Set<RegisterOptionField>>(value: Set(RegisterOptionField.allCases))
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -119,7 +119,6 @@ extension RegisterDetailViewController {
         mainView.cautionField.text = item.caution
         mainView.brandField.text = item.brand
         mainView.stockAlertLabel.text = item.lowStockThreshold.map { String($0) } ?? "0"
-        fieldsSelectedRelay.accept(Set(RegisterOptionField.allCases))
         if let image = item.image {
             mainView.photoButton.setImage(image, for: .normal)
             mainView.photoButton.imageView?.contentMode = .scaleAspectFill
