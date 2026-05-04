@@ -116,8 +116,7 @@ final class HomeViewModel: ViewModelProtocol {
                 do {
                     let food = try self.coreDataManager.fetchByMainCategory(mainCategory: "식재료")
                     let household = try self.coreDataManager.fetchByMainCategory(mainCategory: "생활용품")
-                    return[
-                        CategorySummary(
+                    let summaries = [CategorySummary(
                             name: "식재료",
                             totalCount: food.count,
                             midCategoryCount: Set(food.compactMap { $0.midCategoryId}).count,
@@ -129,7 +128,8 @@ final class HomeViewModel: ViewModelProtocol {
                             midCategoryCount: Set(household.compactMap { $0.midCategoryId }).count,
                             subCategoryCount: Set(household.compactMap { $0.subCategoryId }).count
                         )
-                    ].filter { $0.totalCount > 0 }
+                    ]
+                    return summaries.contains(where: { $0.totalCount > 0 }) ? summaries : []
                 } catch {
                     return []
                 }
