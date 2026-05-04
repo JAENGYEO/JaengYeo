@@ -14,7 +14,7 @@ import UIKit
 enum MyPageMenuSection: String, CaseIterable {
     case support = "고객 지원"
     case appInfo = "앱 정보"
-    case account = "계정"
+    case account = "계정 관리"
 }
 
 /// 마이페이지 메뉴

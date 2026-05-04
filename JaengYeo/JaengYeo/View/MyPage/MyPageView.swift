@@ -74,7 +74,7 @@ extension MyPageView {
             cell.updateUI(
                 title: item.title,
                 showsChevron: item.showsArrow,
-                titleColor: (item.menu == .logout || item.menu == .deleteAccount) ? .primaryRed : .gray800
+                titleColor: item.menu == .logout ? .primaryRed : .gray800
             )
         }
 
