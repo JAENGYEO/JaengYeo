@@ -33,9 +33,9 @@ enum CategoryEditMode {
     var navigationTitle: String {
         switch self {
         case .add(let target, _):
-            return "\(target.title) 카테고리 추가"
+            return "\(target.navigationTitle) 카테고리 추가"
         case .edit(let target, _, _):
-            return "\(target.title) 카테고리 편집"
+            return "\(target.navigationTitle) 카테고리 편집"
         }
     }
 
@@ -95,6 +95,17 @@ enum CategoryEditMode {
             return mainCategory
         case .edit(_, _, let mainCategory):
             return mainCategory
+        }
+    }
+}
+
+private extension CategoryEditTarget {
+    var navigationTitle: String {
+        switch self {
+        case .midCategory:
+            return "보관 위치"
+        case .subCategory:
+            return "종류"
         }
     }
 }

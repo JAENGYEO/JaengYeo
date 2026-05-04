@@ -151,7 +151,7 @@ private extension CategorySelectionItemCell {
     }
 
     func applySelectionState() {
-        itemContainerView.backgroundColor = isItemSelected ? .primary100 : .clear
+        itemContainerView.backgroundColor = isItemSelected ? .primary50 : .clear
         //TODO: 아이콘 이미지 적용시 백그라운드 색상 clear로 변경
         imageBackgroundView.backgroundColor = .clear
     }

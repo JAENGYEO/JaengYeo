@@ -81,7 +81,7 @@ private extension CategoryIconCell {
 
     /// 선택 상태 적용
     func applySelectionState() {
-        iconContainerView.backgroundColor = isSelected ? .primary100 : .white
+        iconContainerView.backgroundColor = isSelected ? .primary50 : .white
     }
 }
 

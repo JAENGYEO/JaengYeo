@@ -21,6 +21,7 @@ final class HomeCoordinator {
     
     let navigateToCategory = PublishSubject<String>()
     let navigateToRegister = PublishSubject<Void>()
+    let navigateToCart = PublishSubject<UINavigationController>()
     let logoutCompleted = PublishSubject<Void>()
     
     private var currentProductPayload: ProductPayload?
@@ -228,5 +229,11 @@ extension HomeCoordinator: ProductDetailViewControllerDelegate {
         viewController.delegate = self
         currentDetailViewController = viewController
         navigationController.pushViewController(viewController, animated: true)
+    }
+
+    func productDetailViewControllerDidAddToCart(
+        _ viewController: ProductDetailViewController
+    ) {
+        navigateToCart.onNext(navigationController)
     }
 }

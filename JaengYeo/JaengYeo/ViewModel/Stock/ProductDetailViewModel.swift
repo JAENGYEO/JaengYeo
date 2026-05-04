@@ -262,7 +262,7 @@ private extension ProductDetailViewModel {
             ),
             ProductDetailInfoItem(
                 icon: UIImage(named: ProductInfoIcon.midCategoryIcon.rawValue),
-                title: "중분류",
+                title: "보관 위치",
                 detail: midCategory?.name ?? "-"
             ),
             ProductDetailInfoItem(
@@ -278,7 +278,7 @@ private extension ProductDetailViewModel {
             subInfos.append(
                 ProductDetailInfoItem(
                     icon: UIImage(named: ProductInfoIcon.subCategoryIcon.rawValue),
-                    title: "소분류 (종류)",
+                    title: "종류",
                     detail: subCategory.name
                 )
             )

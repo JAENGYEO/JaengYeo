@@ -11,6 +11,7 @@ import RxSwift
 final class StockCoordinator {
     let navigationController: UINavigationController
     let navigateToRegister = PublishSubject<Void>()
+    let navigateToCart = PublishSubject<UINavigationController>()
     private let stockViewController: StockViewController
     private weak var registerDetailViewController: RegisterDetailViewController?
     private var editingProductPayloads: [ObjectIdentifier: ProductPayload] = [:]
@@ -84,6 +85,12 @@ extension StockCoordinator: ProductDetailViewControllerDelegate {
         registerDetailViewController = viewController
         editingProductPayloads[ObjectIdentifier(viewController)] = originalPayload
         navigationController.pushViewController(viewController, animated: true)
+    }
+
+    func productDetailViewControllerDidAddToCart(
+        _ viewController: ProductDetailViewController
+    ) {
+        navigateToCart.onNext(navigationController)
     }
 }
 

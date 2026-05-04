@@ -13,11 +13,11 @@ import Then
 final class CategoryFilterView: UIView {
     
     
-    let midCategoryButton = StyledButton(title: "중분류(위치)",
+    let midCategoryButton = StyledButton(title: "보관 위치",
                                          titleConfiguration: .categoryTitle,
                                          appearanceConfiguration: .categoryAppearance)
     
-    let subCategoryButton = StyledButton(title: "소분류(종류)",
+    let subCategoryButton = StyledButton(title: "종류",
                                          titleConfiguration: .categoryTitle,
                                          appearanceConfiguration: .categoryAppearance)
     
