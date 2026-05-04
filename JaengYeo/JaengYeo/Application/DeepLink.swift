@@ -18,6 +18,7 @@ enum DeepLink {
         static let list = "list"
         static let camera = "camera"
         static let widgetSettings = "widget-settings"
+        static let cart = "cart"
     }
     
     enum Path {
@@ -48,6 +49,9 @@ enum DeepLink {
     // 위젯 설정 화면
     // jaengyeo://widget-settings
     case widgetSettings
+    // 장바구니 화면
+    // jaengyeo://cart
+    case cart
     
     //URL을 DeepLink case로 변환
     init?(url: URL) {
@@ -85,6 +89,9 @@ enum DeepLink {
             
         case Host.widgetSettings:
             self = .widgetSettings
+            
+        case Host.cart:
+            self = .cart
             
         default:
             return nil
