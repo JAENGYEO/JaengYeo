@@ -48,7 +48,7 @@ struct ExpiryWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: ExpiryProvider()) { entry in
             InfoListWidgetView(
-                title: "유통기한 임박",
+                title: "유통기한",
                 items: entry.items,
                 deepLink: URL(string: "jaengyeo://list/expiry")!,
                 emptyMessage: "유통기한 임박 상품이 없습니다"
