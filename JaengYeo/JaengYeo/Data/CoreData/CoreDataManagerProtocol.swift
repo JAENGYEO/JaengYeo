@@ -84,4 +84,14 @@ protocol CoreDataManagerProtocol {
     func fetchWidgetPreset(id: UUID) throws -> WidgetPresetPayload?
     func updateWidgetPreset(payload: WidgetPresetPayload) throws
     func deleteWidgetPreset(id: UUID) throws
+
+    //MARK: - 장바구니
+    func createCartItem(_ payload: CartItemPayload) throws
+    func fetchAllCartItems() throws -> [CartItemPayload]
+    func fetchCartItem(of id: UUID) throws -> CartItemPayload
+    func updateCartItem(_ payload: CartItemPayload) throws
+    func deleteCartItem(id: UUID) throws
+    func observeCartItems(
+        sortDescriptors: [NSSortDescriptor]
+    ) -> Observable<[CartItemEntity]>
 }

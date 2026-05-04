@@ -22,6 +22,8 @@ enum ProductCellType {
     case registType
     /// 홈디자인
     case homeType
+    /// 검색 결과 디자인
+    case searchType
     /// 미분류 상품 디자인
     case unclassifiedType
 }
@@ -54,7 +56,7 @@ final class ProductCell: UICollectionViewListCell{
                 productCountView.isHidden = true
                 upDownCountView.isHidden = true
             
-            case .homeType:
+            case .homeType, .searchType:
                 productSubDescriptionStack.isHidden = false
                 productCountView.isHidden = true
                 upDownCountView.isHidden = false
@@ -62,7 +64,7 @@ final class ProductCell: UICollectionViewListCell{
                 config.strokeColor = UIColor.gray100
                 config.strokeWidth = 1
                 backgroundConfiguration = config
-            
+
             case .unclassifiedType:
                 productSubDescriptionStack.isHidden = true
                 productCountView.isHidden = true
@@ -83,8 +85,9 @@ final class ProductCell: UICollectionViewListCell{
     }
     
     /// 아이템 타이틀
-    private let productTitleLabel = StyledLabel(config: .bodyMedium14).then {
-        $0.text = ""
+    private let productTitleLabel = UILabel().then {
+        $0.font = LabelConfiguration.bodyMedium14.font
+        $0.textColor = .gray800
         $0.numberOfLines = 1
         $0.lineBreakMode = .byTruncatingTail
     }
@@ -195,29 +198,64 @@ extension ProductCell {
         subdescriptions: [String]?,
         count: Int?,
         image: UIImage?,
-        highlightFirst: Bool = false
+        highlightFirst: Bool = false,
+        keyword: String? = nil
     ) {
         cellType = type
-        productTitleLabel.text = title
         productTitleLabel.numberOfLines = 1
         productTitleLabel.lineBreakMode = .byTruncatingTail
         productImageView.image = image ?? UIImage(named: "imageSelectIcon")
         productImageView.backgroundColor = .clear
 
-        updateDescriptionStack(
-            stackView: productDescriptionStack,
-            freshness: freshness,
-            texts: descriptions,
-            highlightFirst: highlightFirst
-        )
-        
+        if let keyword, !keyword.isEmpty,
+           title.lowercased().contains(keyword.lowercased()) {
+            productTitleLabel.attributedText = makeHighlightedAttributedString(
+                title,
+                keyword: keyword,
+                baseFont: LabelConfiguration.bodyMedium14.font,
+                baseColor: .gray800
+            )
+        } else {
+            productTitleLabel.attributedText = NSAttributedString(
+                string: title,
+                attributes: [
+                    .font: LabelConfiguration.bodyMedium14.font,
+                    .foregroundColor: UIColor.gray800
+                ]
+            )
+        }
+
+        if type == .searchType {
+            let freshnessText: String? = freshness.map { f in
+                if f > 0 { return "\(f)일 남음" }
+                else if f == 0 { return "오늘 만료" }
+                else { return "유통기한 만료" }
+            }
+            let resolvedDescriptions = [freshnessText].compactMap { $0 } + (descriptions ?? [])
+            updateDescriptionStack(
+                stackView: productDescriptionStack,
+                freshness: nil,
+                texts: resolvedDescriptions,
+                highlightFirst: highlightFirst,
+                keyword: keyword
+            )
+        } else {
+            updateDescriptionStack(
+                stackView: productDescriptionStack,
+                freshness: freshness,
+                texts: descriptions,
+                highlightFirst: highlightFirst,
+                keyword: keyword
+            )
+        }
+
         if usesUpDownCountView {
             productCountView.isHidden = true
             upDownCountView.isHidden = false
             upDownCountView.updateUI(count: count)
         } else {
             switch cellType {
-            case .detailType:
+            case .detailType, .searchType:
                 productCountLabel.text = count.map { String($0) } ?? "0"
                 productCountView.isHidden = false
                 upDownCountView.isHidden = true
@@ -231,11 +269,11 @@ extension ProductCell {
             }
         }
         
-        if cellType == .detailType || cellType == .registType || cellType == .homeType {
+        if cellType == .detailType || cellType == .registType || cellType == .homeType || cellType == .searchType {
             updateDescriptionStack(
                 stackView: productSubDescriptionStack,
                 freshness: nil,
-                texts: subdescriptions,
+                texts: subdescriptions
             )
         }
 
@@ -262,7 +300,7 @@ extension ProductCell {
         switch cellType {
         case .defaultType, .homeType:
             return true
-        case .detailType, .registType, .unclassifiedType:
+        case .detailType, .registType, .unclassifiedType, .searchType:
             return false
         }
     }
@@ -282,49 +320,92 @@ private extension ProductCell {
     }
     
     /// 설명 스택에 삽입될 텍스트 라벨 제작 메소드
+    private func makeHighlightedAttributedString(
+        _ text: String,
+        keyword: String,
+        baseFont: UIFont,
+        baseColor: UIColor
+    ) -> NSAttributedString {
+        let attributed = NSMutableAttributedString(
+            string: text,
+            attributes: [
+                .font: baseFont,
+                .foregroundColor: baseColor
+            ]
+        )
+        let lowercasedText = text.lowercased()
+        let lowercasedKeyword = keyword.lowercased()
+        var searchRange = lowercasedText.startIndex..<lowercasedText.endIndex
+
+        while let range = lowercasedText.range(of: lowercasedKeyword, range: searchRange) {
+            attributed.addAttribute(
+                .foregroundColor,
+                value: UIColor.primaryRed,
+                range: NSRange(range, in: text)
+            )
+            searchRange = range.upperBound..<lowercasedText.endIndex
+        }
+
+        return attributed
+    }
+
     private func updateDescriptionStack(
         stackView: UIStackView,
         freshness: Int?,
         texts: [String]?,
-        highlightFirst: Bool = false
+        highlightFirst: Bool = false,
+        keyword: String? = nil
     ) {
         stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
         var labels: [UILabel] = []
         
         /// 유통기한 텍스트 생성
         if let freshness {
-            let freshnessLabel = StyledLabel(
-                config: .body12.updatingColor(color: .primaryRed)
-            ).then {
-                if freshness > 0 {
-                    $0.text =  "\(freshness)일 남음"
-                } else if freshness == 0 {
-                    $0.text =  "오늘 만료"
-                } else {
-                    $0.text =  "유통기한 만료"
-                }
+            let freshnessText: String
+            if freshness > 0 { freshnessText = "\(freshness)일 남음" }
+            else if freshness == 0 { freshnessText = "오늘 만료" }
+            else { freshnessText = "유통기한 만료" }
+
+            let freshnessLabel = UILabel().then {
+                $0.font = LabelConfiguration.body12.font
+                $0.textColor = .primaryRed
+                $0.text = freshnessText
                 $0.numberOfLines = 1
             }
             labels.append(freshnessLabel)
         }
-        
+
         /// 설명 라벨 생성
-        texts?.enumerated().forEach { index ,text in
-            let color: UIColor = (highlightFirst && index == 0) ? .primaryRed : .gray300
-            let label = StyledLabel(config: .body12.updatingColor(color: color)).then {
-                $0.text = text
+        texts?.enumerated().forEach { index, text in
+            let baseColor: UIColor = (highlightFirst && index == 0) ? .primaryRed : .gray300
+            let label = UILabel().then {
+                $0.font = LabelConfiguration.body12.font
+                $0.textColor = baseColor
                 $0.numberOfLines = 1
+                if let keyword, !keyword.isEmpty,
+                   text.lowercased().contains(keyword.lowercased()) {
+                    $0.attributedText = makeHighlightedAttributedString(
+                        text,
+                        keyword: keyword,
+                        baseFont: LabelConfiguration.body12.font,
+                        baseColor: baseColor
+                    )
+                } else {
+                    $0.text = text
+                }
             }
             labels.append(label)
         }
-        
+
         /// 스택뷰에 삽입
         labels.enumerated().forEach { index, label in
             stackView.addArrangedSubview(label)
-            
+
             // dot 라벨 추가
             if index < labels.count - 1 {
-                let dotLabel = StyledLabel(config: .body12.updatingColor(color: .gray300)).then {
+                let dotLabel = UILabel().then {
+                    $0.font = LabelConfiguration.body12.font
+                    $0.textColor = .gray300
                     $0.text = "·"
                     $0.numberOfLines = 1
                 }
@@ -345,13 +426,6 @@ private extension ProductCell {
         backgroundConfig.backgroundColor = .white
         backgroundConfig.cornerRadius = 8
         self.backgroundConfiguration = backgroundConfig
-
-//        directionalLayoutMargins = NSDirectionalEdgeInsets(
-//            top: 8,
-//            leading: 16,
-//            bottom: 8,
-//            trailing: 16
-//        )
 
         contentView.addSubview(productMainStack)
         contentView.addSubview(productCountView)

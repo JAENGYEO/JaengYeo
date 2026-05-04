@@ -85,6 +85,12 @@ final class HomeCoordinator {
 }
 
 extension HomeCoordinator {
+    /// 미분류 목록 화면 전환
+    func pushUnclassifiedList() {
+        navigationController.popToRootViewController(animated: false)
+        pushItemList(type: .unclassified)
+    }
+
     private func pushItemList(type: ItemListType) {
         let viewModel = ItemListViewModel(coreDataManager: coreDataManager, listType: type)
         let viewController = ItemListViewController(viewModel: viewModel)

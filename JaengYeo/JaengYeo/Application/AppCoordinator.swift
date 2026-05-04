@@ -14,6 +14,7 @@ private enum Tab: Int {
     case home = 0
     case register = 1
     case stock = 2
+    case cart = 3
 }
 
 final class AppCoordinator {
@@ -166,13 +167,34 @@ final class AppCoordinator {
             coreDataManager: coreDataManager,
             authManager: authManager
         )
-        childCoordinators = [homeCoordinator, registerCoordinator, stockCoordinator]
+        
+        let cartCoordinator = CartCoordinator(
+            coreDataManager: coreDataManager,
+            authManager: authManager
+        )
+        
+        childCoordinators = [
+            homeCoordinator,
+            registerCoordinator,
+            stockCoordinator,
+            cartCoordinator
+        ]
+        
         let mainController = MainController(
             homeNavigationController: homeCoordinator.navigationController,
             registerNavigationController: registerCoordinator.navigationController,
-            stockNavigationController: stockCoordinator.navigationController
+            stockNavigationController: stockCoordinator.navigationController,
+            cartNavigationController: cartCoordinator.navigationController
         )
         self.mainController = mainController
+
+        mainController.onCartTabSelected = { [weak mainController, weak cartCoordinator] in
+            guard let navigationController = mainController?.selectedViewController as? UINavigationController else {
+                return
+            }
+
+            cartCoordinator?.pushCartViewController(from: navigationController)
+        }
         
         homeCoordinator.navigateToCategory
             .observe(on: MainScheduler.instance)
@@ -207,6 +229,21 @@ final class AppCoordinator {
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak mainController] in
                 mainController?.selectedIndex = Tab.register.rawValue
+            })
+            .disposed(by: disposeBag)
+        
+        cartCoordinator.navigateToRegister
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak mainController] in
+                mainController?.selectedIndex = Tab.register.rawValue
+            })
+            .disposed(by: disposeBag)
+
+        cartCoordinator.navigateToUnclassified
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak mainController, weak homeCoordinator] in
+                mainController?.selectedIndex = Tab.home.rawValue
+                homeCoordinator?.pushUnclassifiedList()
             })
             .disposed(by: disposeBag)
         

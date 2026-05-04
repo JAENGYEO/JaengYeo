@@ -132,6 +132,7 @@ extension AlertController {
         $0.text = message
         $0.textColor = .gray500
         $0.numberOfLines = 0
+        $0.textAlignment = .center
       }
       addSubview(messageLabel)
       messageLabel.snp.makeConstraints {

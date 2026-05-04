@@ -1007,7 +1007,8 @@ extension CoreDataManager {
             MidCategoryEntity.className,
             SubCategoryEntity.className,
             RecentSearchEntity.className,
-            WidgetPresetEntity.className
+            WidgetPresetEntity.className,
+            CartItemEntity.className
         ]
         for name in entityNames {
             let request = NSFetchRequest<NSFetchRequestResult>(entityName: name)
@@ -1047,21 +1048,21 @@ extension CoreDataManager {
         guard count < Self.widgetPresetLimit else {
             throw CoreDataError.widgetPresetLimitExceeded
         }
-        
+
         let entity = WidgetPresetEntity(context: context)
         entity.id = payload.id
         entity.name = payload.name
         entity.productIDsData = try encodeProductIDs(ids: payload.productIDs)
         entity.createdAt = payload.createdAt
         entity.updatedAt = payload.updatedAt
-        
+
         do {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
         }
     }
-    
+
     func fetchAllWidgetPresets() throws -> [WidgetPresetPayload] {
         let request = WidgetPresetEntity.fetchRequest()
         request.sortDescriptors = [
@@ -1081,7 +1082,7 @@ extension CoreDataManager {
             throw CoreDataError.loadFailed
         }
     }
-    
+
     func fetchWidgetPreset(id: UUID) throws -> WidgetPresetPayload? {
         let request = WidgetPresetEntity.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -1095,7 +1096,7 @@ extension CoreDataManager {
             updatedAt: entity.updatedAt
         )
     }
-    
+
     func updateWidgetPreset(payload: WidgetPresetPayload) throws {
         let request = WidgetPresetEntity.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", payload.id as CVarArg)
@@ -1106,30 +1107,137 @@ extension CoreDataManager {
         entity.name = payload.name
         entity.productIDsData = try encodeProductIDs(ids: payload.productIDs)
         entity.updatedAt = payload.updatedAt
+
         do {
             try context.save()
         } catch {
             throw CoreDataError.saveFailed
         }
     }
-    
+
     func deleteWidgetPreset(id: UUID) throws {
         let request = WidgetPresetEntity.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         request.fetchLimit = 1
         guard let entity = try context.fetch(request).first else { return }
         context.delete(entity)
+
         do {
             try context.save()
         } catch {
             throw CoreDataError.contextSaveFailed(error)
         }
     }
-    
+
     private func encodeProductIDs(ids: [UUID]) throws -> Data {
         try JSONEncoder().encode(ids)
     }
     private func decodeProductIDs(data: Data) throws -> [UUID] {
         try JSONDecoder().decode([UUID].self, from: data)
+    }
+}
+
+//MARK: - CartItem CRUD
+extension CoreDataManager {
+    // MARK: CartItem Create
+    func createCartItem(_ payload: CartItemPayload) throws {
+        let request = CartItemEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", payload.id as CVarArg)
+
+        let count = (try? context.count(for: request)) ?? 0
+        guard count == 0 else { return }
+
+        let entity = CartItemEntity(context: context)
+        entity.id = payload.id
+        entity.referenceId = payload.referenceId
+        entity.name = payload.name
+        entity.mainCategory = payload.mainCategory
+        entity.quantity = Int32(payload.quantity)
+        entity.createDate = payload.createdAt
+
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+
+    // MARK: CartItem Read
+    func fetchCartItem(of id: UUID) throws -> CartItemPayload {
+        let entity = try fetchCartItemEntity(of: id)
+
+        return makeCartItemPayload(entity)
+    }
+
+    func fetchAllCartItems() throws -> [CartItemPayload] {
+        let request: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(key: "createDate", ascending: false)
+        ]
+
+        do {
+            return try context.fetch(request).map {
+                makeCartItemPayload($0)
+            }
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+
+    // MARK: CartItem Update
+    func updateCartItem(_ payload: CartItemPayload) throws {
+        let entity = try fetchCartItemEntity(of: payload.id)
+
+        entity.referenceId = payload.referenceId
+        entity.name = payload.name
+        entity.mainCategory = payload.mainCategory
+        entity.quantity = Int32(payload.quantity)
+        entity.createDate = payload.createdAt
+
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.saveFailed
+        }
+    }
+
+    // MARK: CartItem Delete
+    func deleteCartItem(id: UUID) throws {
+        let entity = try fetchCartItemEntity(of: id)
+        context.delete(entity)
+
+        do {
+            try context.save()
+        } catch {
+            throw CoreDataError.contextSaveFailed(error)
+        }
+    }
+
+    // MARK: CartItem Private Fetch
+    private func fetchCartItemEntity(of id: UUID) throws -> CartItemEntity {
+        let request: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+
+        do {
+            guard let entity = try context.fetch(request).first else {
+                throw CoreDataError.empty
+            }
+            return entity
+        } catch {
+            throw CoreDataError.loadFailed
+        }
+    }
+
+    /// CartItemEntity를 Payload로 변환
+    private func makeCartItemPayload(_ entity: CartItemEntity) -> CartItemPayload {
+        CartItemPayload(
+            id: entity.id ?? UUID(),
+            referenceId: entity.referenceId,
+            name: entity.name ?? "",
+            mainCategory: entity.mainCategory ?? "",
+            quantity: Int(entity.quantity),
+            createdAt: entity.createDate ?? Date()
+        )
     }
 }
