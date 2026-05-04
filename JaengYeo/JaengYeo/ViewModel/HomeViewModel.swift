@@ -116,8 +116,7 @@ final class HomeViewModel: ViewModelProtocol {
                 do {
                     let food = try self.coreDataManager.fetchByMainCategory(mainCategory: "식재료")
                     let household = try self.coreDataManager.fetchByMainCategory(mainCategory: "생활용품")
-                    return[
-                        CategorySummary(
+                    let summaries = [CategorySummary(
                             name: "식재료",
                             totalCount: food.count,
                             midCategoryCount: Set(food.compactMap { $0.midCategoryId}).count,
@@ -129,7 +128,8 @@ final class HomeViewModel: ViewModelProtocol {
                             midCategoryCount: Set(household.compactMap { $0.midCategoryId }).count,
                             subCategoryCount: Set(household.compactMap { $0.subCategoryId }).count
                         )
-                    ].filter { $0.totalCount > 0 }
+                    ]
+                    return summaries.contains(where: { $0.totalCount > 0 }) ? summaries : []
                 } catch {
                     return []
                 }
@@ -139,14 +139,19 @@ final class HomeViewModel: ViewModelProtocol {
             .map { [weak self] _ -> [StatusSummary] in
                 guard let self else { return [] }
                 do {
-                    let expiryImminent = try self.coreDataManager.fetchExpiryImminent(day: 1)
+                    let expiryImminent = try self.coreDataManager.fetchExpiryImminent(day: 3)
                     let expiryTotal = try self.coreDataManager.fetchWithExpiryDate()
                     let lowStockImminent = try self.coreDataManager.fetchLowStock()
                     let lowStockTotal = try self.coreDataManager.fetchLowStockEnabled()
                     return [
                         StatusSummary(type: .expiry, imminentCount: expiryImminent.count, totalCount: expiryTotal.count),
                         StatusSummary(type: .lowStock,imminentCount: lowStockImminent.count, totalCount: lowStockTotal.count)
-                    ].filter { $0.totalCount > 0 }
+                    ].filter {
+                        switch $0.type {
+                        case .expiry: return $0.imminentCount > 0
+                        case .lowStock: return $0.totalCount > 0
+                        }
+                    }
                 } catch {
                     return []
                 }

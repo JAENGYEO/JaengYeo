@@ -28,6 +28,11 @@ final class AppCoordinator {
     private let authManager: AuthManagerProtocol
     private var syncManager: SyncManagerProtocol?
     private var childCoordinators: [Any] = []
+    private weak var mainController: MainController?
+    private weak var registerCoordinator: RegisterCoordinator?
+    private weak var homeCoordinator: HomeCoordinator?
+    private weak var cartCoordinator: CartCoordinator?
+    private var pendingDeepLink: DeepLink?
     private let disposeBag = DisposeBag()
     
     init(window: UIWindow) {
@@ -145,6 +150,7 @@ final class AppCoordinator {
             coreDataManager: coreDataManager,
             authManager: authManager
         )
+        self.homeCoordinator = homeCoordinator
         
         let registerCoordinator = RegisterCoordinator(
             productManager: productManager,
@@ -154,6 +160,7 @@ final class AppCoordinator {
             client: client,
             authManager: authManager
         )
+        self.registerCoordinator = registerCoordinator
         
         let stockCoordinator = StockCoordinator(
             productManager: productManager,
@@ -166,6 +173,7 @@ final class AppCoordinator {
             coreDataManager: coreDataManager,
             authManager: authManager
         )
+        self.cartCoordinator = cartCoordinator
         
         childCoordinators = [
             homeCoordinator,
@@ -180,6 +188,7 @@ final class AppCoordinator {
             stockNavigationController: stockCoordinator.navigationController,
             cartNavigationController: cartCoordinator.navigationController
         )
+        self.mainController = mainController
 
         mainController.onCartTabSelected = { [weak mainController, weak cartCoordinator] in
             guard let navigationController = mainController?.selectedViewController as? UINavigationController else {
@@ -232,6 +241,13 @@ final class AppCoordinator {
             })
             .disposed(by: disposeBag)
         
+        registerCoordinator.navigateToHome
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak mainController] in
+                mainController?.selectedIndex = Tab.home.rawValue
+            })
+            .disposed(by: disposeBag)
+        
         stockCoordinator.navigateToRegister
             .observe(on: MainScheduler.instance)
             .bind(onNext: { [weak mainController] in
@@ -255,6 +271,10 @@ final class AppCoordinator {
             .disposed(by: disposeBag)
         
         window.rootViewController = mainController
+        if let deepLink = pendingDeepLink {
+            pendingDeepLink = nil
+            handle(deepLink: deepLink)
+        }
     }
 }
 
@@ -262,5 +282,37 @@ extension AppCoordinator: OnboardingViewControllerDelegate {
     func didTapOnboardingStartButton() {
         UserDefaults.standard.set(true, forKey: UserDefaultsKey.hasSeenOnboarding)
         showMain()
+    }
+}
+
+extension AppCoordinator {
+    func handle(deepLink: DeepLink) {
+        guard mainController != nil else {
+            pendingDeepLink = deepLink
+            return
+        }
+        switch deepLink {
+        case .product(let id):
+            break
+        case .confirmDelete(let id):
+            mainController?.selectedIndex = Tab.home.rawValue
+            homeCoordinator?.showConfirmDelete(productID: id)
+        case .lowStockList:
+            mainController?.selectedIndex = Tab.home.rawValue
+            homeCoordinator?.showLowStockList()
+        case .expiryList:
+            mainController?.selectedIndex = Tab.home.rawValue
+            homeCoordinator?.showExpiryImminentList()
+        case .camera(let mode):
+            mainController?.selectedIndex = Tab.register.rawValue
+            registerCoordinator?.switchCameraMode(mode: mode)
+        case .widgetSettings:
+            mainController?.selectedIndex = Tab.home.rawValue
+            homeCoordinator?.showWidgetSettings()
+        case .cart:
+            mainController?.selectedIndex = Tab.home.rawValue
+            guard let navigation = homeCoordinator?.navigationController else { return }
+            cartCoordinator?.pushCartViewController(from: navigation)
+        }
     }
 }

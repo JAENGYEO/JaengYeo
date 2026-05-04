@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum CameraMode {
+enum CameraMode: String {
     case barcode // 바코드
     case receipt // 영수증
     case aiVision // Gemini 연결

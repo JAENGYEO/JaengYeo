@@ -75,3 +75,16 @@ extension EmptyStateView {
         }
     }
 }
+
+extension EmptyStateView {
+    func config(title: String, description: String, buttonTitle: String? = nil) {
+        titleLabel.text = title
+        descriptionLabel.text = description
+        if let buttonTitle {
+            actionButton.isHidden = false
+            actionButton.setTitle(buttonTitle, for: .normal)
+        } else {
+            actionButton.isHidden = true
+        }
+    }
+}

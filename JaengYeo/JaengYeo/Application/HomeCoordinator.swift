@@ -26,6 +26,7 @@ final class HomeCoordinator {
     
     private var currentProductPayload: ProductPayload?
     private weak var currentDetailViewController: RegisterDetailViewController?
+    private weak var widgetPresetEditViewController: WidgetPresetEditViewController?
     
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, authManager: AuthManagerProtocol) {
         self.productManager = productManager
@@ -59,7 +60,7 @@ final class HomeCoordinator {
         
         viewModel.navigateToExpiryImminent
             .bind(onNext: { [weak self] _ in
-                self?.pushItemList(type: .expiryImminent(day: 1))
+                self?.pushItemList(type: .expiryImminent(day: 3))
             })
             .disposed(by: disposeBag)
         
@@ -180,7 +181,7 @@ extension HomeCoordinator: RegisterDetailViewControllerDelegate {
             CategorySelectionItem(
                 id: $0.id.uuidString,
                 title: $0.name,
-                image: nil,
+                image: UIImage(named: $0.iconName ?? ""),
                 isSelect: $0.id == midCategory
             )
         }
@@ -202,7 +203,7 @@ extension HomeCoordinator: RegisterDetailViewControllerDelegate {
             CategorySelectionItem(
                 id: $0.id.uuidString,
                 title: $0.name,
-                image: nil,
+                image: UIImage(named: $0.iconName ?? ""),
                 isSelect: $0.id == subCategory
             )
         }
@@ -218,6 +219,9 @@ extension HomeCoordinator: RegisterDetailViewControllerDelegate {
 extension HomeCoordinator: MyPageViewControllerDelegate {
     func didLogout() {
         logoutCompleted.onNext(())
+    }
+    func didTapWidgetSetting() {
+        pushWidgetSetting()
     }
 }
 
@@ -235,5 +239,99 @@ extension HomeCoordinator: ProductDetailViewControllerDelegate {
         _ viewController: ProductDetailViewController
     ) {
         navigateToCart.onNext(navigationController)
+    }
+}
+
+extension HomeCoordinator {
+    private func pushWidgetSetting() {
+        let viewModel = WidgetPresetViewModel(coreDataManager: coreDataManager)
+        let viewController = WidgetPresetViewController(viewModel: viewModel)
+        
+        viewModel.navigateToCreate
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] in
+                self?.pushWidgetPresetEdit(mode: .create)
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.navigateToEdit
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak self] presetID in
+                guard let self,
+                      let payload = try? self.coreDataManager.fetchWidgetPreset(id: presetID) else { return }
+                self.pushWidgetPresetEdit(mode: .edit(payload))
+            })
+            .disposed(by: disposeBag)
+        navigationController.pushViewController(viewController, animated: true)
+    }
+    
+    private func pushWidgetPresetEdit(mode: WidgetPresetEditViewModel.Mode) {
+        let viewModel = WidgetPresetEditViewModel(coreDataManager: coreDataManager, mode: mode)
+        let viewController = WidgetPresetEditViewController(viewModel: viewModel)
+        viewController.delegate = self
+        widgetPresetEditViewController = viewController
+        navigationController.pushViewController(viewController, animated: true)
+    }
+    
+    func showWidgetSettings() {
+        navigationController.popToRootViewController(animated: false)
+        pushWidgetSetting()
+    }
+    
+    func showLowStockList() {
+        navigationController.popToRootViewController(animated: false)
+        pushItemList(type: .lowStock)
+    }
+    
+    func showExpiryImminentList() {
+        navigationController.popToRootViewController(animated: false)
+        pushItemList(type: .expiryImminent(day: 3))
+    }
+
+    func showConfirmDelete(productID: UUID) {
+        navigationController.popToRootViewController(animated: false)
+        guard let topVC = navigationController.topViewController else { return }
+        AlertController.rx.alert(
+            on: topVC,
+            image: UIImage(named: "alertRed") ?? UIImage(),
+            title: "재고 차감",
+            message: "재고가 0이 되면 상품은 삭제됩니다.\n삭제하시겠습니까?",
+            actions: [
+                .cancel("취소"),
+                .destructive("삭제")
+            ]
+        )
+        .filter { $0.title == "삭제" }
+        .subscribe(onNext: { [weak self] _ in
+            guard let self,
+                  let payload = try? self.coreDataManager.fetchProduct(of: productID) else { return }
+            try? self.coreDataManager.updateProduct(
+                payload.toDomain().decreasedQuantity().toPayload()
+            )
+            self.navigationController.topViewController?.viewWillAppear(false)
+        })
+        .disposed(by: disposeBag)
+    }
+}
+
+extension HomeCoordinator: WidgetPresetEditViewControllerDelegate {
+    func widgetPresetEditViewControllerDidRequestProductSelection(currentSelectedIDs: [UUID]) {
+        let viewModel = ProductSelectionViewModel(coreDataManager: coreDataManager, initialSelectedIDs: currentSelectedIDs)
+        let viewController = ProductSelectionViewController(viewModel: viewModel)
+        viewController.delegate = self
+        navigationController.pushViewController(viewController, animated: true)
+    }
+    func widgetPresetEditViewControllerDidSave() {
+        navigationController.popViewController(animated: true)
+    }
+    func widgetPresetEditViewControllerDidDelete() {
+        navigationController.popViewController(animated: true)
+    }
+}
+
+extension HomeCoordinator: ProductSelectionViewControllerDelegate {
+    func productSelectionViewController(_ viewController: ProductSelectionViewController, didConfirmWith ids: [UUID]) {
+        navigationController.popViewController(animated: true)
+        widgetPresetEditViewController?.didCompleteProductSelection(ids: ids)
     }
 }

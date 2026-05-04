@@ -15,6 +15,7 @@ import UIKit
 
 protocol MyPageViewControllerDelegate: AnyObject {
     func didLogout()
+    func didTapWidgetSetting()
 }
 
 final class MyPageViewController: BaseViewController {
@@ -91,6 +92,12 @@ extension MyPageViewController {
         output.presentPermission
             .bind(onNext: { [weak self] in
                 self?.pushPermission()
+            })
+            .disposed(by: disposeBag)
+        
+        output.presentWidgetSetting
+            .bind(onNext: { [weak self] in
+                self?.delegate?.didTapWidgetSetting()
             })
             .disposed(by: disposeBag)
 

@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 
 protocol CoreDataManagerProtocol {
-
+    
     //MARK: - Product
     func createProduct(_ payload: ProductPayload) throws
     func fetchProduct(of id: UUID) throws -> ProductPayload
@@ -74,10 +74,17 @@ protocol CoreDataManagerProtocol {
     func fetchRecentSearches(limit: Int) throws -> [RecentSearchPayload]
     func deleteRecentSearch(id: UUID) throws
     func deleteAllRecentSearches() throws
-
+    
     //MARK: - 계정 삭제
     func deleteAllUserData() throws
     
+    //MARK: - 위젯 프리셋
+    func createWidgetPreset(payload: WidgetPresetPayload) throws
+    func fetchAllWidgetPresets() throws -> [WidgetPresetPayload]
+    func fetchWidgetPreset(id: UUID) throws -> WidgetPresetPayload?
+    func updateWidgetPreset(payload: WidgetPresetPayload) throws
+    func deleteWidgetPreset(id: UUID) throws
+
     //MARK: - 장바구니
     func createCartItem(_ payload: CartItemPayload) throws
     func fetchAllCartItems() throws -> [CartItemPayload]

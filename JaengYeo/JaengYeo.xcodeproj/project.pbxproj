@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		8A73A1D82F83C312007C2A21 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 8A73A1D72F83C312007C2A21 /* Config.xcconfig */; };
+		8A9168AA2FA0A06900C50335 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A9168A92FA0A06900C50335 /* WidgetKit.framework */; };
+		8A9168AC2FA0A06900C50335 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A9168AB2FA0A06900C50335 /* SwiftUI.framework */; };
+		8A9168B92FA0A06B00C50335 /* JaengYeoWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8A9168A72FA0A06900C50335 /* JaengYeoWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8AB4178E2F7E352E002B7DAB /* RxCocoa in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB4178D2F7E352E002B7DAB /* RxCocoa */; };
 		8AB417902F7E352E002B7DAB /* RxRelay in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB4178F2F7E352E002B7DAB /* RxRelay */; };
 		8AB417922F7E352E002B7DAB /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417912F7E352E002B7DAB /* RxSwift */; };
@@ -22,12 +25,68 @@
 		8AB417AA2F7E3637002B7DAB /* RxKeyboard in Frameworks */ = {isa = PBXBuildFile; productRef = 8AB417A92F7E3637002B7DAB /* RxKeyboard */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		8A9168B72FA0A06B00C50335 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8AB417692F7E321D002B7DAB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8A9168A62FA0A06900C50335;
+			remoteInfo = JaengYeoWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8A9168BA2FA0A06B00C50335 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				8A9168B92FA0A06B00C50335 /* JaengYeoWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		8A73A1D72F83C312007C2A21 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		8A9168A72FA0A06900C50335 /* JaengYeoWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = JaengYeoWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A9168A92FA0A06900C50335 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		8A9168AB2FA0A06900C50335 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		8A9168BF2FA0A9CC00C50335 /* JaengYeoWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JaengYeoWidgetExtension.entitlements; sourceTree = "<group>"; };
 		8AB417712F7E321D002B7DAB /* JaengYeo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JaengYeo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8A9168BE2FA0A06B00C50335 /* Exceptions for "JaengYeoWidget" folder in "JaengYeoWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 8A9168A62FA0A06900C50335 /* JaengYeoWidgetExtension */;
+		};
+		8A9168C52FA0CB1700C50335 /* Exceptions for "JaengYeoWidget" folder in "JaengYeo" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CameraShortcutWidget.swift,
+			);
+			target = 8AB417702F7E321D002B7DAB /* JaengYeo */;
+		};
+		8A9168C72FA0CB4100C50335 /* Exceptions for "JaengYeo" folder in "JaengYeoWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Application/DeepLink.swift,
+				"Data/CoreData/CartItemEntity+CoreDataClass.swift",
+				"Data/CoreData/ProductEntity+CoreDataClass.swift",
+				"Data/CoreData/WidgetPresetEntity+CoreDataClass.swift",
+				"Data/CoreData/WidgetPresetEntity+CoreDataProperties.swift",
+				JaengYeo.xcdatamodeld,
+				Model/Domain/Register/CameraMode.swift,
+				Model/DTO/CoreData/WidgetPresetPayload.swift,
+			);
+			target = 8A9168A62FA0A06900C50335 /* JaengYeoWidgetExtension */;
+		};
 		8AB417862F7E321E002B7DAB /* Exceptions for "JaengYeo" folder in "JaengYeo" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -42,10 +101,20 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		8A9168AD2FA0A06900C50335 /* JaengYeoWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8A9168C52FA0CB1700C50335 /* Exceptions for "JaengYeoWidget" folder in "JaengYeo" target */,
+				8A9168BE2FA0A06B00C50335 /* Exceptions for "JaengYeoWidget" folder in "JaengYeoWidgetExtension" target */,
+			);
+			path = JaengYeoWidget;
+			sourceTree = "<group>";
+		};
 		8AB417732F7E321D002B7DAB /* JaengYeo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				8AB417862F7E321E002B7DAB /* Exceptions for "JaengYeo" folder in "JaengYeo" target */,
+				8A9168C72FA0CB4100C50335 /* Exceptions for "JaengYeo" folder in "JaengYeoWidgetExtension" target */,
 			);
 			path = JaengYeo;
 			sourceTree = "<group>";
@@ -53,6 +122,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		8A9168A42FA0A06900C50335 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8A9168AC2FA0A06900C50335 /* SwiftUI.framework in Frameworks */,
+				8A9168AA2FA0A06900C50335 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8AB4176E2F7E321D002B7DAB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -75,11 +153,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8A9168A82FA0A06900C50335 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8A9168A92FA0A06900C50335 /* WidgetKit.framework */,
+				8A9168AB2FA0A06900C50335 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		8AB417682F7E321D002B7DAB = {
 			isa = PBXGroup;
 			children = (
+				8A9168BF2FA0A9CC00C50335 /* JaengYeoWidgetExtension.entitlements */,
 				8A73A1D72F83C312007C2A21 /* Config.xcconfig */,
 				8AB417732F7E321D002B7DAB /* JaengYeo */,
+				8A9168AD2FA0A06900C50335 /* JaengYeoWidget */,
+				8A9168A82FA0A06900C50335 /* Frameworks */,
 				8AB417722F7E321D002B7DAB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,6 +178,7 @@
 			isa = PBXGroup;
 			children = (
 				8AB417712F7E321D002B7DAB /* JaengYeo.app */,
+				8A9168A72FA0A06900C50335 /* JaengYeoWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,6 +186,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		8A9168A62FA0A06900C50335 /* JaengYeoWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8A9168BD2FA0A06B00C50335 /* Build configuration list for PBXNativeTarget "JaengYeoWidgetExtension" */;
+			buildPhases = (
+				8A9168A32FA0A06900C50335 /* Sources */,
+				8A9168A42FA0A06900C50335 /* Frameworks */,
+				8A9168A52FA0A06900C50335 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				8A9168AD2FA0A06900C50335 /* JaengYeoWidget */,
+			);
+			name = JaengYeoWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = JaengYeoWidgetExtension;
+			productReference = 8A9168A72FA0A06900C50335 /* JaengYeoWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		8AB417702F7E321D002B7DAB /* JaengYeo */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8AB417872F7E321E002B7DAB /* Build configuration list for PBXNativeTarget "JaengYeo" */;
@@ -103,10 +216,12 @@
 				8AB4176E2F7E321D002B7DAB /* Frameworks */,
 				8AB4176F2F7E321D002B7DAB /* Resources */,
 				8A5A0E282F7FD99B0007B3F4 /* ShellScript */,
+				8A9168BA2FA0A06B00C50335 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				8A9168B82FA0A06B00C50335 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				8AB417732F7E321D002B7DAB /* JaengYeo */,
@@ -140,6 +255,9 @@
 				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
+					8A9168A62FA0A06900C50335 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
 					8AB417702F7E321D002B7DAB = {
 						CreatedOnToolsVersion = 26.4;
 					};
@@ -171,11 +289,19 @@
 			projectRoot = "";
 			targets = (
 				8AB417702F7E321D002B7DAB /* JaengYeo */,
+				8A9168A62FA0A06900C50335 /* JaengYeoWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		8A9168A52FA0A06900C50335 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8AB4176F2F7E321D002B7DAB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -207,6 +333,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		8A9168A32FA0A06900C50335 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8AB4176D2F7E321D002B7DAB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -216,7 +349,97 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		8A9168B82FA0A06B00C50335 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8A9168A62FA0A06900C50335 /* JaengYeoWidgetExtension */;
+			targetProxy = 8A9168B72FA0A06B00C50335 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		8A9168BB2FA0A06B00C50335 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = JaengYeoWidgetExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = PFJA392RSN;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = JaengYeoWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = JaengYeoWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jaengyoeo.JaengYeo.JaengYeoWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "JaengYeo Widget Development";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		8A9168BC2FA0A06B00C50335 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = JaengYeoWidgetExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = PFJA392RSN;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = JaengYeoWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = JaengYeoWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jaengyoeo.JaengYeo.JaengYeoWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "JaengYeo Widget Distribution";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 		8AB417882F7E321E002B7DAB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -433,6 +656,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		8A9168BD2FA0A06B00C50335 /* Build configuration list for PBXNativeTarget "JaengYeoWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8A9168BB2FA0A06B00C50335 /* Debug */,
+				8A9168BC2FA0A06B00C50335 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		8AB4176C2F7E321D002B7DAB /* Build configuration list for PBXProject "JaengYeo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

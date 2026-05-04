@@ -19,6 +19,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let coordinator = AppCoordinator(window: window)
         self.appCoordinator = coordinator
         coordinator.start()
+        
+        if let url = connectionOptions.urlContexts.first?.url,
+           let deepLink = DeepLink(url: url) {
+            coordinator.handle(deepLink: deepLink)
+        }
+    }
+    
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url,
+              let deepLink = DeepLink(url: url) else { return }
+        appCoordinator?.handle(deepLink: deepLink)
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
