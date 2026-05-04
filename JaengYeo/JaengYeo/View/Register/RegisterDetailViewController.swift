@@ -119,7 +119,7 @@ extension RegisterDetailViewController {
         mainView.cautionField.text = item.caution
         mainView.brandField.text = item.brand
         mainView.stockAlertLabel.text = item.lowStockThreshold.map { String($0) } ?? "0"
-        fieldsSelectedRelay.accept(item.selectedFields)
+        fieldsSelectedRelay.accept(Set(RegisterOptionField.allCases))
         if let image = item.image {
             mainView.photoButton.setImage(image, for: .normal)
             mainView.photoButton.imageView?.contentMode = .scaleAspectFill
@@ -291,20 +291,6 @@ extension RegisterDetailViewController {
         
         let output = viewModel.transform(input)
         
-        output.selectedFields
-            .observe(on: MainScheduler.instance)
-            .bind(onNext: { [weak self] fields in
-                guard let self else { return }
-                mainView.subCategoryGroupView.isHidden = !fields.contains(.subCategory)
-                mainView.photoGroupView.isHidden = !fields.contains(.photo)
-                mainView.expiryDateGroupView.isHidden = !fields.contains(.expiryDate)
-                mainView.cautionGroupView.isHidden = !fields.contains(.caution)
-                mainView.brandGroupView.isHidden = !fields.contains(.brand)
-                mainView.stockAlertGroupView.isHidden = !fields.contains(.stockAlert)
-                mainView.memoGroupView.isHidden = !fields.contains(.memo)
-            })
-            .disposed(by: disposeBag)
-        
         output.stockAlertValue
             .observe(on: MainScheduler.instance)
             .bind(to: mainView.stockAlertLabel.rx.text)
@@ -361,12 +347,6 @@ extension RegisterDetailViewController {
             })
             .disposed(by: disposeBag)
         
-        mainView.addInfoButton.rx.tap
-            .bind(onNext: { [weak self] in
-                self?.presentExtraField()
-            })
-            .disposed(by: disposeBag)
-
         let purchaseDateTap = UITapGestureRecognizer()
         mainView.purchaseDateGroupView.isUserInteractionEnabled = true
         mainView.purchaseDateGroupView.addGestureRecognizer(purchaseDateTap)
@@ -381,38 +361,6 @@ extension RegisterDetailViewController {
             .bind(onNext: { [weak self] _ in self?.presentDatePicker(type: .expiryDate) })
             .disposed(by: disposeBag)
 
-        bindDeleteButtons()
-    }
-
-    private func bindDeleteButtons() {
-        let deleteBindings: [(UIButton, RegisterOptionField)] = [
-            (mainView.subCategoryDeleteButton, .subCategory),
-            (mainView.photoDeleteButton, .photo),
-            (mainView.expiryDateDeleteButton, .expiryDate),
-            (mainView.cautionDeleteButton, .caution),
-            (mainView.brandDeleteButton, .brand),
-            (mainView.stockAlertDeleteButton, .stockAlert),
-            (mainView.memoDeleteButton, .memo)
-        ]
-        deleteBindings.forEach { button, field in
-            button.rx.tap
-                .bind(onNext: { [weak self] in
-                    guard let self else { return }
-                    clearFields([field])
-                    var fields = viewModel.currentFields
-                    fields.remove(field)
-                    fieldsSelectedRelay.accept(fields)
-                })
-                .disposed(by: disposeBag)
-        }
-    }
-}
-
-extension RegisterDetailViewController {
-    private func presentExtraField() {
-        let sheet = RegisterFieldSelectViewController(selectedFields: viewModel.currentFields)
-        sheet.delegate = self
-        present(sheet, animated: false)
     }
 
     private func presentDatePicker(type: DatePickerBottomSheetViewController.DatePickerType) {
@@ -427,37 +375,6 @@ extension RegisterDetailViewController {
         sheet.delegate = self
         sheet.datePickerType = type
         present(sheet, animated: false)
-    }
-}
-
-extension RegisterDetailViewController: RegisterFieldSelectViewControllerDelegate {
-    func didSelect(fields: Set<RegisterOptionField>) {
-        let removed = viewModel.currentFields.subtracting(fields)
-        clearFields(removed)
-        fieldsSelectedRelay.accept(fields)
-    }
-
-    private func clearFields(_ fields: Set<RegisterOptionField>) {
-        for field in fields {
-            switch field {
-            case .subCategory:
-                mainView.subCategoryField.text = nil
-                subCategorySelectedRelay.accept(nil)
-                subCategoryIconNameRelay.accept(nil)
-            case .expiryDate:
-                mainView.expiryDateField.text = nil
-            case .caution:
-                mainView.cautionField.text = nil
-            case .brand:
-                mainView.brandField.text = nil
-            case .memo:
-                mainView.memoField.text = nil
-            case .photo:
-                imageClearedRelay.accept(())
-            case .stockAlert:
-                stockAlertClearedRelay.accept(())
-            }
-        }
     }
 }
 
