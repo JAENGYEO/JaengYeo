@@ -29,6 +29,7 @@ final class RegisterCoordinator {
     private weak var registerViewController: RegisterViewController?
     
     let navigateToStock = PublishSubject<Void>()
+    let navigateToHome = PublishSubject<Void>()
     
     init(productManager: ProductManagerProtocol, categoryManager: CategoryManagerProtocol, coreDataManager: CoreDataManagerProtocol, syncManager: SyncManagerProtocol, client: SupabaseClient, authManager: AuthManagerProtocol) {
         self.productManager = productManager
@@ -81,8 +82,7 @@ extension RegisterCoordinator: RegisterViewControllerDelegate {
         viewModel.navigateToStock
             .bind(onNext: { [weak self] in
                 guard let self else { return }
-                navigationController.setViewControllers(Array(navigationController.viewControllers.prefix(1)), animated: false)
-                navigateToStock.onNext(())
+                self.pushRegisterComplete()
             })
             .disposed(by: disposeBag)
         
@@ -203,5 +203,24 @@ extension RegisterCoordinator {
             )
             registerViewController?.pendingMode = nil
         }
+    }
+}
+
+extension RegisterCoordinator {
+    private func pushRegisterComplete() {
+        let viewController = RegisterCompleteViewController()
+        viewController.delegate = self
+        navigationController.pushViewController(viewController, animated: true)
+    }
+}
+
+extension RegisterCoordinator: RegisterCompleteViewControllerDelegate {
+    func didTapStockButton() {
+        navigationController.setViewControllers(Array(navigationController.viewControllers.prefix(1)), animated: false)
+        navigateToStock.onNext(())
+    }
+    func didTapHomeButton() {
+        navigationController.setViewControllers(Array(navigationController.viewControllers.prefix(1)), animated: false)
+        navigateToHome.onNext(())
     }
 }
