@@ -31,6 +31,7 @@ final class AppCoordinator {
     private weak var mainController: MainController?
     private weak var registerCoordinator: RegisterCoordinator?
     private weak var homeCoordinator: HomeCoordinator?
+    private weak var cartCoordinator: CartCoordinator?
     private var pendingDeepLink: DeepLink?
     private let disposeBag = DisposeBag()
     
@@ -172,6 +173,7 @@ final class AppCoordinator {
             coreDataManager: coreDataManager,
             authManager: authManager
         )
+        self.cartCoordinator = cartCoordinator
         
         childCoordinators = [
             homeCoordinator,
@@ -286,6 +288,10 @@ extension AppCoordinator {
         case .widgetSettings:
             mainController?.selectedIndex = Tab.home.rawValue
             homeCoordinator?.showWidgetSettings()
+        case .cart:
+            mainController?.selectedIndex = Tab.home.rawValue
+            guard let navigation = homeCoordinator?.navigationController else { return }
+            cartCoordinator?.pushCartViewController(from: navigation)
         }
     }
 }
