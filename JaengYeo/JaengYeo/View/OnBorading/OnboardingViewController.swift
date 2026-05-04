@@ -16,7 +16,7 @@ protocol OnboardingViewControllerDelegate: AnyObject {
 final class OnboardingViewController: BaseViewController {
 
     //MARK: - Properties
-    private let pageCount = 5
+    private let pageCount = 6
     weak var delegate: OnboardingViewControllerDelegate?
 
     //MARK: - Components
@@ -39,7 +39,7 @@ final class OnboardingViewController: BaseViewController {
         $0.currentPage = 0
         $0.pageIndicatorTintColor = .gray200
         $0.currentPageIndicatorTintColor = .accent
-        $0.numberOfPages = 5
+        $0.numberOfPages = 6
         $0.isUserInteractionEnabled = false
     }
 
@@ -181,7 +181,8 @@ private extension OnboardingViewController {
             OnboardingSecondView(),
             OnboardingThirdView(),
             OnboardingFourthView(),
-            OnboardingFifthView()
+            OnboardingFifthView(),
+            OnboardingSixthView()
         ]
     }
 }

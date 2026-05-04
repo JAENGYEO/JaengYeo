@@ -188,6 +188,20 @@ final class AppCoordinator {
 
             cartCoordinator?.pushCartViewController(from: navigationController)
         }
+
+        homeCoordinator.navigateToCart
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak cartCoordinator] navigationController in
+                cartCoordinator?.pushCartViewController(from: navigationController)
+            })
+            .disposed(by: disposeBag)
+
+        stockCoordinator.navigateToCart
+            .observe(on: MainScheduler.instance)
+            .bind(onNext: { [weak cartCoordinator] navigationController in
+                cartCoordinator?.pushCartViewController(from: navigationController)
+            })
+            .disposed(by: disposeBag)
         
         homeCoordinator.navigateToCategory
             .observe(on: MainScheduler.instance)

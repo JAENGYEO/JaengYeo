@@ -29,9 +29,9 @@ final class CategoryEditViewController: BaseViewController {
         var title: String {
             switch self {
             case .midCategory:
-                return "중분류 (위치)"
+                return "보관 위치"
             case .subCategory:
-                return "소분류 (종류)"
+                return "종류"
             }
         }
         

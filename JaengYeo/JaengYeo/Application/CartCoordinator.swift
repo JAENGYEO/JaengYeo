@@ -60,6 +60,7 @@ extension CartCoordinator: StockSearchViewControllerDelegate {
                 coreDataManager: coreDataManager
             )
         )
+        viewController.delegate = self
         currentNavigationController?.pushViewController(viewController, animated: true)
     }
 }
@@ -106,5 +107,28 @@ extension CartCoordinator: PurchaseConfirmViewControllerDelegate {
     ) {
         currentNavigationController?.popToRootViewController(animated: false)
         navigateToUnclassified.onNext(())
+    }
+}
+
+extension CartCoordinator: ProductDetailViewControllerDelegate {
+    func productDetailViewController(
+        _ viewController: ProductDetailViewController,
+        didTapModify formData: RegisterFormData,
+        originalPayload: ProductPayload
+    ) {
+    }
+
+    func productDetailViewControllerDidAddToCart(
+        _ viewController: ProductDetailViewController
+    ) {
+        guard let cartViewController = currentNavigationController?
+            .viewControllers
+            .first(where: { $0 is CartViewController })
+        else { return }
+
+        currentNavigationController?.popToViewController(
+            cartViewController,
+            animated: true
+        )
     }
 }

@@ -17,6 +17,9 @@ protocol ProductDetailViewControllerDelegate: AnyObject {
         didTapModify formData: RegisterFormData,
         originalPayload: ProductPayload
     )
+    func productDetailViewControllerDidAddToCart(
+        _ viewController: ProductDetailViewController
+    )
 }
 
 final class ProductDetailViewController: BaseViewController {
@@ -160,6 +163,13 @@ extension ProductDetailViewController {
             })
             .disposed(by: disposeBag)
 
+        output.addToCartSuccess
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] in
+                guard let self else { return }
+                delegate?.productDetailViewControllerDidAddToCart(self)
+            })
+            .disposed(by: disposeBag)
     }
 }
 
