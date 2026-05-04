@@ -146,7 +146,12 @@ final class HomeViewModel: ViewModelProtocol {
                     return [
                         StatusSummary(type: .expiry, imminentCount: expiryImminent.count, totalCount: expiryTotal.count),
                         StatusSummary(type: .lowStock,imminentCount: lowStockImminent.count, totalCount: lowStockTotal.count)
-                    ].filter { $0.totalCount > 0 }
+                    ].filter {
+                        switch $0.type {
+                        case .expiry: return $0.imminentCount > 0
+                        case .lowStock: return $0.totalCount > 0
+                        }
+                    }
                 } catch {
                     return []
                 }
