@@ -70,42 +70,30 @@ final class CoreDataManager: CoreDataManagerProtocol {
     //MARK: 기존 앱 샌드박스 store -> App Group 컨테이너로 마이그레이션 (1회용)
     private static func migrateStoreToAppGroupIfNeeded(url: URL) {
         let defaults = UserDefaults.standard
-        
-        // 이미 완료된 경우
         guard !defaults.bool(forKey: migrationCompletedKey) else { return }
-        let fileManager = FileManager.default
-        
-        // 기존 store 위치
+
         let oldStoreURL = NSPersistentContainer
             .defaultDirectoryURL()
             .appendingPathComponent("JaengYeo.sqlite")
-        
-        // 기존 store 없을 경우 -> 마이그레이션 불필요
-        guard fileManager.fileExists(atPath: oldStoreURL.path) else {
+
+        guard FileManager.default.fileExists(atPath: oldStoreURL.path) else {
             defaults.set(true, forKey: migrationCompletedKey)
             return
         }
-        
-        let suffixes = ["", "-shm", "-wal"]
-        
-        for suffix in suffixes {
-            let source = URL(fileURLWithPath: oldStoreURL.path + suffix)
-            let destination = URL(fileURLWithPath: url.path + suffix)
-            
-            guard fileManager.fileExists(atPath: source.path) else { continue }
-            
-            if fileManager.fileExists(atPath: destination.path) {
-                try? fileManager.removeItem(at: destination)
-            }
-            
-            do {
-                try fileManager.copyItem(at: source, to: destination)
-            } catch {
-                return
-            }
+
+        do {
+            let coordinator = NSPersistentStoreCoordinator(
+                managedObjectModel: NSPersistentContainer(name: "JaengYeo").managedObjectModel
+            )
+            try coordinator.replacePersistentStore(
+                at: url,
+                withPersistentStoreFrom: oldStoreURL,
+                type: .sqlite
+            )
+            defaults.set(true, forKey: migrationCompletedKey)
+        } catch {
+            // 마이그레이션 실패 시 플래그 미저장 → 다음 실행에 재시도
         }
-        
-        defaults.set(true, forKey: migrationCompletedKey)
     }
     
     // MARK: Custom 설정
