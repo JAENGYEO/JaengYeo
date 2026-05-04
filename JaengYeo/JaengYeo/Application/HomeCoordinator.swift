@@ -301,6 +301,7 @@ extension HomeCoordinator {
             try? self.coreDataManager.updateProduct(
                 payload.toDomain().decreasedQuantity().toPayload()
             )
+            self.navigationController.topViewController?.viewWillAppear(false)
         })
         .disposed(by: disposeBag)
     }
