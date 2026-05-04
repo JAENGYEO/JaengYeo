@@ -15,5 +15,6 @@ struct JaengYeoWidgetBundle: WidgetBundle {
         QuantityWidget()
         LowStockWidget()
         ExpiryWidget()
+        CartWidget()
     }
 }
